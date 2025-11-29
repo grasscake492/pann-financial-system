@@ -1,4 +1,4 @@
 package org.eneity;
 
-public class user {
+public class User {
 }
