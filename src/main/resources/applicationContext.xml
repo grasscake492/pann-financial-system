@@ -2,10 +2,13 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/context
-       http://www.springframework.org/schema/context/spring-context.xsd">
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd">
 
     <!--开启Spring注解支持-->
     <context:annotation-config/>
@@ -13,26 +16,38 @@
     <!--将Service层注册为Spring Bean-->
     <context:component-scan base-package="org.service"/>
 
-    <!--将MyBatis与Spring集成-->
-    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-        <property name="dataSource" ref="dataSource"/>
-        <property name="configLocation" value="classpath:mybatis-config.xml"/>
-    </bean>
-
     <!--引用数据库配置文件-->
     <context:property-placeholder location="classpath:database.properties"/>
 
-    <!--使用MyBatis配置文件中配置的数据源 -->
-    <bean id="dataSource" class="org.apache.ibatis.datasource.pooled.PooledDataSource">
-        <property name="driver" value="${jdbc.driver}"/>
+    <!--配置数据源 - 使用Spring的DriverManagerDataSource-->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${jdbc.driver}"/>
         <property name="url" value="${jdbc.url}"/>
         <property name="username" value="${jdbc.username}"/>
         <property name="password" value="${jdbc.password}"/>
     </bean>
 
+    <!--配置事务管理器11-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--开启注解驱动的事务管理11-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <!--将MyBatis与Spring集成11-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <!--指定Mapper XML文件的位置-->
+        <property name="mapperLocations" value="classpath:mapper/*.xml"/>
+        <!--配置类型别名包-->
+        <property name="typeAliasesPackage" value="org.pannfmis.entity"/>
+    </bean>
+
     <!--配置MyBatis的Mapper扫描器，将Mapper接口注册为Spring Bean -->
     <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-        <property name="basePackage" value="org.dao"/>
+        <property name="basePackage" value="org.pannfmis.dao"/>
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
     </bean>
 
