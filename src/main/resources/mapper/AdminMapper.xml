@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="nux.dao.AdminMapper">
+<mapper namespace="org.dao.AdminMapper">
 
     <!-- 管理员表结果映射 -->
-    <resultMap id="AdminResultMap" type="org.pannfmis.entity.Admin">
+    <resultMap id="AdminResultMap" type="org.entity.Admin">
         <id property="adminId" column="admin_id" />
         <result property="userId" column="user_id" />
         <result property="studentNumber" column="student_number" />

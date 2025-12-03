@@ -1,4 +1,4 @@
-package org.eneity;
+package org.entity;
 
 /**
  * 管理员表实体类

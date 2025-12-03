@@ -1,4 +1,4 @@
-package org.eneity;
+package org.entity;
 
 /**
  * 部门表实体类

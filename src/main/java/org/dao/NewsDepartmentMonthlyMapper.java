@@ -1,6 +1,6 @@
 package org.dao;
 
-import org.eneity.NewsDepartmentMonthly;
+import org.entity.NewsDepartmentMonthly;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

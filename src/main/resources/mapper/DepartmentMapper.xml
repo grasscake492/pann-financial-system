@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.pannfmis.dao.DepartmentMapper">
+<mapper namespace="org.dao.DepartmentMapper">
 
     <!-- 部门表结果映射 -->
-    <resultMap id="DepartmentResultMap" type="org.pannfmis.entity.Department">
+    <resultMap id="DepartmentResultMap" type="org.entity.Department">
         <id property="departmentId" column="department_id" />
         <result property="departmentName" column="department_name" />
     </resultMap>

@@ -1,6 +1,6 @@
 package org.dao;
 
-import org.eneity.Department;
+import org.entity.Department;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

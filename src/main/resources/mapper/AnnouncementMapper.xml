@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.pannfmis.dao.AnnouncementMapper">
+<mapper namespace="org.dao.AnnouncementMapper">
 
     <!-- 公告表结果映射 -->
-    <resultMap id="AnnouncementResultMap" type="org.pannfmis.entity.Announcement">
+    <resultMap id="AnnouncementResultMap" type="org.entity.Announcement">
         <id property="announcementId" column="announcement_id" />
         <result property="title" column="title" />
         <result property="content" column="content" />

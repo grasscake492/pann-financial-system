@@ -1,13 +1,13 @@
-package org.eneity;
+package org.entity;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * 编辑部稿费月表实体类
- * 对应数据库表: editorial_department_monthly
+ * 新闻部稿费月表实体类
+ * 对应数据库表: news_department_monthly
  */
-public class EditorialDepartmentMonthly {
+public class NewsDepartmentMonthly {
     private Long recordId;         // 记录ID
     private String userIds;        // 用户ID数组(JSON格式)
     private String realNames;      // 用户真实姓名数组(JSON格式)
@@ -21,9 +21,9 @@ public class EditorialDepartmentMonthly {
     private Date updatedAt;        // 更新时间
 
     // 构造方法
-    public EditorialDepartmentMonthly() {}
+    public NewsDepartmentMonthly() {}
 
-    // Getter和Setter方法 (与NewsDepartmentMonthly类似)
+    // Getter和Setter方法
     public Long getRecordId() { return recordId; }
     public void setRecordId(Long recordId) { this.recordId = recordId; }
 

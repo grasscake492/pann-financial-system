@@ -1,6 +1,6 @@
 package org.dao;
 
-import org.eneity.Announcement;
+import org.entity.Announcement;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

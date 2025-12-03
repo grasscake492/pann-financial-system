@@ -1,6 +1,6 @@
 package org.dao;
 
-import org.eneity.LoginLog;
+import org.entity.LoginLog;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

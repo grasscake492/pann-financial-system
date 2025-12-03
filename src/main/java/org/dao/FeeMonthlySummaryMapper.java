@@ -1,6 +1,6 @@
 package org.dao;
 
-import org.eneity.FeeMonthlySummary;
+import org.entity.FeeMonthlySummary;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

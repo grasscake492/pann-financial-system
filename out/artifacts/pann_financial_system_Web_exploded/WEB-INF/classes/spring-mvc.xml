@@ -22,6 +22,14 @@
                     </list>
                 </property>
             </bean>
+            <!-- 配置Jackson JSON转换器11 -->
+            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <value>application/json;charset=UTF-8</value>
+                    </list>
+                </property>
+            </bean>
         </mvc:message-converters>
     </mvc:annotation-driven>
 

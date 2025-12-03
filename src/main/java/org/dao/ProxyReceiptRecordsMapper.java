@@ -1,6 +1,6 @@
 package org.dao;
 
-import org.eneity.ProxyReceiptRecords;
+import org.entity.ProxyReceiptRecords;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

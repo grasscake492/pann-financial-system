@@ -1,6 +1,6 @@
 package org.dao;
 
-import org.eneity.Permission;
+import org.entity.Permission;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

@@ -1,6 +1,6 @@
 package org.dao;
 
-import org.eneity.Feedback;
+import org.entity.Feedback;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

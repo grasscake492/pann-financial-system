@@ -1,6 +1,4 @@
-package org.eneity;
-
-import java.util.Date;
+package org.entity;
 
 /**
  * 用户表实体类
