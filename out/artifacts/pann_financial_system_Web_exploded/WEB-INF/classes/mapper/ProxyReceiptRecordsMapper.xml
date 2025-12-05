@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.pannfmis.dao.ProxyReceiptRecordsMapper">
+<mapper namespace="org.dao.ProxyReceiptRecordsMapper">
 
     <!-- 代领记录表结果映射 -->
-    <resultMap id="ProxyReceiptRecordsResultMap" type="org.pannfmis.entity.ProxyReceiptRecords">
+    <resultMap id="ProxyReceiptRecordsResultMap" type="org.entity.ProxyReceiptRecords">
         <id property="proxyId" column="proxy_id" />
         <result property="feeRecordId" column="fee_record_id" />
         <result property="departmentId" column="department_id" />

@@ -42,12 +42,12 @@
         <!--指定Mapper XML文件的位置-->
         <property name="mapperLocations" value="classpath:mapper/*.xml"/>
         <!--配置类型别名包-->
-        <property name="typeAliasesPackage" value="org.pannfmis.entity"/>
+        <property name="typeAliasesPackage" value="org.entity"/>
     </bean>
 
     <!--配置MyBatis的Mapper扫描器，将Mapper接口注册为Spring Bean -->
     <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-        <property name="basePackage" value="org.pannfmis.dao"/>
+        <property name="basePackage" value="org.dao"/>
         <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
     </bean>
 

@@ -16,7 +16,7 @@
     </settings>
 
     <typeAliases>
-        <package name="nxu.entity"/>
+        <package name="org.entity"/>
     </typeAliases>
 
     <!-- 配置PageHelper拦截器 -->
@@ -32,7 +32,7 @@
 
     <mappers>
         <!--如果resources目录下存放xml文件的 包路径 和 java目录下存放dao接口的 包路径 相同的话，还可以使用package来配置-->
-        <!--<package name="nxu.dao"/>-->
+        <!--<package name = org.dao"/>-->
         <mapper resource="mapper/UserMapper.xml"/>
         <mapper resource="mapper/AdminMapper.xml"/>
         <mapper resource="mapper/DepartmentMapper.xml"/>

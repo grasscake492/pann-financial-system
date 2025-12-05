@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.pannfmis.dao.NewsDepartmentMonthlyMapper">
+<mapper namespace="org.dao.NewsDepartmentMonthlyMapper">
 
     <!-- 新闻部稿费月表结果映射 -->
-    <resultMap id="NewsDepartmentMonthlyResultMap" type="org.pannfmis.entity.NewsDepartmentMonthly">
+    <resultMap id="NewsDepartmentMonthlyResultMap" type="org.entity.NewsDepartmentMonthly">
         <id property="recordId" column="record_id" />
         <result property="userIds" column="user_ids" />
         <result property="realNames" column="real_names" />

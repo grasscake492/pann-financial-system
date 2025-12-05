@@ -28,6 +28,7 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
             <version>6.2.2</version>
+            <scope>compile</scope> <!-- 确保是 compile 作用域 -->
         </dependency>
 
         <!--Mybatis-->
