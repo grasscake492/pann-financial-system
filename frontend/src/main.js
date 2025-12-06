@@ -8,6 +8,8 @@ import router from './router'
 import App from './App.vue'
 // 导入全局样式（核心步骤）
 import './assets/css/global.css'
+import ElementPlus from 'element-plus' // 引入Element Plus核心
+import 'element-plus/dist/index.css' // 引入样式
 // 创建Vue应用实例
 const app = createApp(App)
 
