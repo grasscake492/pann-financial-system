@@ -1,57 +1,57 @@
 <template>
   <div class="page-container">
     <Navbar />
-    <!-- 标题区域（带紫色标识线） -->
+    <!-- 标题区域：和内容卡片统一对齐 -->
     <div class="title-wrapper">
-      <div class="title-line"></div>
-      <slot name="page-title">默认标题</slot>
+
+      <slot name="page-title"></slot>
     </div>
 
-    <!-- 白色内容卡片 -->
-    <div class="content-card">
+    <!-- 内容容器：包裹所有内容，避免被Navbar遮挡 -->
+    <div class="content-wrapper">
       <slot name="card-content"></slot>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* 页面容器：重置布局，避免溢出 */
 .page-container {
-  min-height: 100vh; /* 确保占满整个视口高度 */
-  background-color: #f0f0f0; /* 浅灰背景 */
+  min-height: 100vh;
+  background-color: #f0f0f0;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  padding-top: 0px; /* 给Navbar留空间（Navbar高度一般是60-80px） */
 }
 
-/* 标题区域样式（带左侧紫色线） */
+/* 标题区域：和内容卡片左对齐 */
 .title-wrapper {
   display: flex;
-  align-items: center; /* 垂直居中对齐 */
-  margin-left: 150px; /* 与卡片左侧对齐 */
-  margin-top: 50px;
-  margin-bottom: 20px; /* 与卡片拉开距离 */
+  align-items: center;
+  margin-left: 15%; /* 匹配内容卡片的左侧间距（内容宽度70%，居中后左右各15%） */
+  margin-bottom: 20px;
   font-size: 24px;
   font-weight: 500;
   color: #333;
 }
 
-/* 标题前的紫色标识线 */
 .title-line {
   width: 4px;
   height: 28px;
-  background-color: #9b8eb4; /* 紫色线条 */
-  margin-right: 12px; /* 与文字间距 */
+  background-color: #9b8eb4;
+  margin-right: 12px;
 }
 
-/* 白色内容卡片样式 */
-.content-card {
+/* 内容容器：替代原content-card，统一控制内容区域 */
+.content-wrapper {
+  width: 70%;
+  margin: 0 auto;
   background-color: white;
   border-radius: 8px;
-  padding: 60px 80px; /* 增加内边距，更宽松 */
-  width: 70%; /* 调整宽度更接近设计 */
-  min-height: 400px; /* 最小高度，内容多会撑开 */
-  margin: 0 auto; /* 水平居中 */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* 轻微阴影 */
+  padding: 30px 40px;
+  min-height: 400px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   box-sizing: border-box;
 }
 </style>
