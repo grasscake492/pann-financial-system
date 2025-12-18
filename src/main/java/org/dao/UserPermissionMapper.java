@@ -35,13 +35,6 @@ public interface UserPermissionMapper {
     List<UserPermission> selectByPermissionId(Long permissionId);
 
     /**
-     * 查询用户的所有权限ID
-     * @param userId 用户ID
-     * @return 权限ID列表
-     */
-    List<Long> selectPermissionIdsByUserId(Long userId);
-
-    /**
      * 插入用户权限关联
      * @param userPermission 用户权限关联对象
      * @return 影响的行数

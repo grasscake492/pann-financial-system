@@ -49,13 +49,13 @@
     </select>
 
     <!-- 插入公告 -->
-    <insert id="insertAnnouncement" parameterType="org.pannfmis.entity.Announcement" useGeneratedKeys="true" keyProperty="announcementId">
+    <insert id="insertAnnouncement" parameterType="org.entity.Announcement" useGeneratedKeys="true" keyProperty="announcementId">
         INSERT INTO announcements (title, content, publisher_id, published_at, created_at, updated_at)
         VALUES (#{title}, #{content}, #{publisherId}, NOW(), NOW(), NOW())
     </insert>
 
     <!-- 更新公告 -->
-    <update id="updateAnnouncement" parameterType="org.pannfmis.entity.Announcement">
+    <update id="updateAnnouncement" parameterType="org.entity.Announcement">
         UPDATE announcements SET
                                  title = #{title},
                                  content = #{content},

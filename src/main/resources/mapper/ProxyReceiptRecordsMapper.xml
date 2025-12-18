@@ -75,7 +75,7 @@
     </select>
 
     <!-- 插入代领记录 -->
-    <insert id="insertProxyRecord" parameterType="org.pannfmis.entity.ProxyReceiptRecords" useGeneratedKeys="true" keyProperty="proxyId">
+    <insert id="insertProxyRecord" parameterType="org.entity.ProxyReceiptRecords" useGeneratedKeys="true" keyProperty="proxyId">
         INSERT INTO proxy_receipt_records
         (fee_record_id, department_id, original_user_id, original_real_name, original_student_number,
          proxy_user_id, proxy_real_name, proxy_student_number, article_title, fee_amount, proxy_month, created_at, updated_at)
@@ -84,7 +84,7 @@
     </insert>
 
     <!-- 更新代领记录 -->
-    <update id="updateProxyRecord" parameterType="org.pannfmis.entity.ProxyReceiptRecords">
+    <update id="updateProxyRecord" parameterType="org.entity.ProxyReceiptRecords">
         UPDATE proxy_receipt_records SET
                                          fee_record_id = #{feeRecordId},
                                          department_id = #{departmentId},

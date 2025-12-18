@@ -35,6 +35,13 @@ public interface AdminMapper {
     Admin selectByStudentNumber(String studentNumber);
 
     /**
+     * 根据真实姓名查询管理员
+     * @param realName 真实姓名
+     * @return 管理员用户
+     */
+    List<Admin> selectByRealName(String realName);
+
+    /**
      * 查询所有管理员
      * @return 管理员列表
      */
@@ -46,6 +53,13 @@ public interface AdminMapper {
      * @return 管理员列表
      */
     List<Admin> selectByDepartmentId(Long departmentId);
+
+    /**
+     * 根据部门名称查询管理员
+     * @param departmentName 部门名称
+     * @return 管理员列表
+     */
+    List<Admin> selectByDepartmentName(Long departmentName);
 
     /**
      * 查询最高级管理员
@@ -83,9 +97,10 @@ public interface AdminMapper {
     int updateAdminRole(Long adminId, Long departmentId, Boolean isSuperAdmin);
 
     /**
-     * 删除管理员
+     * 根据管理员ID删除管理员
      * @param adminId 管理员ID
      * @return 影响的行数
      */
     int deleteByAdminId(Long adminId);
+
 }

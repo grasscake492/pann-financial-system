@@ -31,13 +31,13 @@
     </select>
 
     <!-- 插入权限 -->
-    <insert id="insertPermission" parameterType="org.pannfmis.entity.Permission" useGeneratedKeys="true" keyProperty="permissionId">
+    <insert id="insertPermission" parameterType="org.entity.Permission" useGeneratedKeys="true" keyProperty="permissionId">
         INSERT INTO permissions (permission_code, permission_name, description, created_at, updated_at)
         VALUES (#{permissionCode}, #{permissionName}, #{description}, NOW(), NOW())
     </insert>
 
     <!-- 更新权限 -->
-    <update id="updatePermission" parameterType="org.pannfmis.entity.Permission">
+    <update id="updatePermission" parameterType="org.entity.Permission">
         UPDATE permissions SET
                                permission_code = #{permissionCode},
                                permission_name = #{permissionName},

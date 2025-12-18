@@ -17,37 +17,62 @@
     <!-- 根据管理员ID查询 -->
     <select id="selectByAdminId" parameterType="java.lang.Long" resultMap="AdminResultMap">
         SELECT admin_id, user_id, student_number, real_name, password, email, department_id, is_super_admin
-        FROM admins WHERE admin_id = #{adminId}
+        FROM admins
+        WHERE admin_id = #{adminId}
     </select>
 
     <!-- 根据用户ID查询管理员 -->
     <select id="selectByUserId" parameterType="java.lang.Long" resultMap="AdminResultMap">
         SELECT admin_id, user_id, student_number, real_name, password, email, department_id, is_super_admin
-        FROM admins WHERE user_id = #{userId}
+        FROM admins
+        WHERE user_id = #{userId}
     </select>
 
     <!-- 根据学号查询管理员 -->
     <select id="selectByStudentNumber" parameterType="java.lang.String" resultMap="AdminResultMap">
         SELECT admin_id, user_id, student_number, real_name, password, email, department_id, is_super_admin
-        FROM admins WHERE student_number = #{studentNumber}
+        FROM admins
+        WHERE student_number = #{studentNumber}
+    </select>
+
+    <!-- 根据真实姓名查询管理员 -->
+    <select id="selectByRealName" parameterType="java.lang.String" resultMap="AdminResultMap">
+        SELECT admin_id, user_id, student_number, real_name, password, email, department_id, is_super_admin
+        FROM admins
+        WHERE real_name = #{realName}
+        ORDER BY admin_id
     </select>
 
     <!-- 查询所有管理员 -->
     <select id="selectAllAdmins" resultMap="AdminResultMap">
         SELECT admin_id, user_id, student_number, real_name, password, email, department_id, is_super_admin
-        FROM admins ORDER BY admin_id
+        FROM admins
+        ORDER BY admin_id
     </select>
 
     <!-- 根据部门ID查询管理员 -->
     <select id="selectByDepartmentId" parameterType="java.lang.Long" resultMap="AdminResultMap">
         SELECT admin_id, user_id, student_number, real_name, password, email, department_id, is_super_admin
-        FROM admins WHERE department_id = #{departmentId} ORDER BY admin_id
+        FROM admins
+        WHERE department_id = #{departmentId}
+        ORDER BY admin_id
+    </select>
+
+    <!-- 根据部门名称查询管理员 -->
+    <select id="selectByDepartmentName" parameterType="java.lang.String" resultMap="AdminResultMap">
+        SELECT a.admin_id, a.user_id, a.student_number, a.real_name, a.password, a.email, a.department_id, a.is_super_admin
+        FROM admins a
+                 INNER JOIN departments d ON a.department_id = d.department_id
+        WHERE d.department_name = #{departmentName}
+        ORDER BY a.admin_id
     </select>
 
     <!-- 查询最高级管理员 -->
     <select id="selectSuperAdmins" resultMap="AdminResultMap">
         SELECT admin_id, user_id, student_number, real_name, password, email, department_id, is_super_admin
-        FROM admins WHERE is_super_admin = true ORDER BY admin_id
+        FROM admins
+        WHERE is_super_admin = true
+        ORDER BY admin_id
     </select>
 
     <!-- 统计管理员数量 -->
@@ -56,33 +81,35 @@
     </select>
 
     <!-- 插入管理员 -->
-    <insert id="insertAdmin" parameterType="org.pannfmis.entity.Admin" useGeneratedKeys="true" keyProperty="adminId">
+    <insert id="insertAdmin" parameterType="org.entity.Admin" useGeneratedKeys="true" keyProperty="adminId">
         INSERT INTO admins (user_id, student_number, real_name, password, email, department_id, is_super_admin)
         VALUES (#{userId}, #{studentNumber}, #{realName}, #{password}, #{email}, #{departmentId}, #{isSuperAdmin})
     </insert>
 
     <!-- 更新管理员 -->
-    <update id="updateAdmin" parameterType="org.pannfmis.entity.Admin">
-        UPDATE admins SET
-                          user_id = #{userId},
-                          student_number = #{studentNumber},
-                          real_name = #{realName},
-                          password = #{password},
-                          email = #{email},
-                          department_id = #{departmentId},
-                          is_super_admin = #{isSuperAdmin}
+    <update id="updateAdmin" parameterType="org.entity.Admin">
+        UPDATE admins
+        SET user_id = #{userId},
+            student_number = #{studentNumber},
+            real_name = #{realName},
+            email = #{email},
+            department_id = #{departmentId},
+            is_super_admin = #{isSuperAdmin}
         WHERE admin_id = #{adminId}
     </update>
 
     <!-- 更新管理员角色 -->
     <update id="updateAdminRole">
-        UPDATE admins SET department_id = #{departmentId}, is_super_admin = #{isSuperAdmin}
+        UPDATE admins
+        SET department_id = #{departmentId},
+            is_super_admin = #{isSuperAdmin}
         WHERE admin_id = #{adminId}
     </update>
 
-    <!-- 删除管理员 -->
+    <!-- 根据管理员ID删除管理员 -->
     <delete id="deleteByAdminId" parameterType="java.lang.Long">
-        DELETE FROM admins WHERE admin_id = #{adminId}
+        DELETE FROM admins
+        WHERE admin_id = #{adminId}
     </delete>
 
 </mapper>

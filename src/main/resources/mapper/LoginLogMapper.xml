@@ -45,7 +45,7 @@
     </select>
 
     <!-- 插入登录日志 -->
-    <insert id="insertLoginLog" parameterType="org.pannfmis.entity.LoginLog" useGeneratedKeys="true" keyProperty="logId">
+    <insert id="insertLoginLog" parameterType="org.entity.LoginLog" useGeneratedKeys="true" keyProperty="logId">
         INSERT INTO login_logs (user_id, ip_address, login_at, status)
         VALUES (#{userId}, #{ipAddress}, NOW(), #{status})
     </insert>

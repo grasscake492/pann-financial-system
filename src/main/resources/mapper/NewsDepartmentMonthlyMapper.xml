@@ -60,14 +60,14 @@
     </select>
 
     <!-- 插入稿费记录 -->
-    <insert id="insertRecord" parameterType="org.pannfmis.entity.NewsDepartmentMonthly" useGeneratedKeys="true" keyProperty="recordId">
+    <insert id="insertRecord" parameterType="org.entity.NewsDepartmentMonthly" useGeneratedKeys="true" keyProperty="recordId">
         INSERT INTO news_department_monthly
         (user_ids, real_names, student_numbers, article_title, article_type, fee_amount, statistical_month, department_id, created_at, updated_at)
         VALUES (#{userIds}, #{realNames}, #{studentNumbers}, #{articleTitle}, #{articleType}, #{feeAmount}, #{statisticalMonth}, #{departmentId}, NOW(), NOW())
     </insert>
 
     <!-- 更新稿费记录 -->
-    <update id="updateRecord" parameterType="org.pannfmis.entity.NewsDepartmentMonthly">
+    <update id="updateRecord" parameterType="org.entity.NewsDepartmentMonthly">
         UPDATE news_department_monthly SET
                                            user_ids = #{userIds},
                                            real_names = #{realNames},

@@ -46,14 +46,14 @@
     </select>
 
     <!-- 插入汇总记录 -->
-    <insert id="insertSummary" parameterType="org.pannfmis.entity.FeeMonthlySummary" useGeneratedKeys="true" keyProperty="summaryId">
+    <insert id="insertSummary" parameterType="org.entity.FeeMonthlySummary" useGeneratedKeys="true" keyProperty="summaryId">
         INSERT INTO fee_monthly_summary
         (user_id, real_name, student_number, department_id, total_amount, statistical_month, created_at, updated_at)
         VALUES (#{userId}, #{realName}, #{studentNumber}, #{departmentId}, #{totalAmount}, #{statisticalMonth}, NOW(), NOW())
     </insert>
 
     <!-- 更新汇总记录 -->
-    <update id="updateSummary" parameterType="org.pannfmis.entity.FeeMonthlySummary">
+    <update id="updateSummary" parameterType="org.entity.FeeMonthlySummary">
         UPDATE fee_monthly_summary SET
                                        user_id = #{userId},
                                        real_name = #{realName},

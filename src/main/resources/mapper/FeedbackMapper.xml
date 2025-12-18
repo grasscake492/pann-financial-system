@@ -49,13 +49,13 @@
     </select>
 
     <!-- 插入反馈记录 -->
-    <insert id="insertFeedback" parameterType="org.pannfmis.entity.Feedback" useGeneratedKeys="true" keyProperty="feedbackId">
+    <insert id="insertFeedback" parameterType="org.entity.Feedback" useGeneratedKeys="true" keyProperty="feedbackId">
         INSERT INTO feedbacks (user_id, content, reply_content, replied_at, created_at, updated_at)
         VALUES (#{userId}, #{content}, #{replyContent}, #{repliedAt}, NOW(), NOW())
     </insert>
 
     <!-- 更新反馈记录 -->
-    <update id="updateFeedback" parameterType="org.pannfmis.entity.Feedback">
+    <update id="updateFeedback" parameterType="org.entity.Feedback">
         UPDATE feedbacks SET
                              user_id = #{userId},
                              content = #{content},

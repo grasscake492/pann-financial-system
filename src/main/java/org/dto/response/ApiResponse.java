@@ -1,11 +1,14 @@
+// src/main/java/org/dto/response/ApiResponse.java
 package org.dto.response;
+
+import org.constant.ResponseCode;
 
 public class ApiResponse<T> {
     private String resCode;
     private String resMsg;
     private T data;
 
-    // 构造函数
+    // 构造方法
     public ApiResponse() {}
 
     public ApiResponse(String resCode, String resMsg, T data) {
@@ -14,27 +17,64 @@ public class ApiResponse<T> {
         this.data = data;
     }
 
-    // 成功响应静态方法
+    // 成功响应
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>("0000", "success", data);
+        return new ApiResponse<>(ResponseCode.SUCCESS.getCode(), "操作成功", data);
     }
 
-    public static <T> ApiResponse<T> success(String message, T data) {
-        return new ApiResponse<>("0000", message, data);
+    public static <T> ApiResponse<T> success(T data, String message) {
+        return new ApiResponse<>(ResponseCode.SUCCESS.getCode(), message, data);
     }
 
-    // 错误响应静态方法
-    public static <T> ApiResponse<T> error(String resCode, String resMsg) {
-        return new ApiResponse<>(resCode, resMsg, null);
+    public static <T> ApiResponse<T> success(String message) {
+        return new ApiResponse<>(ResponseCode.SUCCESS.getCode(), message, null);
     }
 
-    // Getter和Setter方法
-    public String getResCode() { return resCode; }
-    public void setResCode(String resCode) { this.resCode = resCode; }
+    // 错误响应
+    public static <T> ApiResponse<T> error(String code, String message) {
+        return new ApiResponse<>(code, message, null);
+    }
 
-    public String getResMsg() { return resMsg; }
-    public void setResMsg(String resMsg) { this.resMsg = resMsg; }
+    public static <T> ApiResponse<T> error(ResponseCode code) {
+        return new ApiResponse<>(code.getCode(), code.getMessage(), null);
+    }
 
-    public T getData() { return data; }
-    public void setData(T data) { this.data = data; }
+    // 新增：接受ResponseCode和自定义消息的方法
+    public static <T> ApiResponse<T> error(ResponseCode code, String customMessage) {
+        return new ApiResponse<>(code.getCode(), customMessage, null);
+    }
+
+    // Getters and Setters
+    public String getResCode() {
+        return resCode;
+    }
+
+    public void setResCode(String resCode) {
+        this.resCode = resCode;
+    }
+
+    public String getResMsg() {
+        return resMsg;
+    }
+
+    public void setResMsg(String resMsg) {
+        this.resMsg = resMsg;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
+    }
+
+    @Override
+    public String toString() {
+        return "ApiResponse{" +
+                "resCode='" + resCode + '\'' +
+                ", resMsg='" + resMsg + '\'' +
+                ", data=" + data +
+                '}';
+    }
 }

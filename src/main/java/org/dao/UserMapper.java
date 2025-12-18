@@ -27,12 +27,20 @@ public interface UserMapper {
      */
     User selectByStudentNumber(String studentNumber);
 
+
     /**
      * 根据邮箱查询用户
      * @param email 邮箱
      * @return 用户对象
      */
     User selectByEmail(String email);
+
+    /**
+     * 根据真实姓名查询用户
+     * @param realName 真实姓名
+     * @return 用户列表
+     */
+    List<User> selectByUserName(String realName);
 
     /**
      * 查询所有用户
