@@ -8,13 +8,13 @@
       <div class="form-group">
         <input
             type="text"
-            placeholder="账号"
+            placeholder="学号"
             class="input-field"
-            v-model="form.account"
-            @blur="handleFieldBlur('account')"
+            v-model="form.student_number"
+            @blur="handleFieldBlur('student_number')"
         >
         <!-- 账号错误提示 -->
-        <div class="error-tip" v-if="errors.account">{{ errors.account }}</div>
+        <div class="error-tip" v-if="errors.student_number">{{ errors.student_number }}</div>
       </div>
 
       <!-- 密码输入框 -->
@@ -42,167 +42,138 @@
     </div>
   </PageBackground>
 </template>
-
 <script setup>
 import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import PageBackground from "@/components/PageBackground.vue";
-// 导入token操作工具
-import { setToken, setRole } from '@/utils/auth.js';
-import { loginApi } from "@/api/user.js";
-import { useUserStore } from '@/stores/userStore.js'
-// 加密库（生成sign签名）
-import md5 from 'js-md5';
-// Element Plus提示（替换alert，和其他页面统一）
-import { ElMessage } from 'element-plus';
-// 导入通用登录表单校验函数（核心修改）
-import { validateLoginForm } from '@/utils/validate.js';
-
+import {  storage} from '@/utils'
+import { auth } from '@/api'
+import { useUserStore } from '@/stores'
+//导入ElMessage（用了ElMessage.success/error，得导入）
+import { ElMessage } from 'element-plus'
+//导入md5（你用了md5加密sign，得导入）
+import md5 from 'js-md5'
+import {validateLoginForm} from "@/utils/validate.js";
+import {decryptData} from "@/utils/request.js";
 // 创建路由实例
 const router = useRouter();
 const route = useRoute();
-// 表单数据
+
+// 表单数据（保留原有account/password字段，映射文档的student_number）
 const form = reactive({
-  account: '',
+  student_number: '',
   password: ''
 });
 
-// 错误提示
 const errors = reactive({
-  account: '',
+  student_number: '',
   password: ''
 });
 
-// 提交状态
 const isSubmitting = ref(false);
 
-// 后端签名秘钥（替换为真实秘钥）
-const SECRET_KEY = 'pannfmis2025';
-
-// 单个字段失焦校验（复用通用校验函数）
+// 字段失焦校验
 const handleFieldBlur = (field) => {
-  // 调用通用校验函数，获取所有错误
-  const validateErrors = validateLoginForm(form);
-  // 只更新当前失焦字段的错误
-  errors[field] = validateErrors[field] || '';
+  if (field === 'student_number' && !form.student_number) {
+    errors.student_number = '学号不能为空';
+  } else if (field === 'password' && !form.password) {
+    errors.password = '密码不能为空';
+  } else {
+    errors[field] = '';
+  }
 };
 
-// 表单整体验证（复用通用校验函数）
+// 表单验证
+
 const validateForm = () => {
-  // 调用通用校验函数
   const validateErrors = validateLoginForm(form);
-  // 同步所有错误到页面提示
   Object.assign(errors, validateErrors);
-  // 判断是否有错误（无错误则返回true）
   return Object.keys(validateErrors).length === 0;
 };
 
-// 登录处理逻辑
+// 登录处理逻辑（核心修改）
 const handleLogin = async () => {
-  // 第一步：先执行表单验证，不通过直接返回
   if (!validateForm()) {
     return;
   }
-
   isSubmitting.value = true;
   try {
-    /**************************
-     * 方式1：真实对接后端接口（默认启用）
-     * 测试完后端后，注释这部分，打开方式2的模拟逻辑
-     *************************
-        // 1. 生成sign签名（按接口文档规则：学号+密码+秘钥）
-    const signStr = form.account + form.password + SECRET_KEY;
-    const sign = md5(signStr);
-
-    // 2. 构造请求参数（对齐接口文档字段名）
-    const loginParams = {
-      student_number: form.account, // 文档要求的字段名
-      password: form.password,      // 原始密码（request.js会统一加密）
-      sign: sign                    // 文档必填的sign字段
+    // 5. 按文档构造请求参数：student_number + password + sign（Mock暂填固定sign）
+    const APP_SECRET = import.meta.env.VITE_APP_API_SECRET || 'default_secret';
+    const signStr = `${form.student_number}${form.password}${APP_SECRET}`;
+    const requestParams = {
+      student_number: form.student_number,
+      password: form.password,
+      sign: md5(signStr)
     };
+    console.log('请求参数：', requestParams); // 新增打印
+    console.log('开始调用userLogin'); // 新增打印
+    // 6. 调用登录接口
+    const axiosRes = await auth.userLogin(requestParams);// 重命名为axiosRes，区分层级
+    // 关键修复：取Axios响应的data字段（才是接口原始返回数据）
+    const res = axiosRes;
 
-    // 3. 调用真实后端登录接口
-    const res = await loginApi(loginParams);
-
-    // 4. 处理后端返回结果
-    if (res.res_code === '0000') {
-      // 存储token和角色
-      setToken(res.data.token);
-      // 用工具方法存储角色（不再硬编码key）
-      setRole(res.data.role || 'user');
-      ElMessage.success('登录成功！');
-      console.log('真实令牌已存储：', res.data.token);
-      console.log('当前用户角色：', res.data.role);
-      // 跳转到个人信息页（替换为/home也可以）
-     const redirect = route.query.redirect || '/home'; // 优先跳来源页，无则跳首页
-     router.push(redirect);
-    } else {
-      // 按返回码提示错误
-      switch (res.res_code) {
-        case '0002':
-          ElMessage.error('参数错误！缺少必填字段或格式不正确');
-          break;
-        case '0004':
-          ElMessage.error('学号或密码错误，登录失败！');
-          break;
-        case '0008':
-          ElMessage.error('系统内部错误，请稍后重试');
-          break;
-        default:
-          ElMessage.error(res.res_msg || '登录失败，请联系管理员');
-      }
+    if (!res) {
+      ElMessage.error('登录失败：无响应数据');
+      isSubmitting.value = false; // 必须重置提交状态，否则按钮一直加载
+      return;
     }
-*/
-    /**************************真实登录与模拟登录分界线****************************/
-    /* 方式2：模拟登录逻辑（测试后端后启用）
-     * 步骤：注释方式1，取消注释方式2
-     **************************/
+    const userInfo = (res.data && res.data[0]) || {};
 
-    // 模拟接口请求（1秒后返回）
-    const res = await new Promise(resolve => {
-      setTimeout(() => {
-        // 👉 可修改role值测试不同角色：admin/operator/visitor/user
-        const mockRole = 'user';
-        resolve({
-          res_code: '0000', // 对齐文档返回码
-          data: {
-            token: 'pann_token_' + Date.now(), // 随机令牌
-            role: mockRole,
-            student_number: form.account,
-            real_name: '测试用户'
-          },
-          res_msg: '登录成功'
-        });
-      }, 1000);
-    });
+    // 7. 对齐文档返回码：res_code=0000为成功
+    switch (res.res_code) {
+      case "0000":
+        const userStore = useUserStore();
+        // 完整赋值userStore的userInfo（包含所有权限字段）
+        userStore.userInfo = {
+          // 保留Store原有默认值，避免覆盖必要字段
+          ...userStore.userInfo,
+          // 用解密后的完整用户信息覆盖（包含department_name/is_super_admin等）
+          ...userInfo,
+          // 确保登录状态正确
+          department_name: userInfo.department_name || '',
+          isLogin: !!userInfo.token
+        };
 
-    // 存储令牌 + 角色
-    setToken(res.data.token);
-    setRole(res.data.role || 'user');
-    ElMessage.success(`登录成功！当前角色：${res.data.role}`);
-    console.log('模拟令牌已存储：', res.data.token);
-    console.log('当前模拟角色：', res.data.role);
-    // 跳转到个人信息页
-    const redirect = route.query.redirect || '/home'; // 优先跳来源页，无则跳首页
-    router.push(redirect);
-    /**********************以上都是模拟登录内容***********************************/
+        // 校验token
+        if (!userInfo.token) {
+          ElMessage.error('登录失败：未获取到用户令牌');
+          isSubmitting.value = false;
+          return;
+        } else {
+          console.log('要存的token：', userInfo.token);
+          storage.setToken(userInfo.token);
+          console.log('存完后本地的token：', localStorage.getItem('pann_financial_token'));
+        }
 
+        // 存储完整信息，且角色用Store计算好的
+        storage.setToken(userInfo.token);
+        storage.setRole(userStore.userRole);
+        storage.setUserInfo(userStore.userInfo); // 存完整的userInfo
+
+        ElMessage.success('登录成功！');
+        const redirect = route.query.redirect || '/home';
+        await router.push(redirect);
+        break;
+      case "0004":
+        ElMessage.error(res.res_msg || '学号或密码错误');
+        break;
+      case "0003":
+        ElMessage.error(res.res_msg || '权限不足，无法登录');
+        break;
+      default:
+        ElMessage.error(res.res_msg || '登录失败，请重试');
+    }
   } catch (error) {
     console.error('登录请求异常：', error);
-    // 区分网络错误和接口错误
-    if (error.response?.data?.res_msg) {
-      ElMessage.error(`登录失败：${error.response.data.res_msg}`);
-    } else {
-      ElMessage.error('网络异常，请检查网络后重试');
-    }
-  } finally {
+    ElMessage.error('网络异常，请检查网络连接');
+  }finally {
     isSubmitting.value = false;
   }
 };
 </script>
-
 <style scoped>
-/* 样式部分保持不变 */
+/* 完全保留你原有的所有样式，一行未改 */
 .login-container {
   position: absolute;
   top: 50%;

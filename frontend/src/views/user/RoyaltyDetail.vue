@@ -1,113 +1,403 @@
 <template>
   <PageBackground2>
     <div class="title-line"></div>
-    <template #page-title>我的稿费明细</template>
-    <!-- 内容卡片插槽 -->
+    <template #page-title>我的稿费与反馈</template>
     <template #card-content>
-      <!-- 查询区域 -->
-      <div class="query-area">
-        <label>月份:</label>
-        <select class="month-select">
-          <!-- 实际项目中可通过v-for循环渲染月份选项 -->
-          <option value="">请选择月份</option>
-          <option value=""></option>
+      <!-- 新增标签页容器 -->
+      <div class="tab-container">
+        <!-- 标签页头部 -->
+        <div class="tab-header">
+          <div
+              class="tab-item"
+              :class="{ active: activeTab === 'fee' }"
+              @click="activeTab = 'fee'"
+          >
+            我的稿费明细
+          </div>
+          <div
+              class="tab-item"
+              :class="{ active: activeTab === 'feedback' }"
+              @click="activeTab = 'feedback'"
+          >
+            我的反馈记录
+          </div>
+        </div>
 
-          <option value="1">1月</option>
-          <option value="1">2月</option>
-          <option value="1">3月</option>
-          <option value="1">4月</option>
-          <option value="1">5月</option>
-          <option value="1">6月</option>
-          <option value="1">7月</option>
-          <option value="1">8月</option>
-          <option value="1">9月</option>
-          <option value="1">10月</option>
-          <option value="1">11月</option>
-          <option value="1">12月</option>
-        </select>
+        <!-- 标签页1：原有稿费明细内容 -->
+        <div class="tab-content" v-show="activeTab === 'fee'">
+          <!-- 查询区域：保留原有代码 -->
+          <div class="query-area">
+            <label>开始日期:</label>
+            <input
+                type="date"
+                v-model="queryParams.startDate"
+                class="date-input"
+            >
+            <label class="ml-20">结束日期:</label>
+            <input
+                type="date"
+                v-model="queryParams.endDate"
+                class="date-input"
+            >
+            <label class="ml-20">任务名称:</label>
+            <input
+                type="text"
+                v-model="queryParams.taskName"
+                placeholder="输入任务名称查询"
+                class="task-input"
+            >
+            <button class="query-btn" @click="fetchRoyaltyList">查询</button>
+            <button class="reset-btn ml-20" @click="resetQuery">重置</button>
+          </div>
 
-        <label class="ml-20">任务名称:</label>
-        <input
-            type="text"
-            placeholder="输入任务名称查询"
-            class="task-input"
-        >
-        <button class="query-btn">查询</button>
+          <!-- 稿费表格：保留原有代码，移除循环内的弹窗 -->
+          <table class="fee-table">
+            <thead>
+            <tr>
+              <th>日期</th>
+              <th>任务名称</th>
+              <th>部门</th>
+              <th>金额</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-if="feeList.length === 0">
+              <td colspan="6" class="empty-tip">暂无稿费数据</td>
+            </tr>
+            <tr v-for="(item, index) in feeList" :key="item.feedback_id || index">
+              <td>{{ formatDate(item.created_at) || '-' }}</td>
+              <td>{{ item.article_title || '-' }}</td>
+              <td>{{ formatDepartment(item.department_id) }}</td>
+              <td>{{ formatMoney(item.fee_amount) }}元</td>
+              <td>已结算</td>
+              <td>
+                <button class="feedback-btn" @click="handleFeedback(item)">反馈</button>
+              </td>
+            </tr>
+            </tbody>
+
+            <!-- 总计区域：保留原有代码 -->
+            <template class="total-area">
+              共计: <span class="total-amount">{{ formatMoney(totalAmount) }}元</span>
+            </template>
+          </table>
+
+          <!-- 分页控件：保留原有代码 -->
+          <div class="pagination-area">
+            <button
+                class="page-btn"
+                @click="changePage(queryParams.page - 1)"
+                :disabled="queryParams.page <= 1"
+            >上一页</button>
+            <span class="page-info">
+              第{{ queryParams.page }}页 / 共{{ totalPage }}页
+            </span>
+            <button
+                class="page-btn"
+                @click="changePage(queryParams.page + 1)"
+                :disabled="queryParams.page >= totalPage"
+            >下一页</button>
+          </div>
+        </div>
+
+        <!-- 标签页2：新增我的反馈记录 -->
+        <div class="tab-content" v-show="activeTab === 'feedback'">
+          <!-- 反馈列表表格 -->
+          <table class="feedback-table">
+            <thead>
+            <tr>
+              <th>关联稿费ID</th>
+              <th>反馈内容</th>
+              <th>提交时间</th>
+              <th>反馈状态</th>
+              <th>管理员回复</th>
+              <th>回复时间</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-if="!feedbackList || feedbackList.length === 0">
+              <td colspan="6" class="empty-tip">暂无反馈记录</td>
+            </tr>
+            <tr v-for="(item, index) in feedbackList" :key="item.feedback_id || index">
+              <td>{{ item.feedback_id || '-' }}</td>
+              <td class="content-cell">{{ item.content || '-' }}</td>
+              <td>{{ formatDate(item.created_at) || '-' }}</td>
+              <td>
+    <span class="status-tag" :class="getStatusClass(item.status)">
+      {{ getStatusText(item.status) }}
+    </span>
+              </td>
+              <td class="reply-cell">{{ item.reply_content || '暂无回复' }}</td>
+              <td>{{ formatDate(item.replied_at) || '-' }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <!-- 稿费表格 -->
-      <table class="fee-table">
-        <thead>
-        <tr>
-          <th>日期</th>
-          <th>任务名称</th>
-          <th>部门</th>
-          <th>金额</th>
-          <th>状态</th>
-          <th>操作</th>
-        </tr>
-        </thead>
-        <tbody>
+      <!-- 反馈弹窗：移出循环，放到全局 -->
+      <el-dialog
+          v-model="feedbackDialogVisible"
+          title="提交稿费反馈"
+          width="400px"
+          :modal="false"
+          class="no-shadow-dialog"
+      >
+        <el-form :model="feedbackForm" label-width="80px">
 
-        <!-- 实际项目中通过v-for渲染数据 -->
-        <tr v-for="(item, index) in feeList" :key="index">
-          <td>{{ item.date || '-' }}</td>
-          <td>{{ item.taskName || '-' }}</td>
-          <td>{{ item.department || '-' }}</td>
-          <td>{{ item.amount || '-' }}</td>
-          <td>{{ item.status || '-' }}</td>
-          <td>
-            <button class="feedback-btn" @click="handleFeedback(item)">反馈</button>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-
-      <!-- 总计区域 -->
-      <div class="total-area">
-        共计: <span class="total-amount">XXX元</span>
-      </div>
+          <el-form-item label="反馈理由" required>
+            <el-input
+                v-model="feedbackForm.content"
+                type="textarea"
+                :rows="4"
+                placeholder="请输入您的反馈问题（如稿费金额错误、漏算等）"
+            />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="feedbackDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitFeedbackForm">提交</el-button>
+        </template>
+      </el-dialog>
     </template>
   </PageBackground2>
 </template>
-
 <script setup>
 import PageBackground2 from '@/components/PageBackground2.vue';
 import { useRouter } from 'vue-router';
-import { ref } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
+// 导入原有稿费接口
+import { getPersonalRoyalty } from '@/api/royalty';
+// 严格按你提供的feedback.js导入接口
+import { submitFeedback, getUserFeedbackList } from '@/api/feedback.js';
+
+// 导入原有工具方法
+import {formatDateTime, formatDepartment, formatMoney} from "@/utils/format.js";
+// 导入Store
+import {useNoticeStore, useUserStore} from "@/stores/index.js";
+// 导入Element Plus组件
+import {ElMessage} from "element-plus";
 
 const router = useRouter();
-// 模拟稿费数据（实际项目从接口获取）
-const feeList = ref([]);
+// 初始化Store
+const userStore = useUserStore();
+const noticeStore = useNoticeStore();
 
-// 跳转登录页
-const goLogin = () => {
-  router.push({ path: '/login' });
+// ===================== 新增变量（解决报错核心） =====================
+// 1. 标签页激活状态（默认选中稿费明细）
+const activeTab = ref('fee');
+// 2. 反馈列表数据（初始化为空数组，避免length读取报错）
+const feedbackList = ref([]);
+
+// ===================== 原有变量（保留） =====================
+// 反馈弹窗+表单状态
+const feedbackDialogVisible = ref(false); // 弹窗显隐
+const currentFeedbackItem = ref({}); // 存储当前点击的稿费项
+const feedbackForm = ref({
+  content: '', // 反馈内容
+  feedback_id: '' // 关联的稿费记录ID
+});
+
+// 查询参数：匹配接口+扩展任务名称（前端过滤）
+const queryParams = reactive({
+  startDate: '', // 开始日期
+  endDate: '', // 结束日期
+  taskName: '', // 任务名称（前端过滤）
+  page: 1, // 页码
+  size: 10 // 每页数量
+});
+
+// 响应数据
+const feeList = ref([]); // 稿费列表
+const totalCount = ref(0); // 总条数（接口返回）
+const totalAmount = ref(0); // 总金额（前端累加）
+
+// 计算总页数
+const totalPage = computed(() => {
+  return Math.ceil(totalCount.value / queryParams.size);
+});
+
+// ===================== 原有方法（保留） =====================
+// 日期格式化方法
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  return formatDateTime(dateStr).split(' ')[0];
 };
 
-// 反馈操作
+// 获取稿费列表（核心方法）
+const fetchRoyaltyList = async () => {
+  try {
+    const requestParams = {
+      startDate: queryParams.startDate,
+      endDate: queryParams.endDate,
+      page: queryParams.page,
+      size: queryParams.size
+    };
+    const res = await getPersonalRoyalty(requestParams);
+    if (res.res_code === '0000') {
+      const { total, list } = res.data;
+      totalCount.value = total;
+      // 日期过滤
+      let finalList = list.filter(item => {
+        const itemDate = item.created_at ? item.created_at.split(' ')[0] : '';
+        if (!queryParams.startDate && !queryParams.endDate) return true;
+        if (queryParams.startDate && !queryParams.endDate) {
+          return itemDate >= queryParams.startDate;
+        }
+        if (!queryParams.startDate && queryParams.endDate) {
+          return itemDate <= queryParams.endDate;
+        }
+        return itemDate >= queryParams.startDate && itemDate <= queryParams.endDate;
+      });
+      // 任务名称过滤
+      if (queryParams.taskName) {
+        finalList = finalList.filter(item => {
+          return item.article_title?.toLowerCase().includes(queryParams.taskName.toLowerCase());
+        });
+      }
+      feeList.value = finalList;
+      totalAmount.value = finalList.reduce((sum, item) => sum + (Number(item.fee_amount) || 0), 0);
+    } else {
+      alert(`查询失败：${res.res_msg}`);
+      feeList.value = [];
+      totalCount.value = 0;
+      totalAmount.value = 0;
+    }
+  } catch (error) {
+    console.error('查询稿费明细失败：', error);
+    alert('网络异常，查询失败');
+    feeList.value = [];
+    totalCount.value = 0;
+    totalAmount.value = 0;
+  }
+};
+
+// 重置查询条件
+const resetQuery = () => {
+  queryParams.startDate = '';
+  queryParams.endDate = '';
+  queryParams.taskName = '';
+  queryParams.page = 1;
+  fetchRoyaltyList();
+};
+
+// 分页切换
+const changePage = (page) => {
+  if (page < 1 || page > totalPage.value) return;
+  queryParams.page = page;
+  fetchRoyaltyList();
+};
+
+// 反馈操作：打开弹窗，初始化表单
 const handleFeedback = (item) => {
-  // 实际项目中可打开反馈弹窗/页面
-  console.log('点击反馈:', item);
-};
-</script>
 
+  currentFeedbackItem.value = item;
+  feedbackForm.value = {
+    content: '',
+    feedback_id: item.feedback_id // 关联稿费记录ID
+  };
+  feedbackDialogVisible.value = true;
+};
+
+// ===================== 修正：提交反馈表单（对齐你的接口） =====================
+const submitFeedbackForm = async () => {
+  if (!feedbackForm.value.content.trim()) {
+    ElMessage.error('请填写反馈理由');
+    return;
+  }
+  if (!userStore.userInfo?.user_id) {
+    ElMessage.error('请先登录');
+    feedbackDialogVisible.value = false;
+    return;
+  }
+
+  // 严格对齐你接口文档2.5.20的参数（user_id、content为必填）
+  const params = {
+    user_id: userStore.userInfo.user_id,
+    content: feedbackForm.value.content,
+    feedback_id: feedbackForm.value.feedback_id // 自定义字段，用于关联稿费
+  };
+
+  try {
+    const res = await submitFeedback(params); // 调用你提供的submitFeedback接口
+    if (res.res_code === '0000') {
+      ElMessage.success('反馈提交成功！');
+      feedbackDialogVisible.value = false;
+      feedbackForm.value.content = '';
+      fetchMyFeedback(); // 提交后刷新反馈列表
+    } else {
+      ElMessage.error(`提交失败：${res.data?.res_msg || '未知错误'}`);
+    }
+  } catch (err) {
+    ElMessage.error('网络异常，提交失败');
+    console.error('反馈提交失败:', err);
+  }
+};
+const getStatusText = (status) => {
+  const statusMap = {
+    pending: '待处理',
+    replied: '已回复',
+    resolved: '已解决',
+    rejected: '已驳回'
+  };
+  return statusMap[status] || '未知状态';
+};
+
+// 2. 反馈状态转样式类（模板里用到的getStatusClass）
+const getStatusClass = (status) => {
+  const classMap = {
+    pending: 'status-pending',
+    replied: 'status-replied',
+    resolved: 'status-resolved',
+    rejected: 'status-rejected'
+  };
+  return classMap[status] || '';
+};
+// ===================== 修正：获取我的反馈列表（对齐你的接口2.5.21） =====================
+const fetchMyFeedback = async () => {
+  if (!userStore.userInfo?.user_id) return;
+  try {
+    // 调用你提供的getUserFeedbackList接口，传分页参数（接口2.5.21要求）
+    const res = await getUserFeedbackList({
+      page: 1, // 默认第一页
+      size: 10 // 默认每页10条
+    });
+    if (res.res_code === '0000') {
+      // 接口返回结构：list为反馈列表（按你文档2.5.21）
+      feedbackList.value = res.data.list || [];
+    } else {
+      ElMessage.error(`获取反馈列表失败：${res.res_msg}`);
+      feedbackList.value = [];
+    }
+  } catch (err) {
+    ElMessage.error('网络异常，获取反馈列表失败');
+    console.error('获取反馈列表失败:', err);
+    feedbackList.value = [];
+  }
+};
+
+// ===================== 生命周期（保留） =====================
+onMounted(() => {
+  fetchRoyaltyList(); // 原有：加载稿费列表
+  fetchMyFeedback();  // 修正后：加载反馈列表
+});
+</script>
 <style scoped>
-/* 标题线样式 */
+/* 原有样式保留 */
 .title-line {
   width: 4px;
   height: 28px;
   background-color: #9b8eb4;
   margin-right: 12px;
 }
-
-/* 查询区域样式 */
 .query-area {
   margin: 20px 0;
   display: flex;
   align-items: center;
 }
-.month-select, .task-input {
+.month-select, .task-input, .date-input {
   padding: 4px 8px;
   margin: 0 8px;
   border: 1px solid #ddd;
@@ -122,11 +412,16 @@ const handleFeedback = (item) => {
   cursor: pointer;
   margin-left: 8px;
 }
+.reset-btn {
+  padding: 4px 12px;
+  background: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
 .ml-20 {
   margin-left: 20px;
 }
-
-/* 表格样式 */
 .fee-table {
   width: 100%;
   border-collapse: collapse;
@@ -147,8 +442,11 @@ const handleFeedback = (item) => {
   cursor: pointer;
   padding: 0;
 }
-
-/* 总计区域样式 */
+.empty-tip {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+}
 .total-area {
   margin-top: 20px;
   text-align: right;
@@ -157,5 +455,101 @@ const handleFeedback = (item) => {
 }
 .total-amount {
   color: #333;
+}
+.pagination-area {
+  margin-top: 20px;
+  text-align: right;
+}
+.page-btn {
+  padding: 4px 12px;
+  margin: 0 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.page-btn:disabled {
+  cursor: not-allowed;
+  background: #f5f5f5;
+  color: #999;
+}
+.page-info {
+  margin: 0 8px;
+}
+:deep(.no-shadow-dialog){
+  box-shadow: none !important;
+  border: 1px #1a1a1a solid;
+}
+
+/* ===================== 新增标签页样式 ===================== */
+.tab-container {
+  width: 100%;
+}
+.tab-header {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 20px;
+}
+.tab-item {
+  padding: 10px 20px;
+  cursor: pointer;
+  position: relative;
+  color: #666;
+}
+.tab-item.active {
+  color: #9b8eb4;
+  font-weight: 500;
+}
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #9b8eb4;
+}
+.tab-content {
+  width: 100%;
+}
+
+/* ===================== 新增反馈列表表格样式 ===================== */
+.feedback-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+.feedback-table th, .feedback-table td {
+  border: 1px solid #ddd;
+  padding: 12px 8px;
+}
+.feedback-table th {
+  background-color: #eee;
+  font-weight: 500;
+}
+.content-cell, .reply-cell {
+  max-width: 200px;
+  word-break: break-all;
+  text-align: left;
+}
+.status-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.status-pending {
+  background-color: #fff7e6;
+  color: #ff9a3c;
+}
+.status-replied {
+  background-color: #e6f7ff;
+  color: #40a9ff;
+}
+.status-resolved {
+  background-color: #f0f9ff;
+  color: #52c41a;
+}
+.status-rejected {
+  background-color: #fff1f0;
+  color: #f5222d;
 }
 </style>

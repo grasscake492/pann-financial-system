@@ -1,47 +1,63 @@
-// 统一导入配置好拦截器的 request 实例（而非原始 axios）
-import request from '@/utils/request';
+//导入util工具
+import { request, storage, format, permission } from '@/utils/index.js'
 
-// 注册接口函数（对齐接口文档2.5.1节）
-export function userRegister(data) {
+/**
+ * 获取用户个人信息接口（文档编号2.5.5）
+ * @returns {Promise} - 请求结果（含用户ID、学号、姓名等信息）
+ */
+export const fetchUserProfile = () => {
     return request({
-        url: '/auth/register', // 文档地址：http://pannfmis/auth/register/xxx → 简化为 /auth/register
-        method: 'post',
-        data: data // 需包含 sign/student_number/real_name/password/email（文档必填字段）
-    });
+        method: 'GET',
+        url: '/user/profile/xxx'
+    })
 }
 
-// 登录接口函数（对齐接口文档2.5.2节）
-export const loginApi = (params) => {
+/**
+ * 更新用户信息接口（文档编号2.5.6）
+ * @param {string} userId - 用户ID（必填，替换url里的xxx）
+ * @param {Object} params - 请求参数
+ * @param {string} params.sign - 签名（必填）
+ * @param {string} [params.real_name] - 真实姓名（选填）
+ * @param {string} [params.email] - 邮箱（选填）
+ * @returns {Promise} - 请求结果（含更新后用户信息）
+ */
+export const updateUserProfile = (userId, params) => { // 新增userId参数
     return request({
-        url: '/auth/login', // 文档地址：http://pannfmis/auth/login/xxx → 简化为 /auth/login
-        method: 'post',
-        data: params // 需包含 sign/student_number/password（文档必填字段）
-    });
-};
+        method: 'PUT',
+        url: `/user/profile/${userId}`, // xxx替换为${userId}
+        data: params
+    })
+}
+/**
+ * 获取用户列表接口（管理员专属，文档编号2.5.7）
+ * @param {Object} params - 请求参数
+ * @param {string} params.sign - 签名（必填）
+ * @param {number} [params.page] - 页码（选填）
+ * @param {number} [params.size] - 每页数量（选填）
+ * @param {string} [params.keyword] - 搜索关键词（选填）
+ * @returns {Promise} - 请求结果（含用户列表、总记录数）
+ */
+export const getUserList = (params) => {
+    return request({
+        method: 'GET',
+        url: '/admin/users/xxx',
+        params: params // GET请求参数放params
+    })
+}
 
-// 获取当前登录用户信息接口（对齐接口文档2.5.5节）
-export const getUserInfo = () => {
+/**
+ * 修改用户角色接口（系统管理员专属，文档编号2.5.8）
+ * @param {Object} params - 请求参数
+ * @param {string} params.sign - 签名（必填）
+ * @param {string} params.user_id - 用户ID（必填）
+ * @param {boolean} params.is_super_admin - 是否最高级管理员（必填）
+ * @param {string} [params.department_id] - 部门ID（选填）
+ * @returns {Promise} - 请求结果（含修改后用户角色相关信息）
+ */
+export const updateUserRole = (params) => {
     return request({
-        url: '/user/profile', // 文档地址：http://pannfmis/user/profile/xxx → 简化为 /user/profile
-        method: 'GET', // 文档要求的GET方式
-        // 无需传参，后端通过token识别用户
-    });
-};
-
-// 修改密码接口（对齐接口文档2.5.3节）
-export const changePassword = (data) => {
-    return request({
-        url: '/auth/change-password', // 文档地址：http://pannfmis/auth/change-password/xxx → 简化为 /auth/change-password
-        method: 'put', // 文档要求的PUT方式
-        data: data // 需包含 sign/old_password/new_password（文档必填字段）
-    });
-};
-
-// 修改用户信息接口（对齐接口文档2.5.6节）
-export const editUserInfo = (data) => {
-    return request({
-        url: '/user/profile', // 文档地址：http://pannfmis/user/profile/xxx → 复用个人信息地址（文档统一路径）
-        method: 'put', // 文档要求的PUT方式（原post错误）
-        data: data // 需包含 sign/real_name/email（文档必填/选填字段）
-    });
-};
+        method: 'PUT',
+        url: '/admin/users/role/xxx',
+        data: params
+    })
+}
