@@ -44,6 +44,11 @@ public class ApiResponse<T> {
         return new ApiResponse<>(code.getCode(), customMessage, null);
     }
 
+    // 判断响应是否成功
+    public boolean isSuccess() {
+        return ResponseCode.SUCCESS.getCode().equals(this.resCode);
+    }
+
     // Getters and Setters
     public String getResCode() {
         return resCode;

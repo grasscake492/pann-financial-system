@@ -3,9 +3,8 @@ package org.service;
 import org.dto.request.RoyaltyQueryRequest;
 import org.dto.request.RoyaltyAddRequest;
 import org.dto.request.RoyaltyUpdateRequest;
-import org.dto.response.RoyaltyListResponse;
-import org.dto.response.RoyaltyResponse;
-import org.dto.response.ApiResponse;
+import org.dto.response.*;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -109,4 +108,50 @@ public interface RoyaltyService {
      * @return 是否可以代领
      */
     boolean canProxyRoyalty(Long recordId, Long departmentId, Long originalUserId);
+
+    /// ///////////////
+    /**
+     * 统计系统功能 - 统计某个部门在某个月的稿费记录数
+     * @param departmentId 部门ID
+     * @param month 月份 (YYYY-MM)
+     * @return 记录数
+     */
+    Integer countRecordsByDepartmentAndMonth(Long departmentId, String month);
+
+    /**
+     * 统计系统功能 - 统计某个用户在某个月的稿费记录数
+     * @param userId 用户ID
+     * @param month 月份 (YYYY-MM)
+     * @return 记录数
+     */
+    Integer countRecordsByUserAndMonth(Long userId, String month);
+
+    /**
+     * 统计系统功能 - 统计所有部门在某个月的总稿费
+     * @param month 月份 (YYYY-MM)
+     * @return 部门月度汇总列表
+     */
+    List<DepartmentMonthlySummaryResponse> getAllDepartmentsMonthlyTotal(String month);
+
+    /**
+     * 统计系统功能 - 统计所有部门在所有月份的总稿费
+     * @return 统计汇总响应
+     */
+    StatisticalSummaryResponse getStatisticalSummary();
+
+    /**
+     * 统计系统功能 - 统计稿费类型分布（按稿件类型统计）
+     * @param month 月份 (YYYY-MM，可选)
+     * @param departmentId 部门ID (可选)
+     * @return 类型分布列表
+     */
+    List<TypeDistributionResponse> getTypeDistribution(String month, Long departmentId);
+
+    /**
+     * 数据库清理功能 - 清理过期稿费记录
+     * @param years 保留年限（如3表示保留最近3年的记录）
+     * @param adminId 管理员ID
+     * @return 清理结果
+     */
+    ApiResponse<Map<String, Object>> cleanupExpiredRecords(Integer years, Long adminId);
 }

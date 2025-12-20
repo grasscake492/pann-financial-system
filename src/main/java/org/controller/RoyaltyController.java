@@ -4,15 +4,14 @@ import org.constant.ResponseCode;
 import org.dto.request.RoyaltyAddRequest;
 import org.dto.request.RoyaltyQueryRequest;
 import org.dto.request.RoyaltyUpdateRequest;
-import org.dto.response.ApiResponse;
-import org.dto.response.RoyaltyListResponse;
-import org.dto.response.RoyaltyResponse;
+import org.dto.response.*;
 import org.service.RoyaltyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -203,7 +202,6 @@ public class RoyaltyController {
     @DeleteMapping("/admin/royalty/{recordId}")
     public ApiResponse<Void> deleteRoyalty(
             @PathVariable Long recordId,
-            @RequestParam Long departmentId,
             HttpServletRequest request) {
 
         try {
@@ -215,9 +213,10 @@ public class RoyaltyController {
             // 获取管理员ID
             Long adminId = getCurrentUserId(request);
 
-            // 调用服务（注意：原接口缺少departmentId参数，这里需要修改）
-            // 由于原接口设计问题，这里简化为调用一个需要重载的方法
-            throw new RuntimeException("删除功能需要重写，请提供完整的参数");
+            // 调用服务（修正：服务层只需要recordId和adminId）
+            ApiResponse<Void> result = royaltyService.deleteRoyalty(recordId, adminId);
+
+            return result;
 
         } catch (Exception e) {
             return ApiResponse.error(ResponseCode.INTERNAL_ERROR, "删除稿费记录失败: " + e.getMessage());
@@ -283,6 +282,32 @@ public class RoyaltyController {
     }
 
     /**
+     * 计算部门月度稿费总额
+     * GET /api/v1/royalty/department-monthly-total
+     */
+    @GetMapping("/royalty/department-monthly-total")
+    public ApiResponse<BigDecimal> calculateDepartmentMonthlyTotal(
+            @RequestParam Long departmentId,
+            @RequestParam String month,
+            HttpServletRequest request) {
+
+        try {
+            // 权限验证：必须是管理员或该部门管理员
+            if (!isAdmin(request) && !isDepartmentAdmin(request, departmentId)) {
+                return ApiResponse.error(ResponseCode.PERMISSION_DENIED, "无权限访问部门稿费总额");
+            }
+
+            // 调用服务
+            BigDecimal total = royaltyService.calculateDepartmentMonthlyTotal(departmentId, month);
+
+            return ApiResponse.success(total, "获取部门月度稿费总额成功");
+
+        } catch (Exception e) {
+            return ApiResponse.error(ResponseCode.INTERNAL_ERROR, "获取部门月度稿费总额失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 验证稿费记录是否可以被代领
      * GET /api/v1/royalty/can-proxy
      */
@@ -306,6 +331,160 @@ public class RoyaltyController {
 
         } catch (Exception e) {
             return ApiResponse.error(ResponseCode.INTERNAL_ERROR, "验证代领资格失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 统计系统功能 - 统计某个部门在某个月的稿费记录数
+     * GET /api/v1/admin/royalty/statistics/count-by-department
+     */
+    @GetMapping("/admin/royalty/statistics/count-by-department")
+    public ApiResponse<Integer> countRecordsByDepartmentAndMonth(
+            @RequestParam Long departmentId,
+            @RequestParam String month,
+            HttpServletRequest request) {
+
+        try {
+            // 权限验证：必须是管理员
+            if (!isAdmin(request)) {
+                return ApiResponse.error(ResponseCode.PERMISSION_DENIED, "需要管理员权限");
+            }
+
+            // 调用服务
+            Integer count = royaltyService.countRecordsByDepartmentAndMonth(departmentId, month);
+
+            return ApiResponse.success(count, "统计部门月度记录数成功");
+
+        } catch (Exception e) {
+            return ApiResponse.error(ResponseCode.INTERNAL_ERROR, "统计部门月度记录数失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 统计系统功能 - 统计某个用户在某个月的稿费记录数
+     * GET /api/v1/admin/royalty/statistics/count-by-user
+     */
+    @GetMapping("/admin/royalty/statistics/count-by-user")
+    public ApiResponse<Integer> countRecordsByUserAndMonth(
+            @RequestParam Long userId,
+            @RequestParam String month,
+            HttpServletRequest request) {
+
+        try {
+            // 权限验证：必须是管理员
+            if (!isAdmin(request)) {
+                return ApiResponse.error(ResponseCode.PERMISSION_DENIED, "需要管理员权限");
+            }
+
+            // 调用服务
+            Integer count = royaltyService.countRecordsByUserAndMonth(userId, month);
+
+            return ApiResponse.success(count, "统计用户月度记录数成功");
+
+        } catch (Exception e) {
+            return ApiResponse.error(ResponseCode.INTERNAL_ERROR, "统计用户月度记录数失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 统计系统功能 - 统计所有部门在某个月的总稿费
+     * GET /api/v1/admin/royalty/statistics/departments-monthly-total
+     */
+    @GetMapping("/admin/royalty/statistics/departments-monthly-total")
+    public ApiResponse<List<DepartmentMonthlySummaryResponse>> getAllDepartmentsMonthlyTotal(
+            @RequestParam String month,
+            HttpServletRequest request) {
+
+        try {
+            // 权限验证：必须是管理员
+            if (!isAdmin(request)) {
+                return ApiResponse.error(ResponseCode.PERMISSION_DENIED, "需要管理员权限");
+            }
+
+            // 调用服务
+            List<DepartmentMonthlySummaryResponse> result = royaltyService.getAllDepartmentsMonthlyTotal(month);
+
+            return ApiResponse.success(result, "获取所有部门月度总稿费成功");
+
+        } catch (Exception e) {
+            return ApiResponse.error(ResponseCode.INTERNAL_ERROR, "获取所有部门月度总稿费失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 统计系统功能 - 统计所有部门在所有月份的总稿费
+     * GET /api/v1/admin/royalty/statistics/summary
+     */
+    @GetMapping("/admin/royalty/statistics/summary")
+    public ApiResponse<StatisticalSummaryResponse> getStatisticalSummary(HttpServletRequest request) {
+
+        try {
+            // 权限验证：必须是管理员
+            if (!isAdmin(request)) {
+                return ApiResponse.error(ResponseCode.PERMISSION_DENIED, "需要管理员权限");
+            }
+
+            // 调用服务
+            StatisticalSummaryResponse result = royaltyService.getStatisticalSummary();
+
+            return ApiResponse.success(result, "获取统计汇总成功");
+
+        } catch (Exception e) {
+            return ApiResponse.error(ResponseCode.INTERNAL_ERROR, "获取统计汇总失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 统计系统功能 - 统计稿费类型分布（按稿件类型统计）
+     * GET /api/v1/admin/royalty/statistics/type-distribution
+     */
+    @GetMapping("/admin/royalty/statistics/type-distribution")
+    public ApiResponse<List<TypeDistributionResponse>> getTypeDistribution(
+            @RequestParam(required = false) String month,
+            @RequestParam(required = false) Long departmentId,
+            HttpServletRequest request) {
+
+        try {
+            // 权限验证：必须是管理员
+            if (!isAdmin(request)) {
+                return ApiResponse.error(ResponseCode.PERMISSION_DENIED, "需要管理员权限");
+            }
+
+            // 调用服务
+            List<TypeDistributionResponse> result = royaltyService.getTypeDistribution(month, departmentId);
+
+            return ApiResponse.success(result, "获取类型分布成功");
+
+        } catch (Exception e) {
+            return ApiResponse.error(ResponseCode.INTERNAL_ERROR, "获取类型分布失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 数据库清理功能 - 清理过期稿费记录
+     * POST /api/v1/admin/royalty/cleanup
+     */
+    @PostMapping("/admin/royalty/cleanup")
+    public ApiResponse<Map<String, Object>> cleanupExpiredRecords(
+            @RequestParam(required = false) Integer years,
+            HttpServletRequest request) {
+
+        try {
+            // 权限验证：必须是管理员
+            if (!isAdmin(request)) {
+                return ApiResponse.error(ResponseCode.PERMISSION_DENIED, "需要管理员权限");
+            }
+
+            // 获取管理员ID
+            Long adminId = getCurrentUserId(request);
+
+            // 调用服务
+            ApiResponse<Map<String, Object>> result = royaltyService.cleanupExpiredRecords(years, adminId);
+
+            return result;
+
+        } catch (Exception e) {
+            return ApiResponse.error(ResponseCode.INTERNAL_ERROR, "清理过期记录失败: " + e.getMessage());
         }
     }
 

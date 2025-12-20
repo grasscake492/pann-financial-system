@@ -353,6 +353,11 @@ public class ProxyServiceImpl implements ProxyService {
     public Long executeProxy(Long feeRecordId, Long departmentId, Long originalUserId,
                              Long proxyUserId, String proxyMonth, BigDecimal feeAmount, Long adminId) {
         try {
+            // 验证部门ID合法性
+            if (!NEWS_DEPARTMENT_ID.equals(departmentId) && !EDITORIAL_DEPARTMENT_ID.equals(departmentId)) {
+                throw new RuntimeException("不支持的部门ID: " + departmentId);
+            }
+
             // 验证代领规则
             if (!validateProxyRule(originalUserId, proxyUserId, feeAmount, proxyMonth)) {
                 throw new RuntimeException("不符合代领规则");
@@ -368,6 +373,9 @@ public class ProxyServiceImpl implements ProxyService {
 
             // 获取稿费记录标题
             String articleTitle = getArticleTitleFromFeeRecord(feeRecordId, departmentId);
+            if (articleTitle == null) {
+                throw new RuntimeException("稿费记录不存在或无法获取文章标题");
+            }
 
             // 更新稿费记录用户信息
             updateFeeRecordUserInfo(feeRecordId, departmentId, proxyUserId,
@@ -402,7 +410,7 @@ public class ProxyServiceImpl implements ProxyService {
             return proxyRecord.getProxyId();
 
         } catch (Exception e) {
-            throw new RuntimeException("执行代领操作失败", e);
+            throw new RuntimeException("执行代领操作失败: " + e.getMessage(), e);
         }
     }
 
@@ -454,7 +462,9 @@ public class ProxyServiceImpl implements ProxyService {
             if (user == null) {
                 return false;
             }
-            return false; // 简化处理
+            // 假设用户实体中有工作性质字段
+            // return "勤工助学".equals(user.getWorkType());
+            return false; // 简化处理，根据实际情况调整
         } catch (Exception e) {
             return false;
         }
@@ -511,6 +521,8 @@ public class ProxyServiceImpl implements ProxyService {
                 if (result <= 0) {
                     throw new RuntimeException("更新新闻部稿费记录失败");
                 }
+            } else {
+                throw new RuntimeException("新闻部稿费记录不存在，ID: " + feeRecordId);
             }
         } else if (EDITORIAL_DEPARTMENT_ID.equals(departmentId)) { // 编辑部
             EditorialDepartmentMonthly record = editorialDepartmentMonthlyMapper.selectByRecordId(feeRecordId);
@@ -523,7 +535,11 @@ public class ProxyServiceImpl implements ProxyService {
                 if (result <= 0) {
                     throw new RuntimeException("更新编辑部稿费记录失败");
                 }
+            } else {
+                throw new RuntimeException("编辑部稿费记录不存在，ID: " + feeRecordId);
             }
+        } else {
+            throw new RuntimeException("不支持的部门ID: " + departmentId);
         }
     }
 
@@ -591,12 +607,12 @@ public class ProxyServiceImpl implements ProxyService {
     private String getArticleTitleFromFeeRecord(Long feeRecordId, Long departmentId) {
         if (NEWS_DEPARTMENT_ID.equals(departmentId)) {
             NewsDepartmentMonthly record = newsDepartmentMonthlyMapper.selectByRecordId(feeRecordId);
-            return record != null ? record.getArticleTitle() : "";
+            return record != null ? record.getArticleTitle() : null;
         } else if (EDITORIAL_DEPARTMENT_ID.equals(departmentId)) {
             EditorialDepartmentMonthly record = editorialDepartmentMonthlyMapper.selectByRecordId(feeRecordId);
-            return record != null ? record.getArticleTitle() : "";
+            return record != null ? record.getArticleTitle() : null;
         }
-        return "";
+        return null;
     }
 
     /**
