@@ -45,7 +45,7 @@
 
 /* 内容容器：替代原content-card，统一控制内容区域 */
 .content-wrapper {
-  width: 70%;
+  width: 80%;
   margin: 0 auto;
   background-color: white;
   border-radius: 8px;

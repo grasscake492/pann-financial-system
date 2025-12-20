@@ -1,10 +1,12 @@
 // src/utils/auth.js
 import router from '@/router'; // 新增：引入路由实例，用于登录态失效时跳转
-
+import { useUserStore } from '@/stores/user'
 // 存储token的本地缓存key（自定义，避免冲突）
-const TOKEN_KEY = 'pann_financial_token';
+const TOKEN_KEY = 'pann_token';
 // 存储用户角色的本地缓存key（新增）
 const ROLE_KEY = 'pann_user_role';
+// 存储用户信息的本地缓存key（新增）
+const USER_INFO_KEY = 'pann_user_info';
 
 /**
  * 存储token到localStorage（登录成功后调用）
@@ -29,13 +31,13 @@ export const removeToken = () => {
     localStorage.removeItem(TOKEN_KEY);
 };
 
-/**
- * 判断用户是否已登录（路由守卫核心函数）
- * @returns {boolean} 登录状态（有token则认为已登录）
- */
-export const isLogin = () => {
-    return !!getToken(); // 双重!!转为布尔值
-};
+export function isLogin() {
+    // 只看本地存储里有没有登录凭证（token/用户信息），有就是已登录
+    const token = localStorage.getItem('pann_token') // 登录后存的token，没有就改你实际的key
+    const userInfo = localStorage.getItem('pann_user_info')
+    // 有token 且 有用户信息 = 已登录，否则未登录
+    return !!token && !!userInfo
+}
 
 // 存储用户角色到localStorage
 /**
@@ -59,14 +61,38 @@ export const getRole = () => {
 export const removeRole = () => {
     localStorage.removeItem(ROLE_KEY);
 };
+/**
+ * 存储用户信息到localStorage
+ * @param {Object} userInfo - 用户信息对象（包含user_id/real_name/student_number/email等）
+ */
+export const setUserInfo = (userInfo) => {
+    localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
+};
+
+/**
+ * 从localStorage获取用户信息
+ * @returns {Object|null} 用户信息对象（无则返回null）
+ */
+export const getUserInfo = () => {
+    const info = localStorage.getItem(USER_INFO_KEY);
+    return info ? JSON.parse(info) : null;
+};
+
+/**
+ * 删除localStorage中的用户信息（退出登录时调用）
+ */
+export const removeUserInfo = () => {
+    localStorage.removeItem(USER_INFO_KEY);
+};
 
 // 批量清空token和角色（退出登录统一调用）
 /**
- * 退出登录时清空所有登录态（token+角色）
+ * 退出登录时清空所有登录态（token+角色+用户信息）
  */
 export const clearLoginState = () => {
     removeToken();
     removeRole();
+    removeUserInfo(); // 新增：清空用户信息
     // 新增：退出登录后跳转登录页（适配首页退出操作）
     router.push('/login');
 };

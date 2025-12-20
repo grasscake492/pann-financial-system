@@ -8,20 +8,20 @@
 
       <!-- 非加载状态：统一包裹在v-else中 -->
       <div v-else>
-        <!-- 欢迎语 -->
+        <!-- 欢迎语：从userStore取用户信息，兜底更严谨 -->
         <h2 class="welcome-text">欢迎，{{ userName }}</h2>
 
         <!-- 最新公告 -->
         <div class="notice-section">
           <h3 class="notice-title">最新公告</h3>
-          <!-- 公告列表：有数据展示列表，无数据展示空提示 -->
-          <ul v-if="announcementList.length > 0" class="notice-list">
+          <!-- 公告列表：从noticeStore的getter取值 -->
+          <ul v-if="latestAnnouncements.length > 0" class="notice-list">
             <li
-                v-for="item in announcementList"
+                v-for="item in latestAnnouncements"
                 :key="item.announcement_id"
                 class="notice-item"
             >
-              [{{ formatDate(item.published_at) }}] {{ item.content }}
+              [{{ formatDate(item.published_at) }}] {{ item.title }}：{{ item.content }}
             </li>
           </ul>
           <div v-else class="empty-notice">暂无最新公告</div>
@@ -32,76 +32,79 @@
 </template>
 
 <script setup>
-// 1. 导入核心依赖
-import { ref, onMounted, computed } from 'vue';
-import PageBackground from "@/components/PageBackground.vue";
-import Navbar from "@/components/Navbar.vue";
-// 导入接口（需确保api文件已封装对应接口）
-import { getUserInfo } from '@/api/user';
-import { getLatestAnnouncements } from '@/api/index';
-// 导入登录态校验工具
-import { getToken } from '@/utils/auth';
-// 导入接口签名生成工具（按接口文档规范）
-import { generateSign } from '@/utils/sign';
-
-// 2. 定义响应式数据
-const isLoading = ref(true); // 加载状态
-const userInfo = ref({}); // 用户信息
-const announcementList = ref([]); // 公告列表
-
-// 3. 计算属性：处理用户名展示（异常兜底）
-const userName = computed(() => {
-  // 有真实姓名显示姓名，无则显示「未知用户」
-  return userInfo.value.real_name || '未知用户';
+  // 1. 导入核心依赖
+  import { ref, onMounted, computed } from 'vue';
+  import PageBackground from "@/components/PageBackground.vue";
+  import Navbar from "@/components/Navbar.vue";
+  // 导入登录态校验工具
+  import { storage, format } from '@/utils' // 补充format（生成签名用）
+  import { useUserStore } from '@/stores'
+  import { useNoticeStore } from '@/stores/notice' // 导入公告Store
+  // 2. 定义响应式数据
+  const isLoading = ref(true); // 加载状态
+  const userStore = useUserStore()
+  const noticeStore = useNoticeStore() // 初始化公告Store
+  userStore.loadUserProfile();
+  // 计算属性：从userStore取用户信息（无需单独定义userInfo）
+  const userName = computed(() => {
+  return userStore.userInfo.real_name || '未知用户';
 });
 
-// 4. 工具函数：日期格式化（YYYY-MM-DD）
-const formatDate = (dateStr) => {
+  // 计算属性：从noticeStore的getter取最新3条公告（响应式）
+  const latestAnnouncements = computed(() => {
+    return noticeStore.latestAnnouncements(3); // 这里依赖noticeStore的getter定义正确
+  });
+
+  // 工具函数：日期格式化（YYYY-MM-DD）
+  const formatDate = (dateStr) => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
 };
 
-// 5. 核心函数：初始化页面数据
-const initPageData = async () => {
-  try {
-    // 校验登录态：无token跳转登录页（需结合路由跳转逻辑）
-    const token = getToken();
-    if (!token) {
-      // 替换为项目实际的路由跳转方式（如router.push）
-      window.location.href = '/login';
-      return;
-    }
+  // 4. 核心函数：初始化页面数据
+  const initPageData = async () => {
+    try {
+      // 校验登录态（无需改）
+      const token = storage.getToken();
+      if (!token) {
+        window.location.href = '/login';
+        return;
+      }
 
-    // 生成接口签名（按接口文档2.2节规则）
-    const sign = generateSign({ timestamp: Date.now() });
+  // 生成接口签名（按接口文档2.2节规则）
+  const sign = format.generateSign({ timestamp: Date.now() });
 
-    // 并行请求：用户信息 + 公告列表（提升加载效率）
-    const [userRes, noticeRes] = await Promise.all([
-      getUserInfo({ sign }), // 请求用户信息
-      getLatestAnnouncements({ sign, pageSize: 3 }) // 请求最新3条公告
-    ]);
+  // 并行请求：用户信息 + 公告列表（提升加载效率）
+      const [userRes] = await Promise.all([
+        userStore.loadUserProfile({ sign }),
+        noticeStore.fetchAllAnnouncements({
+          sign: sign, // 直接传你生成的sign
+          pageNum: 1,
+          pageSize: 10
+        })
+      ]);
 
-    // 赋值数据（需匹配接口返回的字段名）
-    if (userRes.code === 0) { // 假设接口成功码为0，可替换为实际值
-      userInfo.value = userRes.data;
-    }
-    if (noticeRes.code === 0) {
-      announcementList.value = noticeRes.data.list || [];
-    }
-  } catch (error) {
-    // 异常处理：打印错误+友好提示
-    console.error('首页数据请求失败：', error);
-    alert('数据加载失败，请刷新页面重试');
-  } finally {
-    // 无论成功/失败，结束加载状态
-    isLoading.value = false;
-  }
+  // 赋值用户信息到userStore（对齐你现有store逻辑）
+  if (userRes.res_code === '0000') { // 改为接口文档的成功码
+    userStore.setUserInfo(userRes.data);// 假设userStore有setUserInfo方法
+    userStore.setIsSuperAdmin(!!userRes.data.is_super_admin);
+    userStore.setDeptName((userRes.data.department_name || '').trim());
+    userStore.setIsAdmin(!!userRes.data.admin_id);
+}
+} catch (error) {
+  // 异常处理：打印错误+友好提示
+  console.error('首页数据请求失败：', error);
+  alert('数据加载失败，请刷新页面重试');
+} finally {
+  // 无论成功/失败，结束加载状态
+  isLoading.value = false;
+}
 };
 
-// 6. 页面挂载时初始化数据
-onMounted(() => {
-  initPageData();
+  // 5. 页面挂载时初始化数据
+  onMounted(async () => {
+  await initPageData(); // 统一调用初始化函数
 });
 </script>
 

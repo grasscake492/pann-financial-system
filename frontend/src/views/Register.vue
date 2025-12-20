@@ -34,6 +34,7 @@
         <input
             type="text"
             placeholder="请输入邮箱"
+            ref="emailInput"
             class="input-field"
             v-model="form.email"
             @blur="validateEmail"
@@ -88,13 +89,13 @@
 import { ref, reactive } from 'vue';
 import PageBackground from "@/components/PageBackground.vue";
 import { useRouter } from 'vue-router'
-import { userRegister } from '@/api/user'
+import { auth } from '@/api'
 import md5 from 'js-md5'
 import { ElMessage } from 'element-plus'
-// 新增：导入validate.js的注册表单校验函数
-import { validateRegisterForm } from '@/utils/validate.js';
+import {validateRegisterForm} from "@/utils/validate.js";
+import { encryptData, decryptData, generateSign } from '@/utils/request.js'
 const router = useRouter()
-
+const emailInput = ref(null);
 const form = reactive({
   username: '',
   account: '',
@@ -168,12 +169,9 @@ const validateConfirmPwd = () => {
 // 6. 整体表单验证
 // （复用validate.js的校验函数）
 const validateForm = () => {
-  // 调用通用校验函数，获取错误信息
   const validateErrors = validateRegisterForm(form);
-  // 把错误信息同步到页面的errors对象
-  Object.assign(errors, validateErrors);
-  // 所有字段无错误则返回true
-  return Object.keys(validateErrors).length === 0;
+  Object.assign(errors, validateErrors); // 同步错误到组件
+  return Object.keys(validateErrors).length === 0; // 无错误返回true
 };
 
 // 7. 注册处理逻辑
@@ -185,74 +183,62 @@ const handleRegister = async () => {
   isSubmitting.value = true;
 
   try {
-    // 生成sign签名（替换为后端秘钥）
-    const secretKey = 'pannfmis2025';
-    const signStr = form.account + form.username + form.password + secretKey;
-    const sign = md5(signStr);
-
-    // 构造请求参数（对齐接口文档）
-    const registerData = {
+    // 步骤1：构造业务参数（仅接口要求的字段）
+    const businessParams = {
       student_number: form.account,
       real_name: form.username,
       email: form.email,
-      password: form.password,
+      password: form.password
+    };
+
+    // 步骤2：直接调用已定义的generateSign生成签名（无多余拼接）
+    const sign = generateSign(businessParams);
+    // 步骤3：整合最终参数（业务字段 + sign）
+    const reqParams = {
+      ...businessParams,
       sign: sign
     };
 
-    // 调用注册接口
-    const res = await userRegister(registerData);
-
+   /* // 步骤4：直接调用已定义的encryptData加密参数（无多余逻辑）
+    const encryptedData = encryptData(reqParams);
+*///统一在request加密
+    // 步骤6：调用注册接口（传用户ID + 加密后的数据）
+    const axiosRes = await auth.userRegister(reqParams);
+    const res = axiosRes;
+    console.log('【注册接口返回结果】', res);
     // 处理返回结果（对齐接口文档返回码）
     switch (res.res_code) {
       case '0000':
         ElMessage.success(res.res_msg || '注册成功！即将跳转到登录页');
-        // 清空表单
-        form.username = '';
-        form.account = '';
-        form.email = '';
-        form.password = '';
-        form.confirmPwd = '';
+        Object.keys(form).forEach(key => form[key] = '');
         Object.keys(errors).forEach(key => errors[key] = '');
-        // 跳转登录页
-        setTimeout(() => {
-          router.push('/login');
-        }, 1500);
-        break;
-      case '0002':
-        ElMessage.error(res.res_msg || '参数错误：缺少必填项或格式不正确');
-        form.password = '';
-        form.confirmPwd = '';
+        setTimeout(() => router.push('/login'), 1500);
         break;
       case '0005':
         ElMessage.error(res.res_msg || '该邮箱已被注册，请更换邮箱');
         form.password = '';
         form.confirmPwd = '';
-        document.querySelector('input[placeholder="请输入邮箱"]').focus();
+        errors.confirmPwd = '';
+        emailInput.value?.focus();
         break;
-      case '0006':
-        ElMessage.error(res.res_msg || '白名单校验失败，您暂无注册权限');
-        form.password = '';
-        form.confirmPwd = '';
-        break;
-      case '0008':
-        ElMessage.error(res.res_msg || '系统内部错误，请稍后重试');
-        form.password = '';
-        form.confirmPwd = '';
-        break;
+        // 其他返回码处理...
       default:
         ElMessage.error(res.res_msg || '注册失败，请联系管理员');
         form.password = '';
         form.confirmPwd = '';
     }
   } catch (error) {
-    console.error('注册请求失败：', error);
+    console.error('【注册请求失败 - 完整错误信息】', {
+      message: error.message,
+      response: error.response ? {
+        status: error.response.status,
+        data: error.response.data
+      } : '无响应数据',
+      request: error.request ? '请求已发送但无响应' : '请求未发送'
+    });
     form.password = '';
     form.confirmPwd = '';
-    if (error.response?.data?.res_msg) {
-      ElMessage.error(`注册失败：${error.response.data.res_msg}`);
-    } else {
-      ElMessage.error('网络异常，注册失败！请检查网络后重试');
-    }
+    ElMessage.error(error.response?.data?.res_msg || '网络异常，注册失败！');
   } finally {
     isSubmitting.value = false;
   }
