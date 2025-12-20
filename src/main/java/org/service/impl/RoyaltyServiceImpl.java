@@ -279,8 +279,25 @@ public class RoyaltyServiceImpl implements RoyaltyService {
     @Transactional
     public ApiResponse<Void> deleteRoyalty(Long recordId, Long adminId) {
         try {
-            // 这里需要先查询记录获取部门ID，实际项目中可能需要修改接口参数
-            throw new RuntimeException("删除功能需要部门ID参数，请使用带部门ID的删除方法");
+            // 先查询记录，确定属于哪个部门
+            NewsDepartmentMonthly newsRecord = newsDepartmentMonthlyMapper.selectByRecordId(recordId);
+            if (newsRecord != null) {
+                // 新闻部记录
+                newsDepartmentMonthlyMapper.deleteByRecordId(recordId);
+                // 重新计算汇总表（这里可以调用recalculateFeeMonthlySummary）
+                return ApiResponse.success(null, "删除稿费记录成功");
+            }
+
+            EditorialDepartmentMonthly editorialRecord = editorialDepartmentMonthlyMapper.selectByRecordId(recordId);
+            if (editorialRecord != null) {
+                // 编辑部记录
+                editorialDepartmentMonthlyMapper.deleteByRecordId(recordId);
+                // 重新计算汇总表
+                return ApiResponse.success(null, "删除稿费记录成功");
+            }
+
+            return ApiResponse.error(ResponseCode.DATA_NOT_FOUND, "稿费记录不存在");
+
         } catch (Exception e) {
             throw new RuntimeException("删除稿费记录失败: " + e.getMessage(), e);
         }
@@ -611,10 +628,18 @@ public class RoyaltyServiceImpl implements RoyaltyService {
     }
 
     private void updateNewsRecord(NewsDepartmentMonthly record, RoyaltyUpdateRequest request) {
-        record.setArticleTitle(request.getArticleTitle());
-        record.setArticleType(request.getArticleType());
-        record.setFeeAmount(request.getFeeAmount());
-        record.setStatisticalMonth(request.getStatisticalMonth());
+        if (request.getArticleTitle() != null) {
+            record.setArticleTitle(request.getArticleTitle());
+        }
+        if (request.getArticleType() != null) {
+            record.setArticleType(request.getArticleType());
+        }
+        if (request.getFeeAmount() != null) {
+            record.setFeeAmount(request.getFeeAmount());
+        }
+        if (request.getStatisticalMonth() != null) {
+            record.setStatisticalMonth(request.getStatisticalMonth());
+        }
         record.setUpdatedAt(new Date());
     }
 
