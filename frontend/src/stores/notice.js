@@ -3,12 +3,12 @@ import { defineStore } from 'pinia'
 import { storage, format, permission } from '@/utils/index.js'
 // 导入公告接口（仅保留实际用到的）
 import {
-    batchGetAnnouncements,
-    fetchLatestAnnouncements,
+   /* batchGetAnnouncements,
+    fetchLatestAnnouncements,*/
     getAnnouncementDetail,
     publishAnnouncement,
     updateAnnouncement,
-    deleteAnnouncement
+    deleteAnnouncement, getAllAnnouncements
 } from '@/api/announcement'
 import {submitFeedback} from "@/api/feedback.js";
 
@@ -29,22 +29,15 @@ export const useNoticeStore = defineStore('notice', {
     }),
     getters: {
         /**
-         * 获取最新的N条公告（响应式，数据变化自动更新）
+         * 获取最新的3条公告（响应式，数据变化自动更新）
          * @param {number} count - 要获取的公告条数，默认3
          * @returns {Array} 最新的公告列表
          */
-        latestAnnouncements: (state) => (count = 3) => {
+        latestThreeAnnouncements: (state) => {
+            // 过滤掉未发布的公告（published_at为空），取前3条
             return state.announcementList
-                .filter(item => item.published_at) // 过滤无发布时间的公告
-                .sort((a, b) => new Date(b.published_at) - new Date(a.published_at)) // 最新在前
-                .slice(0, count); // 取前count条
-        },
-        /**
-         * 获取最新的1条公告（简化调用）
-         * @returns {Object} 最新公告详情
-         */
-        newestAnnouncement: (state) => {
-            return state.latestAnnouncements(1)[0] || {};
+                .filter(item => item.published_at)
+                .slice(0, 3);
         }
     },
     actions: {
@@ -52,63 +45,31 @@ export const useNoticeStore = defineStore('notice', {
          * 1. 查所有公告（核心修改：去掉ID数组必填，适配“查全部”逻辑）
          * @param {Object} params - 请求参数（仅传分页参数，如page/size，无需ID）
          */
-        async fetchAllAnnouncements(params = {}) { // 加params兜底，避免传空
+        async fetchAllAnnouncements(params = {}) {
             try {
-                // 生成签名（只拼分页参数，不用ID）
-                const sign = format.generateSign({
-                    timestamp: Date.now(),
+                // 默认参数：第1页、每页10条，按published_at降序
+                const queryParams = {
+                    page: 1,
+                    size: 10,
+                    order_by: 'published_at',
+                    sort: 'desc',
                     ...params
-                });
-
-                // 关键修改：调用「查全部公告」的接口（替换成你接口文档里的“查全部”接口名，比如getAllAnnouncements）
-                const res = await getAllAnnouncements({ // 原先是batchGetAnnouncements（批量查ID），现在换成查全部的接口
-                    ...params,
-                    sign
-                });
-
-                // 接口成功：更新公告列表
+                };
+                // 生成签名（若接口需要）
+                const sign = format.generateSign({ timestamp: Date.now() });
+                // 调用接口
+                const res = await getAllAnnouncements({ ...queryParams, sign });
                 if (res.res_code === '0000') {
                     this.announcementList = res.data.list || [];
                     this.announcementTotal = res.data.total || 0;
                 } else {
-                    console.error('获取所有公告失败：', res.res_msg);
+                    console.error('获取公告失败：', res.res_msg);
                 }
             } catch (error) {
-                console.error('请求所有公告异常：', error);
+                console.error('请求公告异常：', error);
             }
         },
 
-        /**
-         * 2. 查最新N条公告（核心修改：去掉ID必填+改掉自调用+适配“查最新”逻辑）
-         * @param {Object} params - 请求参数
-         * @param {number} [params.count=3] - 最新公告条数（默认查3条）
-         */
-        async fetchLatestAnnouncements(params = {}) { // 加params兜底
-            try {
-                // 兜底默认条数：没传count就查3条
-                const queryParams = { count: 3, ...params };
-                // 生成签名（只拼条数，不用ID）
-                const sign = format.generateSign({
-                    timestamp: Date.now(),
-                    ...queryParams
-                });
-
-                // 关键修改1：改掉“自己调用自己”的错误，调用「查最新公告」的专属接口（比如getLatestAnnouncements）
-                const res = await getLatestAnnouncements({
-                    ...queryParams,
-                    sign
-                });
-
-                // 接口成功返回最新公告列表
-                if (res.res_code === '0000') {
-                    return res.data.list || [];
-                }
-                return [];
-            } catch (error) {
-                console.error('获取最新公告失败：', error);
-                return [];
-            }
-        },
 
         /**
          * 3. 查单个公告详情（保留不变，本来就需要ID）
@@ -131,28 +92,6 @@ export const useNoticeStore = defineStore('notice', {
             }
         },
 
-// 额外补充：保留“批量查指定ID公告”（如果需要），明确标注需要ID
-        async fetchBatchAnnouncements(params = {}) {
-            // 加参数校验：没传ID数组就提示，不调接口
-            if (!Array.isArray(params.announcementIds) || params.announcementIds.length === 0) {
-                console.error('批量查公告失败：缺少公告ID数组');
-                return;
-            }
-            try {
-                const sign = format.generateSign({
-                    timestamp: Date.now(),
-                    ...params
-                });
-                const res = await batchGetAnnouncements({...params, sign});
-                if (res.res_code === '0000') {
-                    this.batchAnnouncementList = res.data.list || [];
-                } else {
-                    console.error('批量查公告失败：', res.res_msg);
-                }
-            } catch (error) {
-                console.error('批量查公告异常：', error);
-            }
-        },
         /**
          * 管理员发布公告
          * @param {Object} params - 发布参数（title/content/publisher_id）
@@ -234,7 +173,9 @@ export const useNoticeStore = defineStore('notice', {
                 return false;
             }
         },
-
+        setAnnouncements(data) {
+            this.announcements = data.list || data.records || data;
+            this.total = data.total || data.length;},
         // 公告相关基础操作（补全空方法）
         setAnnouncementList(list) {
             this.announcementList = list;
@@ -245,7 +186,11 @@ export const useNoticeStore = defineStore('notice', {
         setAnnouncementCurrentPage(page) {
             this.announcementCurrentPage = page;
         },
-
+        // 清空公告数据（可选）
+        clearAnnouncement() {
+            this.announcementList = [];
+            this.announcementTotal = 0;
+        },
         // 反馈相关操作（后续按需完善）
         setFeedbackList(list) {
             this.feedbackList = list || []; // 设置用户反馈列表

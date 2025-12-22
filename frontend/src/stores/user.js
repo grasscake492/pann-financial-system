@@ -83,30 +83,33 @@ export const useUserStore = defineStore('user', {
         async loadUserProfile() {
             const token = this.userInfo.token; // 读的是登录页存入stores的token
             if (!token) {
-                console.warn('【fetchUserProfile】无Token，跳过请求');
+                console.warn('【fetchUserProfile】无Token，跳过用户信息拉取'); // 补充日志，便于调试
                 return; // 直接返回，避免后续逻辑执行
             }
 
             try {
                 // 调用真实接口（参数需根据后端要求调整）
                 const res = await fetchUserProfile()
+
                 if (res.res_code === "0000") {
+                    // 兜底：如果接口返回的data为空，不覆盖原有数据
+                    const newData = res.data || {};
                     // 合并接口返回的用户信息，标记登录状态
                     this.userInfo = {
-                        ...this.userInfo,
-                        ...res.data,
+                        ...newData, // 接口数据（空则为{}，避免覆盖）
+                        ...this.userInfo, // 登录时的原始数据（优先级更高）
                         isLogin: true
                     }
 
                 } else {
-                    console.error('【fetchUserProfile】接口返回错误：', res.msg);
+                    console.error('【fetchUserProfile】接口返回错误：', res.res_msg || '未知错误'); // 修正：接口返回的是res_msg而非msg
                 }
+                return res;
             } catch (error) {
                 console.error('【fetchUserProfile】请求失败：', error);
-
+                // 兜底：请求失败时不修改原有用户信息，避免登录态丢失
             }
         },
-
         // 登录成功后更新用户信息（登录页调用）
         updateUserInfo(data) {
             this.userInfo.token = data.token || this.userInfo.token

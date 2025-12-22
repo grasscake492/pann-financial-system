@@ -198,7 +198,7 @@ const getUserRoleText = computed(() => {
       return '系统管理员'; // 对应超级管理员
     case 'news_admin':
       return '新闻部管理员'; // 对应新闻部管理员（getter里定义的）
-    case 'editor_admin':
+    case 'editorial_admin':
       return '编辑部管理员'; // 对应编辑部管理员
     case 'operation_admin':
       return '运营部管理员'; // 对应运营部管理员

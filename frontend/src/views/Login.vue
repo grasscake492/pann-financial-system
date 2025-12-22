@@ -55,6 +55,7 @@ import { ElMessage } from 'element-plus'
 import md5 from 'js-md5'
 import {validateLoginForm} from "@/utils/validate.js";
 import {decryptData} from "@/utils/request.js";
+import {getToken} from "@/utils/auth.js";
 // 创建路由实例
 const router = useRouter();
 const route = useRoute();
@@ -106,13 +107,11 @@ const handleLogin = async () => {
       password: form.password,
       sign: md5(signStr)
     };
-    console.log('请求参数：', requestParams); // 新增打印
-    console.log('开始调用userLogin'); // 新增打印
     // 6. 调用登录接口
     const axiosRes = await auth.userLogin(requestParams);// 重命名为axiosRes，区分层级
     // 关键修复：取Axios响应的data字段（才是接口原始返回数据）
     const res = axiosRes;
-
+    console.log('后台返回的完整登录数据：', res);
     if (!res) {
       ElMessage.error('登录失败：无响应数据');
       isSubmitting.value = false; // 必须重置提交状态，否则按钮一直加载
@@ -143,7 +142,7 @@ const handleLogin = async () => {
         } else {
           console.log('要存的token：', userInfo.token);
           storage.setToken(userInfo.token);
-          console.log('存完后本地的token：', localStorage.getItem('pann_financial_token'));
+          console.log('存完后本地的token：', getToken());
         }
 
         // 存储完整信息，且角色用Store计算好的

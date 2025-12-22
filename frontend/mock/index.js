@@ -114,9 +114,9 @@ Mock.mock(/\auth\/login\/xxx/, 'post', (options) => {
             email: Mock.Random.email(),
             token: getRandomToken(),
             permissions: ['read', 'write'],
-            is_super_admin: false, // 不是超级管理员
-            department_id: 'news_dept', // 新闻部ID（随便填，关键是下面的name）
-            department_name: '新闻部', // 核心：必须是“新闻部”，才能触发news_admin
+            is_super_admin: true, // 超级管理员
+            department_id: '1', // 新闻部ID
+            department_name: '编辑部', //
             admin_id: getRandomId() // 可选，部门管理员ID
         }
     ];
@@ -830,6 +830,100 @@ Mock.mock(/\/api\/v1\/admin\/announcements\/a\d+/, 'delete', () => {
         res_msg: '删除成功',
         data: encryptData(successData) // 🌟 加密返回
     };
+});
+
+// ==================== 公告相关 - 获取所有公告（2.5.31） ====================
+Mock.mock(/\/api\/v1\/announcements/, 'get', (options) => {
+    // 1. 解析请求参数（从URL中提取query参数）
+    const urlParams = new URLSearchParams(options.url.split('?')[1] || '');
+    const params = {
+        page: parseInt(urlParams.get('page')) || 1,
+        size: parseInt(urlParams.get('size')) || 10,
+        publisher_id: urlParams.get('publisher_id') || '',
+        keyword: urlParams.get('keyword') || '',
+        order_by: urlParams.get('order_by') || 'published_at',
+        sort: urlParams.get('sort') || 'desc'
+    };
+
+    // 2. 参数校验（模拟接口的参数错误返回）
+    if (!params.page || params.page < 1) {
+        return {
+            res_code: '0002',
+            res_msg: '参数错误！页码格式不正确或小于1',
+            data: null
+        };
+    }
+    if (!params.size || params.size < 1 || params.size > 50) {
+
+        return {
+            res_code: '0002',
+            res_msg: '参数错误！每页数量必须在1-50之间',
+            data: null
+        };
+    }
+// 3. 生成模拟公告数据（总共有15条模拟数据，用于分页）
+    const totalAnnouncements = 15;
+    const mockAnnouncements = [];
+    for (let i = 0; i < totalAnnouncements; i++) {
+        const publishTime = getRandomDatetime(); // 复用工具函数生成发布时间
+        // 生成更新时间（确保晚于发布时间）
+        const updateTime = Mock.Random.datetime('yyyy-MM-dd HH:mm:ss', new Date(publishTime));
+        mockAnnouncements.push({
+            announcement_id: getRandomId(), // 复用工具函数生成公告ID
+            title: Mock.Random.ctitle(5, 20), // 改用Mock.Random，解决未定义问题
+            content: Mock.Random.cparagraph(1, 3), // 改用Mock.Random
+            publisher_id: Mock.Random.integer(100, 999), // 改用Mock.Random
+            published_at: publishTime, // 发布时间
+            created_at: publishTime, // 创建时间（与发布时间一致）
+            updated_at: updateTime // 更新时间（晚于发布时间）
+        });
+    }
+
+    // 4. 处理筛选（关键词模糊匹配标题）
+    let filteredAnnouncements = mockAnnouncements;
+    if (params.keyword) {
+        filteredAnnouncements = filteredAnnouncements.filter(item =>
+            item.title.includes(params.keyword)
+        );
+    }
+    // 可选：按发布者ID筛选
+    if (params.publisher_id) {
+        filteredAnnouncements = filteredAnnouncements.filter(item =>
+            item.publisher_id.toString() === params.publisher_id.toString()
+        );
+    }
+
+    // 5. 处理排序（默认按published_at降序）
+    filteredAnnouncements.sort((a, b) => {
+        const sortFieldA = a[params.order_by];
+        const sortFieldB = b[params.order_by];
+        if (params.sort === 'desc') {
+            return new Date(sortFieldB) - new Date(sortFieldA); // 降序
+        } else {
+            return new Date(sortFieldA) - new Date(sortFieldB); // 升序
+        }
+    });
+
+    // 6. 处理分页
+    const total = filteredAnnouncements.length;
+    const start = (params.page - 1) * params.size;
+    const end = start + params.size;
+    const paginatedAnnouncements = filteredAnnouncements.slice(start, end);
+
+    // 7. 构造返回数据（模拟接口成功响应）
+    const successData = {
+        total: total, // 符合条件的总记录数
+        page: params.page, // 当前页码
+        size: params.size, // 每页数量
+        list: paginatedAnnouncements // 分页后的公告列表
+    };
+    return {
+        res_code: '0000',
+        res_msg: '查询成功',
+        data: encryptData(successData) // 加密返回（复用项目加密逻辑）
+    };
+
+
 });
 
 // ==================== Mock全局配置 ====================

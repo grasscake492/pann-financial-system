@@ -50,11 +50,17 @@
   return userStore.userInfo.real_name || '未知用户';
 });
 
-  // 计算属性：从noticeStore的getter取最新3条公告（响应式）
-  const latestAnnouncements = computed(() => {
-    return noticeStore.latestAnnouncements(3); // 这里依赖noticeStore的getter定义正确
-  });
 
+  // 计算属性：从noticeStore获取最新3条公告（核心）
+  const latestAnnouncements = computed(() => {
+    // 过滤已发布的公告，取前3条（和Store的getter逻辑一致，也可直接用Store的getter）
+    return noticeStore.announcementList
+        .filter(item => item.published_at)
+        .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
+        .slice(0, 3);
+    // 若Store中定义了`latestThreeAnnouncements` getter，可直接用：
+    // return noticeStore.latestThreeAnnouncements;
+  });
   // 工具函数：日期格式化（YYYY-MM-DD）
   const formatDate = (dateStr) => {
   if (!dateStr) return '';
@@ -76,8 +82,8 @@
   const sign = format.generateSign({ timestamp: Date.now() });
 
   // 并行请求：用户信息 + 公告列表（提升加载效率）
-      const [userRes] = await Promise.all([
-        userStore.loadUserProfile({ sign }),
+      const [noticeRes] = await Promise.all([
+        //userStore.loadUserProfile({ sign }),
         noticeStore.fetchAllAnnouncements({
           sign: sign, // 直接传你生成的sign
           pageNum: 1,
@@ -86,12 +92,9 @@
       ]);
 
   // 赋值用户信息到userStore（对齐你现有store逻辑）
-  if (userRes.res_code === '0000') { // 改为接口文档的成功码
-    userStore.setUserInfo(userRes.data);// 假设userStore有setUserInfo方法
-    userStore.setIsSuperAdmin(!!userRes.data.is_super_admin);
-    userStore.setDeptName((userRes.data.department_name || '').trim());
-    userStore.setIsAdmin(!!userRes.data.admin_id);
-}
+      if (noticeRes && noticeRes.res_code === '0000') {
+        noticeStore.setAnnouncements(noticeRes.data.records || noticeRes.data);
+      }
 } catch (error) {
   // 异常处理：打印错误+友好提示
   console.error('首页数据请求失败：', error);

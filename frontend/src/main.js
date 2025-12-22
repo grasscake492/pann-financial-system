@@ -10,10 +10,13 @@ import App from './App.vue'
 import './assets/css/global.css'
 import ElementPlus from 'element-plus' // 引入Element Plus核心
 import 'element-plus/dist/index.css' // 引入样式
-import '../mock/index.js'
+// 1. 注释掉静态全局导入的Mock
+ import '../mock/index.js'
 // 仅开发环境加载MSW
 
 // 创建Vue应用实例
+// 全局唯一的Pinia实例
+
 const app = createApp(App)
 
 // 注册全局插件/依赖
@@ -23,9 +26,9 @@ app.use(ElementPlus) // 注册Element Plus组件库
 // 将Vue实例挂载到public/index.html中的#app容器
 app.mount('#app')
 
+// 2. 注释掉开发环境动态导入的Mock
 if (process.env.NODE_ENV === 'development') {
-    import('../mock/index.js').then(() => {
-        console.log('Mock服务已动态导入');
-    });
-}
-
+     import('../mock/index.js').then(() => {
+         console.log('Mock服务已动态导入');
+     });
+ }

@@ -119,6 +119,6 @@ export const exportRoyaltyRecord = (params) => {
         method: 'GET',
         url: '/api/v1/admin/royalty/export',
         params: params,
-        responseType: 'blob' // 导出文件需配置响应类型为blob
+        //responseType: 'blob' // 导出文件需配置响应类型为blob
     })
 }

@@ -20,84 +20,6 @@ export const getAnnouncementDetail = (announcementId, params) => {
 }
 
 /**
- * 批量获取公告列表（基于2.5.27接口扩展，前端聚合）
- * @param {Object} params - 请求参数
- * @param {string[]} params.announcementIds - 公告ID数组（必填，需提前获取）
- * @param {string} params.sign - 签名（必填）
- * @returns {Promise} - 聚合后的公告列表
- */
-export const batchGetAnnouncements = async (params) => {
-    const { announcementIds, sign, ...restParams } = params;
-    // 校验ID数组
-    if (!announcementIds || !Array.isArray(announcementIds) || announcementIds.length === 0) {
-        return {
-            res_code: '0002',
-            res_msg: '参数错误：缺少公告ID数组',
-            data: { list: [] }
-        };
-    }
-
-    try {
-        // 并行请求所有公告详情
-        const requestPromises = announcementIds.map(id =>
-            getAnnouncementDetail(id, { sign, ...restParams })
-        );
-        const results = await Promise.all(requestPromises);
-
-        // 过滤有效数据，提取公告信息
-        const validAnnouncements = results
-            .filter(res => res.res_code === '0000' && res.data?.announcementInfo)
-            .map(res => res.data.announcementInfo);
-
-        return {
-            res_code: '0000',
-            res_msg: '批量获取公告成功',
-            data: {
-                list: validAnnouncements,
-                total: validAnnouncements.length
-            }
-        };
-    } catch (error) {
-        console.error('批量获取公告失败：', error);
-        return {
-            res_code: '0008',
-            res_msg: '系统内部错误',
-            data: { list: [], total: 0 }
-        };
-    }
-}
-
-/**
- * 获取最新的N条公告（前端筛选，基于批量接口）
- * @param {Object} params - 请求参数
- * @param {string[]} params.announcementIds - 公告ID数组（必填）
- * @param {string} params.sign - 签名（必填）
- * @param {number} [params.count=3] - 最新公告条数
- * @returns {Promise} - 最新公告列表
- */
-export const fetchLatestAnnouncements = async (params) => {
-    const { count = 3, ...restParams } = params;
-    // 先批量获取所有公告
-    const batchRes = await batchGetAnnouncements(restParams);
-
-    if (batchRes.res_code !== '0000') {
-        return batchRes;
-    }
-
-    // 前端筛选最新的N条（按发布时间降序）
-    const sortedList = batchRes.data.list
-        .filter(item => item.published_at) // 过滤未发布公告
-        .sort((a, b) => new Date(b.published_at) - new Date(a.published_at)) // 最新在前
-        .slice(0, count); // 取前N条
-
-    return {
-        res_code: '0000',
-        res_msg: '获取最新公告成功',
-        data: { list: sortedList }
-    };
-}
-
-/**
  * 管理员发布公告（文档编号2.5.28）
  * @param {Object} params - 请求参数
  * @param {string} params.title - 公告标题（必填）
@@ -142,3 +64,44 @@ export const deleteAnnouncement = (announcementId) => {
         url: `/api/v1/admin/announcements/${announcementId}`
     })
 }
+
+
+/**
+ * 获取所有公告（分页+筛选+排序）（文档编号2.5.31）
+ * @param {Object} params - 请求参数（严格匹配接口约束）
+ * @param {number} params.page - 页码（必选，≥1）
+ * @param {number} params.size - 每页数量（必选，1-50）
+ * @param {bigint|string|number} [params.publisher_id] - 发布者ID（可选）
+ * @param {string} [params.keyword] - 标题关键词（可选，模糊匹配）
+ * @param {string} [params.order_by] - 排序字段（可选，默认published_at）
+ * @param {string} [params.sort] - 排序方式（可选，asc/desc，默认desc）
+ * @param {string} [params.sign] - 签名（若接口需要签名则传，参考2.2节规则）
+ * @returns {Promise} - 请求结果（含公告列表、分页信息）
+ */
+export const getAllAnnouncements = (params) => {
+    // 参数前置校验（可选，提前拦截非法参数，减少接口请求错误）
+    if (!params.page || params.page < 1) {
+        console.error('获取公告失败：页码必须≥1');
+        return Promise.reject(new Error('页码必须≥1'));
+    }
+    if (!params.size || params.size < 1 || params.size > 50) {
+        console.error('获取公告失败：每页数量必须在1-50之间');
+        return Promise.reject(new Error('每页数量必须在1-50之间'));
+    }
+
+    return request({
+        method: 'GET',
+        url: '/api/v1/announcements', // 匹配接口地址
+        params: {
+            // 若接口需要签名，按参考示例添加sign（根据项目实际规则生成）
+            // sign: params.sign,
+            page: params.page,
+            size: params.size,
+            publisher_id: params.publisher_id, // 可选参数，无则自动忽略
+            keyword: params.keyword, // 可选参数，无则自动忽略
+            order_by: params.order_by || 'published_at', // 默认排序字段
+            sort: params.sort || 'desc', // 默认排序方式
+            ...params // 扩展其他可能的参数（如签名、时间戳等）
+        }
+    });
+};
