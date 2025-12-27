@@ -1,4 +1,4 @@
-package org.controller.admin;
+package org.controller;
 
 import org.result.result;
 import org.service.FeedbackService;

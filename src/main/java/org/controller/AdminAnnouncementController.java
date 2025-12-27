@@ -1,4 +1,4 @@
-package org.controller.admin;
+package org.controller;
 
 import org.dto.request.CreateAnnouncementRequest;
 import org.dto.request.UpdateAnnouncementRequest;
