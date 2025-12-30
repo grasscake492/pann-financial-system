@@ -1,7 +1,8 @@
 // src/main/java/org/dto/request/ProxyQueryRequest.java
 package org.dto.request;
 
-import javax.validation.constraints.Min;
+
+import jakarta.validation.constraints.Min;
 
 /**
  * 查询代领记录请求DTO

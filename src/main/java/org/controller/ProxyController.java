@@ -1,6 +1,7 @@
 // src/main/java/org/controller/ProxyController.java
 package org.controller;
 
+import jakarta.validation.Valid;
 import org.dto.request.ProxyAddRequest;
 import org.dto.request.ProxyQueryRequest;
 import org.dto.request.ProxyUpdateRequest;
@@ -12,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+
 
 @RestController
 @RequestMapping("/api/v1/admin/proxy")

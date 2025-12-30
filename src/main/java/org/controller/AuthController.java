@@ -1,5 +1,6 @@
 package org.controller;
 
+import jakarta.validation.Valid;
 import org.dto.request.LoginRequest;
 import org.dto.request.RegisterRequest;
 import org.result.result;
@@ -8,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+
 
 /**
  * 认证控制器

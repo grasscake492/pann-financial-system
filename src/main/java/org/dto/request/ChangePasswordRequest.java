@@ -1,7 +1,8 @@
 package org.dto.request;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 public class ChangePasswordRequest {
     @NotBlank(message = "旧密码不能为空")

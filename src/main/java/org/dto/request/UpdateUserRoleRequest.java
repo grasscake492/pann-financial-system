@@ -1,6 +1,7 @@
 package org.dto.request;
 
-import javax.validation.constraints.NotNull;
+
+import jakarta.validation.constraints.NotNull;
 
 /**
  * 更新用户角色请求

@@ -1,5 +1,6 @@
 package org.controller;
 
+import jakarta.validation.Valid;
 import org.dto.request.CreateFeedbackRequest;
 import org.entity.Feedback;
 import org.result.result;
@@ -7,7 +8,7 @@ import org.service.FeedbackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+
 import java.util.List;
 
 @RestController
