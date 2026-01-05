@@ -57,6 +57,7 @@ class RoyaltyDepartmentTest {
         newsDepartment.setDepartmentName("新闻部");
 
         editorialDepartment = new Department();
+
         editorialDepartment.setDepartmentId(2L);
         editorialDepartment.setDepartmentName("编辑部");
     }
