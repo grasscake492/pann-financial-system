@@ -212,13 +212,13 @@
         <table class="content-table">
           <thead>
           <tr>
-            <th>用户ID</th>
+<!--            <th>用户ID</th>-->
             <th>真实姓名</th>
             <th>学号</th>
             <th>邮箱</th>
             <th>所属部门</th>
             <th>角色权限</th>
-            <th>是否超级管理员</th>
+<!--            <th>是否超级管理员</th>-->
             <th>操作</th>
           </tr>
           </thead>
@@ -227,17 +227,22 @@
             <td colspan="8" class="empty-tip">暂无成员记录</td>
           </tr>
           <tr v-for="item in userList" :key="item.user_id">
-            <td>{{ item.user_id }}</td>
+<!--            <td>{{ item.user_id }}</td>-->
             <td>{{ item.real_name }}</td>
             <td>{{ item.student_number || '-' }}</td>
             <td>{{ item.email || '-' }}</td>
             <td>{{ deptIdMap[item.department_id] || '未知部门' }}</td>
-            <td>{{ item.role || '普通成员' }}</td>
             <td>
+              <!-- 多层条件判断：先判断超级管理员 → 再判断部门管理员 → 最后普通用户 -->
+              <span v-if="item.is_super_admin" class="role-tag super-admin">系统管理员</span>
+              <span v-else-if="item.department_id && item.department_id !== ''" class="role-tag dept-admin">部门管理员</span>
+              <span v-else class="role-tag normal-user">普通用户</span>
+            </td>
+<!--            <td>
         <span class="status-tag" :class="item.is_super_admin ? 'success' : 'default'">
           {{ item.is_super_admin ? '是' : '否' }}
         </span>
-            </td>
+            </td>-->
             <td>
               <div class="op-btn-group">
                 <button class="op-btn primary" @click="openRoleEditDialog(item)">修改角色</button>
@@ -264,10 +269,10 @@
               <label>邮箱:</label>
               <input type="email" class="form-input" v-model="userEditForm.email" placeholder="请输入邮箱">
             </div>
-            <div class="form-row">
+<!--            <div class="form-row">
               <label>加入时间:</label>
               <input type="date" class="form-input" v-model="userEditForm.created_at">
-            </div>
+            </div>-->
             <div class="form-row">
               <label>所属部门:</label>
               <select class="form-input" v-model="userEditForm.deptId">
@@ -354,53 +359,53 @@
             <!-- 部门选择：必填，绑定department_id（bigint类型） -->
             <select class="form-select" v-model="summaryForm.department_id">
               <option value="">请选择部门</option>
-              <option value="1">新闻部（ID:1）</option>
-              <option value="2">编辑部（ID:2）</option>
-              <option value="3">运营部（ID:3）</option>
+              <option value="1">新闻部</option>
+              <option value="2">编辑部</option>
+              <option value="3">运营部</option>
             </select>
           </div>
 
-          <div style="display: flex; align-items: center;">
+<!--          <div style="display: flex; align-items: center;">
             <label>导出格式:</label>
-            <!-- 导出格式：必填，绑定format（仅Excel/PDF，匹配接口要求） -->
+            &lt;!&ndash; 导出格式：必填，绑定format（仅Excel/PDF，匹配接口要求） &ndash;&gt;
             <select class="form-select" v-model="summaryForm.format">
               <option value="">请选择格式</option>
               <option value="Excel">Excel</option>
               <option value="PDF">PDF</option>
             </select>
-          </div>
+          </div>-->
 
           <button class="export-btn" @click="exportSummaryData">导出数据</button>
         </div>
 
         <!-- 以下表格部分保留你原有结构，移除重复的稿费汇总表格 -->
         <div class="dept-section">
-          <label>稿费汇总:</label>
+          <label>新闻部:</label>
           <table class="content-table">
             <thead>
             <tr>
-              <th>姓名</th>
-              <th>新闻部稿费</th>
-              <th>编辑部稿费</th>
-              <th>大图稿费</th>
-              <th>总金额</th>
+              <th>日期</th>
+              <th>任务名称</th>
+              <th>拍摄人员</th>
+              <th>金额详情</th>
+              <th>任务总金额</th>
             </tr>
             </thead>
             <tbody>
             <tr v-if="totalSummary.length === 0">
-              <td colspan="5" class="empty-tip">暂无汇总数据</td>
+              <td colspan="5" class="empty-tip">暂无新闻部稿费记录</td>
             </tr>
             <tr v-for="item in totalSummary" :key="item.userId">
-              <td>{{ item.real_name }}</td>
               <td>{{ item.newsAmount }}元</td>
               <td>{{ item.editAmount }}元</td>
+              <td>{{ item.real_name }}</td>
               <td>{{ item.bigImgAmount }}元</td>
               <td>{{ item.totalAmount }}元</td>
             </tr>
             </tbody>
           </table>
           <div class="total-row bold">
-            <label>平台总稿费:</label>
+            <label>新闻部总稿费:</label>
             <span>{{ platformTotal }}元</span>
           </div>
         </div>
@@ -1252,8 +1257,9 @@ const initData = async () => {
 };
 // 页面挂载时加载稿费记录
 onMounted(() => {
-  console.log('组件挂载，开始初始化数据');
+  console.log('进入系统管理员页面，组件挂载，开始初始化数据');
   initData();
+  updateMonthOptions(); // 页面加载就生成月份
 })
 
 // ====================== 3. 人员管理相关 ======================
@@ -1416,8 +1422,8 @@ const summaryForm = reactive({
 // 生成年份选项（近5年+未来1年，灵活调整）
 const generateYearOptions = () => {
   const currentYear = new Date().getFullYear();
-  const startYear = currentYear - 5;
-  const endYear = currentYear + 1;
+  const startYear = currentYear;
+  const endYear = currentYear + 3;
   const years = [];
   for (let y = startYear; y <= endYear; y++) {
     years.push(y);
@@ -1561,10 +1567,10 @@ const exportSummaryData = async () => {
     ElMessage.warning('请选择部门ID');
     return;
   }
-  if (!summaryForm.format) {
+ /* if (!summaryForm.format) {
     ElMessage.warning('请选择导出格式（Excel/PDF）');
     return;
-  }
+  }*/
 
   try {
     // 2. 构建参数：将department_id转为普通数字，避免BigInt序列化错误

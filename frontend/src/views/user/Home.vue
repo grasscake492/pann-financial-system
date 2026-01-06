@@ -44,7 +44,7 @@
   const isLoading = ref(true); // 加载状态
   const userStore = useUserStore()
   const noticeStore = useNoticeStore() // 初始化公告Store
-  userStore.loadUserProfile();
+ // userStore.loadUserProfile();
   // 计算属性：从userStore取用户信息（无需单独定义userInfo）
   const userName = computed(() => {
   return userStore.userInfo.real_name || '未知用户';
@@ -77,21 +77,40 @@
         window.location.href = '/login';
         return;
       }
+      // 判断条件：userInfo存在 + token存在 + 真实姓名存在（视为完整用户信息）
+      if (userStore.userInfo && userStore.userInfo.token && userStore.userInfo.real_name) {
+        console.log('【首页】已有完整用户信息，跳过用户信息拉取，仅拉取公告');
+        // 只拉取公告数据，不执行用户信息拉取，避免被张三信息覆盖
+        const noticeRes = await noticeStore.fetchAllAnnouncements({
+          sign: format.generateSign({ timestamp: Date.now() }),
+          pageNum: 1,
+          pageSize: 10
+        });
+        // 公告数据正常赋值
+        if (noticeRes && noticeRes.res_code === '0000') {
+          noticeStore.setAnnouncements(noticeRes.data.records || noticeRes.data);
+        }
+        isLoading.value = false; // 结束加载状态
+        return; // 退出函数，不执行后续原有逻辑
+      }
 
-  // 生成接口签名（按接口文档2.2节规则）
+      // 生成接口签名（按接口文档2.2节规则）
   const sign = format.generateSign({ timestamp: Date.now() });
 
   // 并行请求：用户信息 + 公告列表（提升加载效率）
-      const [noticeRes] = await Promise.all([
-        //userStore.loadUserProfile({ sign }),
+      const [userRes,noticeRes] = await Promise.all([
+        userStore.loadUserProfile({ sign, token }),
         noticeStore.fetchAllAnnouncements({
           sign: sign, // 直接传你生成的sign
           pageNum: 1,
           pageSize: 10
         })
       ]);
-
   // 赋值用户信息到userStore（对齐你现有store逻辑）
+      if (userRes && userRes.res_code === '0000') {
+
+        userStore.setUserInfo(userRes.data); // 调用userStore的赋值方法，存入用户信息
+      }
       if (noticeRes && noticeRes.res_code === '0000') {
         noticeStore.setAnnouncements(noticeRes.data.records || noticeRes.data);
       }

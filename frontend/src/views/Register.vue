@@ -114,19 +114,48 @@ const errors = reactive({
 
 const isSubmitting = ref(false);
 
-// 1. 验证用户名（仅非空）
+// 1. 验证用户名（非空 + 仅中文校验）
 const validateUsername = () => {
+  // 先清空原有错误提示
+  errors.username = '';
+  // 非空校验（
   if (!form.username.trim()) {
     errors.username = '真实姓名不能为空';
   } else {
-    errors.username = '';
+    // 中文校验（仅在非空的情况下执行）
+    // 纯中文正则表达式：^ 开头，$ 结尾，[\u4e00-\u9fa5]+ 匹配至少一个中文
+    const chineseOnlyReg = /^[\u4e00-\u9fa5]+$/;
+    // 校验输入的用户名是否符合纯中文规则
+    if (!chineseOnlyReg.test(form.username.trim())) {
+      errors.username = '姓名仅支持输入中文';
+    } else {
+      // 非空且是纯中文，清空错误提示
+      errors.username = '';
+    }
   }
 };
 
-// 2. 验证学号（仅非空）
+// 2. 验证学号（非空 + 12位长度 + 纯数字校验）
 const validateAccount = () => {
-  if (!form.account.trim()) {
+  errors.account = '';
+  const account = form.account.trim();
+
+  //  非空校验
+  if (!account) {
     errors.account = '学号不能为空';
+    return; // 非空校验失败，直接返回，不执行后续校验
+  }
+
+  //  12位长度校验
+  if (account.length !== 12) {
+    errors.account = '学号必须为12位';
+    return; // 长度校验失败，直接返回
+  }
+
+  // 纯数字校验
+  const numberReg = /^\d{12}$/; // 匹配恰好12位数字
+  if (!numberReg.test(account)) {
+    errors.account = '学号必须为12位纯数字';
   } else {
     errors.account = '';
   }

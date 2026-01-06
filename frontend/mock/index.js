@@ -98,31 +98,97 @@ Mock.mock(/\/auth\/register\/xxx/, 'post', (options) => {
         data: encryptData(successData) // 🌟 加密返回
     };
 });
-
 // ==================== 2. 用户登录接口（2.5.2） ====================
 Mock.mock(/\auth\/login\/xxx/, 'post', (options) => {
-    // 🌟 核心修改：跳过所有参数解密和校验，直接返回登录成功
-    // 不再解析/校验账号密码，模拟后端直接通过验证
-   // const roles = ['user', 'editorial_admin','operation_admin','news_admin', 'super_admin'];
-   // const randomRole = roles[Math.floor(Math.random() * roles.length)];
-    // 1. 构造后端格式的用户信息（数组形式，和后端一致）
-    const userData = [
-        {
-            user_id: getRandomId(),
-            student_number: '20231234',
-            real_name: Mock.Random.cname(),
-            email: Mock.Random.email(),
+    // 1. 解析前端传入的登录参数（解密请求体）
+    const loginParams = decryptData(options.body || '');
+    const inputStudentNumber = loginParams.student_number; // 获取前端输入的学号
+
+    // 2. 配置固定5个人员身份（1系统管理员+3部门管理员+1普通用户）
+    const fixedUsers = {
+        // 系统管理员-张三
+        "100000000001": {
+            user_id: "1",
+            student_number: "100000000001",
+            real_name: "张三",
+            email: "zhangsan@test.com",
+            token: getRandomToken(), // 复用工具函数生成唯一token
+            permissions: ['read', 'write', 'manage', 'super'],
+            is_super_admin: true,
+            department_id: null,
+            department_name: null,
+            admin_id: "1"
+        },
+        // 新闻部管理员-李四
+        "100000000002": {
+            user_id: "2",
+            student_number: "100000000002",
+            real_name: "李四",
+            email: "lisi@test.com",
             token: getRandomToken(),
-            permissions: ['read', 'write'],
-            is_super_admin: true, // 超级管理员
-            department_id: '1', // 新闻部ID
-            department_name: '编辑部', //
-            admin_id: getRandomId() // 可选，部门管理员ID
+            permissions: ['read', 'write', 'manage'],
+            is_super_admin: false,
+            department_id: "1",
+            department_name: "新闻部",
+            admin_id: "2"
+        },
+        // 编辑部管理员-王五
+        "100000000003": {
+            user_id: "3",
+            student_number: "100000000003",
+            real_name: "王五",
+            email: "wangwu@test.com",
+            token: getRandomToken(),
+            permissions: ['read', 'write', 'manage'],
+            is_super_admin: false,
+            department_id: "2",
+            department_name: "编辑部",
+            admin_id: "3"
+        },
+        // 运营部管理员-赵六
+        "100000000004": {
+            user_id: "4",
+            student_number: "100000000004",
+            real_name: "赵六",
+            email: "zhaoliu@test.com",
+            token: getRandomToken(),
+            permissions: ['read', 'write', 'manage'],
+            is_super_admin: false,
+            department_id: "3",
+            department_name: "运营部",
+            admin_id: "4"
+        },
+        // 普通用户-孙七
+        "200000000001": {
+            user_id: "10",
+            student_number: "200000000001",
+            real_name: "孙七",
+            email: "sunqi@test.com",
+            token: getRandomToken(),
+            permissions: ['read'],
+            is_super_admin: false,
+            department_id: null,
+            department_name: null,
+            admin_id: null
         }
-    ];
-    // 2. 加密用户信息（只加密data里的内容，和后端一致）
+    };
+
+    // 3. 匹配学号，判断是否存在该固定用户
+    const targetUser = fixedUsers[inputStudentNumber];
+    if (!targetUser) {
+        // 匹配失败：返回0004错误码
+        return {
+            res_code: "0004",
+            res_msg: "学号或密码错误",
+            data: null
+        };
+    }
+
+    // 4. 匹配成功：构造用户数据（保持数组格式，与后端一致）
+    const userData = [targetUser];
+    // 5. 加密用户信息（复用原有加密逻辑）
     const encryptedData = encryptData(userData);
-    // 3. 返回后端标准格式：{res_code, res_msg, data: 加密后的用户数组}
+    // 6. 返回登录成功数据
     return {
         res_code: "0000",
         res_msg: "登录成功",
@@ -148,25 +214,77 @@ Mock.mock(/\/auth\/change-password\/\d+/, 'put', (options) => {
 Mock.mock(/\/auth\/logout\/xxx/, 'post', () => {
     return { res_code: '0000', res_msg: '退出登录成功', data: null };
 });
-
 // ==================== 5. 获取个人信息接口（2.5.5） ====================
-Mock.mock(/\/user\/profile\/xxx/, 'get', () => {
+Mock.mock(/\/user\/profile\/xxx/, 'get', (options) => {
+    // 1. 复用固定用户配置（不变）
+    const fixedUsers = {
+        "100000000001": {
+            user_id: "1",
+            student_number: "100000000001",
+            real_name: "张三",
+            email: "zhangsan@test.com",
+            role: "super_admin",
+            permissions: ['read', 'write', 'manage', 'super']
+        },
+        "100000000002": {
+            user_id: "2",
+            student_number: "100000000002",
+            real_name: "李四",
+            email: "lisi@test.com",
+            role: "dept_admin",
+            permissions: ['read', 'write', 'manage']
+        },
+        "100000000003": {
+            user_id: "3",
+            student_number: "100000000003",
+            real_name: "王五",
+            email: "wangwu@test.com",
+            role: "dept_admin",
+            permissions: ['read', 'write', 'manage']
+        },
+        "100000000004": {
+            user_id: "4",
+            student_number: "100000000004",
+            real_name: "赵六",
+            email: "zhaoliu@test.com",
+            role: "dept_admin",
+            permissions: ['read', 'write', 'manage']
+        },
+        "200000000001": {
+            user_id: "10",
+            student_number: "200000000001",
+            real_name: "孙七",
+            email: "sunqi@test.com",
+            role: "normal_user",
+            permissions: ['read']
+        }
+    };
+
+    // ========== 修改1：从前端请求参数中解析token/学号（核心修复） ==========
+    // options是Mock接收的前端请求对象，解析url中的参数（如?token=xxx&sign=xxx）
+    const urlParams = new URLSearchParams(options.url.split('?')[1] || '');
+    // 读取前端传的学号（优先），无则兜底孙七
+    const loginStudentNumber = urlParams.get('student_number') || "200000000001";
+
+    // 直接匹配用户（无需映射表）
+    const targetUser = fixedUsers[loginStudentNumber] || fixedUsers["200000000001"];
+
+    // 3. 构造个人信息数据（不变）
     const successData = {
-        user_id: getRandomId(),
-        student_number: Mock.Random.string('number', 8),
-        real_name: Mock.Random.cname(),
-        email: Mock.Random.email(),
-        role: 'dept_admin',
-        permissions: ['read', 'write', 'manage']
+        user_id: targetUser.user_id,
+        student_number: targetUser.student_number,
+        real_name: targetUser.real_name,
+        email: targetUser.email,
+        role: targetUser.role,
+        permissions: targetUser.permissions
     };
 
     return {
         res_code: '0000',
         res_msg: '查询成功',
-        data: encryptData(successData) // 🌟 加密返回
+        data: encryptData(successData)
     };
 });
-
 // ==================== 6. 更新用户信息接口（2.5.6） ====================
 Mock.mock(/\/user\/profile\/\d+/, 'put', (options) => {
     // 🌟 修改：不再解析加密的请求体

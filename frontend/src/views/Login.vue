@@ -18,15 +18,24 @@
       </div>
 
       <!-- 密码输入框 -->
-      <div class="form-group">
+      <div class="form-group" style="position: relative;">
         <input
-            type="password"
-            placeholder="密码"
-            class="input-field"
-            v-model="form.password"
-            @blur="handleFieldBlur('password')"
+            :type="showPassword ? 'text' : 'password'"
+        placeholder="密码"
+        class="input-field"
+        v-model="form.password"
+        @blur="handleFieldBlur('password')"
+        style="padding-right: 30px; /* 给小眼睛留空间，不遮挡密码 */"
         >
-        <!-- 密码错误提示 -->
+        <!-- 自定义小眼睛按钮（固定存在，不受失焦影响，样式极简） -->
+        <span
+            @click="showPassword = !showPassword"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999; user-select: none;"
+        >
+    <!-- 可替换为任意字符/图标，这里用简单符号，无需额外资源 -->
+     {{ showPassword ? '&#128065;' : '&#128064;' }}
+  </span>
+        <!-- 密码错误提示（完全保留原有代码） -->
         <div class="error-tip" v-if="errors.password">{{ errors.password }}</div>
       </div>
 
@@ -70,20 +79,38 @@ const errors = reactive({
   student_number: '',
   password: ''
 });
-
+// 新增：控制密码显示/隐藏的变量（默认隐藏，核心补充）
+const showPassword = ref(false);
 const isSubmitting = ref(false);
 
 // 字段失焦校验
 const handleFieldBlur = (field) => {
-  if (field === 'student_number' && !form.student_number) {
-    errors.student_number = '学号不能为空';
-  } else if (field === 'password' && !form.password) {
+  // 学号校验：非空 + 12位纯数字
+  if (field === 'student_number') {
+    // 先获取去除首尾空格的学号（避免空格干扰长度判断）
+    const studentNumber = form.student_number?.trim() || '';
+    // 1. 非空校验
+    if (!studentNumber) {
+      errors.student_number = '学号不能为空';
+    }
+    // 2. 12位长度 + 纯数字校验（使用正则 ^\d{12}$ 精准匹配12位数字）
+    else if (!/^\d{12}$/.test(studentNumber)) {
+      errors.student_number = '学号必须为12位纯数字';
+    }
+    // 3. 校验通过，清空错误提示
+    else {
+      errors.student_number = '';
+    }
+  }
+  // 密码校验：保留原有非空逻辑
+  else if (field === 'password' && !form.password) {
     errors.password = '密码不能为空';
-  } else {
+  }
+  // 其他字段：清空对应错误提示
+  else {
     errors[field] = '';
   }
 };
-
 // 表单验证
 
 const validateForm = () => {
