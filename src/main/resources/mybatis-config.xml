@@ -30,21 +30,20 @@
     </plugins>
 
 
-    <mappers>
-        <!--如果resources目录下存放xml文件的 包路径 和 java目录下存放dao接口的 包路径 相同的话，还可以使用package来配置-->
-        <!--<package name = org.dao"/>-->
-        <mapper resource="mapper/UserMapper.xml"/>
-        <mapper resource="mapper/AdminMapper.xml"/>
-        <mapper resource="mapper/DepartmentMapper.xml"/>
-        <mapper resource="mapper/NewsDepartmentMonthlyMapper.xml"/>
-        <mapper resource="mapper/EditorialDepartmentMonthlyMapper.xml"/>
-        <mapper resource="mapper/FeeMonthlySummaryMapper.xml"/>
-        <mapper resource="mapper/ProxyReceiptRecordsMapper.xml"/>
-        <mapper resource="mapper/FeedbackMapper.xml"/>
-        <mapper resource="mapper/AnnouncementMapper.xml"/>
-        <mapper resource="mapper/LoginLogMapper.xml"/>
-        <mapper resource="mapper/PermissionMapper.xml"/>
-        <mapper resource="mapper/UserPermissionMapper.xml"/>
-    </mappers>
+<!--    <mappers>-->
+<!--        &lt;!&ndash; 使用完整的类路径 &ndash;&gt;-->
+<!--        <mapper resource="org/dao/mapper/UserMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/AdminMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/DepartmentMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/NewsDepartmentMonthlyMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/EditorialDepartmentMonthlyMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/FeeMonthlySummaryMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/ProxyReceiptRecordsMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/FeedbackMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/AnnouncementMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/LoginLogMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/PermissionMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/UserPermissionMapper.xml"/>-->
+<!--    </mappers>-->
 
 </configuration>
