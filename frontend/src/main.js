@@ -6,6 +6,7 @@ import { createPinia } from 'pinia'
 import router from './router'
 // 导入根组件
 import App from './App.vue'
+
 // 导入全局样式（核心步骤）
 import './assets/css/global.css'
 import ElementPlus from 'element-plus' // 引入Element Plus核心
