@@ -49,6 +49,7 @@
 import { useRouter, useRoute } from 'vue-router'
 import { computed, onMounted, watch, nextTick } from 'vue'
 import { useUserStore } from '@/stores/user'
+import {format, storage} from "@/utils/index.js";
 
 const router = useRouter()
 const route = useRoute()
@@ -67,15 +68,15 @@ const isShowAdminCenter = computed(() => {
 
 // 修复：部门ID映射（匹配实际返回的"1"/"2"等ID）
 const deptIdToRoute = {
-  '1': 'EditorCenter',    // 编辑部ID=1
-  '2': 'NewsCenter',      // 新闻部ID=2
+  '2': 'EditorCenter',    // 编辑部ID=1
+  '1': 'NewsCenter',      // 新闻部ID=2
   '3': 'OperationCenter'  // 运营部ID=3
 }
 
 // 管理中心高亮判断
 const isCurrentAdminPage = computed(() => {
-  if (!isShowAdminCenter.value) return false;
-
+  // 先兜底：如果 userInfo 不存在，直接返回 false
+  if (!userStore.userInfo) return false;
   let targetRoute = ''
   // 超级管理员→系统管理页
   if (userStore.userInfo.is_super_admin) {
@@ -155,19 +156,32 @@ watch([() => route.name, () => userStore.userInfo], () => {
   immediate: true,
   deep: true
 })
-/*
 // 修复：延迟执行loadUserProfile，避免覆盖初始数据
 const fetchUserProfileSafely = async () => {
   // 等待DOM更新后再拉取，避免覆盖登录后的初始数据
   await nextTick();
   try {
-    const res = await userStore.loadUserProfile();
+    if (userStore.userInfo && userStore.userInfo.token && userStore.userInfo.real_name) {
+      console.log('已有完整用户信息，无需重复拉取，避免覆盖');
+      return; // 退出函数，不执行后续拉取逻辑
+    }
+    // 生成接口签名（按接口文档2.2节规则）
+    const sign = format.generateSign({ timestamp: Date.now() });
+    const token = storage.getToken();
+    const res = await userStore.loadUserProfile({ token, sign });
+
+    if (res && res.res_code === '0000') {
+      console.log('拉取用户信息成功，数据有效');
+    } else {
+      console.log('接口返回失败/数据无效，不覆盖原有用户信息');
+      return; // 退出函数，不执行后续打印（或不更新Store）
+    }
     // 拉取后重新打印用户信息（检查是否被覆盖）
     console.log('【拉取用户信息后】', userStore.userInfo);
   } catch (e) {
     console.error('拉取用户信息失败：', e);
   }
-}*/
+}
 
 // 挂载时执行
 onMounted(() => {
@@ -176,8 +190,8 @@ onMounted(() => {
     router.push({ path: '/login' });
     return;
   }
-  /*// 延迟拉取用户信息，避免覆盖初始数据
- fetchUserProfileSafely();*/
+  // 延迟拉取用户信息，避免覆盖初始数据
+ fetchUserProfileSafely();
 })
 </script>
 <style scoped>

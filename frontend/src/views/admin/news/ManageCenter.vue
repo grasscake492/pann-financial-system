@@ -692,6 +692,7 @@ const viewFeedbackDetail = async (feedbackId) => {
 
 // ========== 生命周期 ==========
 onMounted(() => {
+  console.log('进入新闻部，组件挂载，开始初始化数据');
   if (currentTab.value === 'feedback') fetchAllFeedback();
 });
 </script>
