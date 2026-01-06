@@ -231,12 +231,26 @@
         </plugins>
 
         <resources>
+            <!-- 第一个resource：处理resources目录下的文件 -->
             <resource>
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>**/*.properties</include>
                     <include>**/*.xml</include>
                 </includes>
+                <filtering>false</filtering>
+            </resource>
+
+            <!-- 第二个resource：处理java目录下的mapper xml文件 -->
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.xml</include>  <!-- 包含所有xml文件 -->
+                    <include>**/*.properties</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.java</exclude>  <!-- 排除Java源文件 -->
+                </excludes>
                 <filtering>false</filtering>
             </resource>
         </resources>
