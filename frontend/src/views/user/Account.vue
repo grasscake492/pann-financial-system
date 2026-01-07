@@ -162,9 +162,10 @@ const infoForm = reactive({
 
 //================计算属性================
 const getUserRoleText = computed(() => {
+  const deptName = userStore.userInfo.department_name || '';
   switch (userStore.userRole) {
     case 'super_admin':
-      return '系统管理员';
+      return `${deptName || ''}管理员`;
     case 'news_admin':
       return '新闻部管理员';
     case 'editorial_admin':
@@ -199,12 +200,14 @@ const pwdRules = {
     }
   ]
 };
-
 const infoRules = {
-  real_name: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
+  real_name: [
+    { required: true, message: '请输入真实姓名', trigger: 'blur' },
+    { pattern: /^[\u4e00-\u9fa5]{2,4}$/, message: '姓名需2-4位中文', trigger: 'blur' } // 新增：中文+2-4位限制
+  ],
   student_number: [
     { required: true, message: '请输入学号', trigger: 'blur' },
-    { pattern: /^[0-9]{6,10}$/, message: '学号需6-10位数字', trigger: 'blur' }
+    { pattern: /^[0-9]{12}$/, message: '学号需12位数字', trigger: 'blur' } // 调整：固定12位数字
   ],
   email: [
     { required: true, message: '请输入邮箱', trigger: 'blur' },
@@ -397,7 +400,7 @@ const submitEditInfo = async () => {
     if (error.response?.data?.res_msg) {
       ElMessage.error(error.response.data.res_msg);
     } else if (error.name === 'ValidationError') {
-      ElMessage.error('表单填写有误，请检查：学号为6-10位数字、邮箱格式正确');
+      ElMessage.error('表单填写有误，请检查：学号为12位数字、邮箱格式正确');
     } else if (error.message.includes('404')) {
       ElMessage.error('用户信息接口不存在，请检查接口路径');
     } else if (error.message.includes('401')) {

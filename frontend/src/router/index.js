@@ -98,7 +98,7 @@ const routes = [
         component: AdminAnnouncement,
         meta: {
             requiresAuth: true,
-            role: ['news_admin', 'editorial_admin', 'operation_admin'], // 所有部门管理员都能进
+            role: ['super_admin','news_admin', 'editorial_admin', 'operation_admin'], // 所有部门管理员都能进
             dept: ['新闻部', '编辑部', '运营部'],
             title: '修改公告'
         }

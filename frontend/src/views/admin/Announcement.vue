@@ -21,11 +21,11 @@
           <div class="item-content">
             <div class="item-date">{{ formatAnnounceDate(item.published_at) }}</div>
             <div class="item-title">{{ item.title }}</div>
-            <div v-if="item.isExpanded" class="item-body">
+            <div v-if="expandedIds[item.announcement_id]" class="item-body">
               {{ item.content }}
             </div>
             <!-- 编辑/删除按钮 -->
-            <div v-if="item.isExpanded" class="item-actions">
+            <div v-if="expandedIds[item.announcement_id]" class="item-actions">
               <button class="edit-btn" @click.stop="handleEdit(item)">编辑</button>
               <button class="delete-btn" @click.stop="handleDelete(item.announcement_id)">删除</button>
             </div>
@@ -95,17 +95,19 @@ import { format } from '@/utils/index.js'; // 签名生成工具
 const userStore = useUserStore();
 const announcementStore = useNoticeStore();
 console.log('管理员')
-// 响应式数据：公告列表（带展开状态）
+// 存储每个公告的展开状态（核心修复）
+const expandedIds = ref({});
+/*// 响应式数据：公告列表（带展开状态）
 const announcementList = computed(() => {
   return announcementStore.announcementList.map(item => ({
     ...item,
     isExpanded: item.isExpanded || false
   }));
-});
+});*/
 
 // 按发布时间降序排序的公告列表
 const sortedAnnouncementList = computed(() => {
-  return [...announcementList.value].sort((a, b) => {
+  return [...announcementStore.announcementList].sort((a, b) => {
     const timeA = a.published_at || '';
     const timeB = b.published_at || '';
     return timeB.localeCompare(timeA);
@@ -151,11 +153,16 @@ const formatAnnounceDate = (time) => {
 };
 
 // 切换公告展开/收起状态
+// 切换公告展开/收起状态（核心修复）
 const toggleExpand = (announcementId) => {
-  const targetItem = announcementList.value.find(item => item.announcement_id === announcementId);
-  if (targetItem) {
-    targetItem.isExpanded = !targetItem.isExpanded;
-  }
+  console.log('✅ 点击了公告，ID：', announcementId);
+  // 切换展开状态：有则取反，无则设为true
+  expandedIds.value[announcementId] = !expandedIds.value[announcementId];
+  console.log('📌 展开状态：', expandedIds.value[announcementId]);
+
+  // 可选：验证sorted列表中是否能匹配到
+  const sortedItem = sortedAnnouncementList.value.find(item => item.announcement_id === announcementId);
+  console.log('📌 sorted列表匹配结果：', sortedItem?.announcement_id);
 };
 
 // ========== 新增公告逻辑 ==========
@@ -427,5 +434,62 @@ const closeModal = () => {
 
 .cancel-btn:hover {
   background-color: #ddd;
+}
+/* 编辑/删除按钮容器（新增，优化按钮布局） */
+.item-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 12px; /* 按钮间距 */
+  align-items: center;
+}
+
+/* 编辑按钮样式（核心设计） */
+.edit-btn {
+  padding: 6px 16px;
+  background-color: #9b8eb4; /* 主色调，和添加按钮一致 */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease; /* 过渡动画，更丝滑 */
+  box-shadow: 0 2px 4px rgba(155, 142, 180, 0.2); /* 轻微阴影，提升层次 */
+}
+
+/* 编辑按钮hover状态 */
+.edit-btn:hover {
+  background-color: #8a7ba0; /* 主色加深，和添加按钮hover一致 */
+  box-shadow: 0 3px 6px rgba(155, 142, 180, 0.3); /* 阴影加重 */
+  transform: translateY(-1px); /* 轻微上移，交互反馈 */
+}
+
+/* 编辑按钮点击状态 */
+.edit-btn:active {
+  transform: translateY(0); /* 恢复位置 */
+  box-shadow: 0 1px 2px rgba(155, 142, 180, 0.2); /* 阴影变浅 */
+}
+
+/* 配套：删除按钮样式（同步优化，和编辑按钮呼应） */
+.delete-btn {
+  padding: 6px 16px;
+  background-color: #e57373; /* 红色系，区分删除操作 */
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(229, 115, 115, 0.2);
+}
+
+.delete-btn:hover {
+  background-color: #d32f2f;
+  box-shadow: 0 3px 6px rgba(229, 115, 115, 0.3);
+  transform: translateY(-1px);
+}
+
+.delete-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(229, 115, 115, 0.2);
 }
 </style>

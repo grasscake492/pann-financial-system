@@ -20,6 +20,8 @@
                 v-for="item in latestAnnouncements"
                 :key="item.announcement_id"
                 class="notice-item"
+                @click="goToAnnouncementPage"
+                style="cursor: pointer;"
             >
               [{{ formatDate(item.published_at) }}] {{ item.title }}：{{ item.content }}
             </li>
@@ -39,7 +41,11 @@
   // 导入登录态校验工具
   import { storage, format } from '@/utils' // 补充format（生成签名用）
   import { useUserStore } from '@/stores'
-  import { useNoticeStore } from '@/stores/notice' // 导入公告Store
+  import { useNoticeStore } from '@/stores/notice'
+  import { useRouter } from 'vue-router'; // 导入路由钩子
+  import {ElMessage} from "element-plus"; // 导入公告Store
+  const router = useRouter(); // 创建路由实例
+
   // 2. 定义响应式数据
   const isLoading = ref(true); // 加载状态
   const userStore = useUserStore()
@@ -123,6 +129,24 @@
   isLoading.value = false;
 }
 };
+  //=============点击公告栏跳转页面==========
+  // 跳转公告页面方法
+  const goToAnnouncementPage = () => {
+    try {
+      // 判断是否为管理员（超级管理员/部门管理员）
+      const isAdmin = userStore.isSuperAdmin || userStore.isDeptAdmin;
+      // 关键：路径改成小写，和路由配置的path一致
+      const targetPath = isAdmin
+          ? '/admin/announcement'  // 对应路由里的/admin/announcement
+          : '/user/announcement';  // 对应路由里的/user/announcement
+
+      router.push(targetPath);
+    } catch (error) {
+      console.error('跳转公告页面失败：', error);
+      ElMessage.error('页面跳转失败，请重试');
+    }
+  };
+  //======================================
 
   // 5. 页面挂载时初始化数据
   onMounted(async () => {

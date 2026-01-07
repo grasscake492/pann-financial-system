@@ -79,7 +79,7 @@ service.interceptors.response.use(
     },
     (error) => {
         // 网络错误统一提示
-        console.error('网络错误：', error.message); // 第五十四行（只是日志，不是报错源）
+        console.error('网络错误：', error.message);
         return Promise.reject('网络异常，请稍后重试');
     }
 );

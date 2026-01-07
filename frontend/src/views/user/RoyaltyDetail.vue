@@ -58,7 +58,7 @@
               <th>任务名称</th>
               <th>部门</th>
               <th>金额</th>
-              <th>状态</th>
+<!--              <th>状态</th>-->
               <th>操作</th>
             </tr>
             </thead>
@@ -71,7 +71,7 @@
               <td>{{ item.article_title || '-' }}</td>
               <td>{{ formatDepartment(item.department_id) }}</td>
               <td>{{ formatMoney(item.fee_amount) }}元</td>
-              <td>已结算</td>
+<!--              <td>已结算</td>-->
               <td>
                 <button class="feedback-btn" @click="handleFeedback(item)">反馈</button>
               </td>
@@ -108,7 +108,7 @@
           <table class="feedback-table">
             <thead>
             <tr>
-              <th>关联稿费ID</th>
+              <th>稿费名称</th>
               <th>反馈内容</th>
               <th>提交时间</th>
               <th>反馈状态</th>
@@ -202,8 +202,8 @@ const feedbackForm = ref({
 
 // 查询参数：匹配接口+扩展任务名称（前端过滤）
 const queryParams = reactive({
-  startDate: '', // 开始日期
-  endDate: '', // 结束日期
+  startDate: '2026-01-01', // 默认开始日期：2026.1.1
+  endDate: '', // 默认结束日期：当天（在onMounted中初始化）
   taskName: '', // 任务名称（前端过滤）
   page: 1, // 页码
   size: 10 // 每页数量
@@ -220,6 +220,14 @@ const totalPage = computed(() => {
 });
 
 // ===================== 原有方法（保留） =====================
+// 辅助函数：获取当天的YYYY-MM-DD格式日期
+const getTodayDate = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 // 日期格式化方法
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
@@ -228,6 +236,13 @@ const formatDate = (dateStr) => {
 
 // 获取稿费列表（核心方法）
 const fetchRoyaltyList = async () => {
+  // 日期校验 - 结束日期不能早于开始日期
+  if (queryParams.startDate && queryParams.endDate) {
+    if (new Date(queryParams.endDate) < new Date(queryParams.startDate)) {
+      ElMessage.error('结束日期不能早于开始日期，请重新选择');
+      return;
+    }
+  }
   try {
     const requestParams = {
       startDate: queryParams.startDate,
@@ -273,11 +288,10 @@ const fetchRoyaltyList = async () => {
     totalAmount.value = 0;
   }
 };
-
 // 重置查询条件
 const resetQuery = () => {
-  queryParams.startDate = '';
-  queryParams.endDate = '';
+  queryParams.startDate = '2026-01-01'; // 重置为默认开始日期
+  queryParams.endDate = getTodayDate(); // 重置为当天
   queryParams.taskName = '';
   queryParams.page = 1;
   fetchRoyaltyList();
@@ -380,6 +394,8 @@ const fetchMyFeedback = async () => {
 
 // ===================== 生命周期（保留） =====================
 onMounted(() => {
+  // 初始化结束日期为当天
+  queryParams.endDate = getTodayDate();
   fetchRoyaltyList(); // 原有：加载稿费列表
   fetchMyFeedback();  // 修正后：加载反馈列表
 });

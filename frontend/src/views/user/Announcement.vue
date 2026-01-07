@@ -28,7 +28,7 @@
             <!-- 公告内容（展开/收起切换） -->
             <div class="announcement-content">
               <!-- 收起状态：显示标题 -->
-              <div v-if="!item.isExpanded" class="content-collapsed">
+              <div v-if="!item.isExpanded" class="content-title">
                 {{ item.title }}
               </div>
               <!-- 展开状态：显示完整内容 -->
@@ -127,18 +127,20 @@ const toggleExpand = (index) => {
 .announcement-container {
   padding: 30px 60px;
   min-height: calc(100vh - 140px); /* 适配背景高度 */
+  margin-left: -150px; /* 左移20px，*/
+  margin-top: -60px;
 }
 
-/* 公告标题 */
+/*!* 公告标题 *!
 .announcement-title {
   color: #333;
   font-size: 20px;
   margin-bottom: 20px;
-  padding: 10px 15px; /* 优化内边距 */
+  padding: 10px 15px; !* 优化内边距 *!
   border-left: 4px solid #C1BEC7;
   background-color: #E2DFE7;
-  border-radius: 0 4px 4px 0; /* 圆角优化 */
-}
+  border-radius: 0 4px 4px 0; !* 圆角优化 *!
+}*/
 
 /* 公告列表 */
 .announcement-list {
@@ -151,7 +153,7 @@ const toggleExpand = (index) => {
   display: flex;
   margin-bottom: 15px;
   padding: 15px 20px;
-  background-color: rgba(255, 255, 255, 0.85); /* 提升透明度，更柔和 */
+  background-color: #E2DFE7; /* 提升透明度，更柔和 */
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s; /*  hover过渡 */
@@ -166,7 +168,7 @@ const toggleExpand = (index) => {
 .announcement-date {
   width: 120px;
   color: #555;
-  font-weight: 500;
+  font-weight: 600;
   margin-right: 20px;
   font-size: 14px;
   line-height: 1.5;
@@ -190,9 +192,10 @@ const toggleExpand = (index) => {
   width: 600px;
 }
 .content-title {
-  font-weight: 500;
+
+  font-weight: 600;
   margin-bottom: 8px;
-  font-size: 15px;
+  font-size: 16px;
   color: #333;
 }
 .content-body {
@@ -212,5 +215,40 @@ const toggleExpand = (index) => {
   padding: 50px 0;
   color: #999;
   font-size: 16px;
+}
+/* 公告内容容器（核心新增+优化） */
+.announcement-content {
+  flex: 1; /* 占满剩余宽度，替代固定宽度，适配性更好 */
+  margin-left: -10px; /* 左移10px，拉近和日期的距离，视觉更紧凑 */
+  padding-top: 2px; /* 垂直对齐日期文字 */
+}
+
+/* 公告日期（微调，配合内容左移） */
+.announcement-date {
+  width: 120px;
+  color: #555;
+  font-weight: 500;
+  margin-right: 15px; /* 原有20px → 15px，配合内容左移，间距更协调 */
+  font-size: 14px;
+  line-height: 1.5;
+  flex-shrink: 0; /* 固定宽度，不被挤压 */
+}
+
+/* 公告内容（收起状态）- 适配flex布局，去掉固定宽度 */
+.content-collapsed {
+  color: #555;
+  line-height: 1.5;
+  font-size: 15px;
+  /* 去掉固定width: 600px，改用flex布局自适应 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* 标题过长省略 */
+}
+
+/* 公告内容（展开状态）- 适配flex布局，去掉固定宽度 */
+.content-expanded {
+  color: #555;
+  line-height: 1.6;
+  /* 去掉固定width: 600px，改用flex布局自适应 */
 }
 </style>

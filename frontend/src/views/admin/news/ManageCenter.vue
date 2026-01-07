@@ -111,7 +111,7 @@
           </div>
           <div class="form-item">
             <label>稿费金额:</label>
-            <input type="number" step="0.01" class="form-input" v-model="editForm.fee_amount">
+            <input type="number" step="1" class="form-input" v-model="editForm.fee_amount">
           </div>
           <div class="form-item">
             <label>统计月份:</label>
@@ -123,7 +123,7 @@
           </div>
           <div class="dialog-btns">
             <button class="cancel-btn" @click="editDialogVisible = false">取消</button>
-            <button class="confirm-btn" @click="submitEdit">确认修改</button>
+            <button class="feedback-confirm-btn" @click="submitEdit">确认修改</button>
           </div>
         </div>
       </div>
@@ -134,47 +134,101 @@
           <h3>添加稿费记录</h3>
         </div>
         <div class="manage-form">
-          <!-- 用户ID（JSON数组，用逗号分隔输入） -->
+          <!-- 选择成员按钮 -->
           <div class="form-item">
-            <label>用户ID:</label>
-            <input type="text" placeholder="多个ID用逗号分隔（如：23,24）" class="form-input" v-model="addForm.user_id_str">
+            <button class="select-member-btn" @click="openUserListModal">选择成员</button>
           </div>
-          <!-- 真实姓名数组（逗号分隔） -->
-          <div class="form-item">
-            <label>真实姓名:</label>
-            <input type="text" placeholder="多个姓名用逗号分隔（如：张三,李四）" class="form-input" v-model="addForm.real_names_str">
+
+          <!-- 已选成员列表（动态渲染） -->
+          <div class="selected-members" v-if="selectedMembers.length > 0">
+            <h4>已选成员：</h4>
+            <div class="member-item" v-for="(member, index) in selectedMembers" :key="member.user_id">
+              <span>成员{{ index + 1 }}：姓名={{ member.real_name }}，学号={{ member.student_number }}，ID={{ member.user_id }}</span>
+              <button class="del-member-btn" @click="deleteMember(index)">删除</button>
+            </div>
           </div>
-          <!-- 学号数组（逗号分隔） -->
-          <div class="form-item">
-            <label>学号:</label>
-            <input type="text" placeholder="多个学号用逗号分隔（如：20231234,20231235）" class="form-input" v-model="addForm.student_numbers_str">
-          </div>
-          <!-- 稿件标题 -->
+
+          <!-- 稿件标题（手动输入） -->
           <div class="form-item">
             <label>稿件标题:</label>
             <input type="text" placeholder="输入稿件标题" class="form-input" v-model="addForm.article_title">
           </div>
-          <!-- 稿件类型 -->
+
+          <!-- 稿件类型（单选框，限定选项） -->
           <div class="form-item">
             <label>稿件类型:</label>
-            <input type="text" placeholder="如：校对、编辑" class="form-input" v-model="addForm.article_type">
+            <div class="radio-group">
+              <label class="radio-item">
+                <input type="radio" name="article_type" v-model="addForm.article_type" value="校对"> 校对
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="article_type" v-model="addForm.article_type" value="编辑"> 编辑
+              </label>
+            </div>
           </div>
-          <!-- 稿费金额 -->
+
+          <!-- 稿费金额（数字输入，限制小数） -->
           <div class="form-item">
             <label>稿费金额:</label>
-            <input type="number" step="0.01" placeholder="0.00" class="form-input" v-model="addForm.fee_amount">
+            <input type="number" step="0.01" min="0" placeholder="0.00" class="form-input" v-model="addForm.fee_amount">
           </div>
-          <!-- 统计月份 -->
+
+          <!-- 统计月份（月份选择器，自动匹配YYYY-MM格式） -->
           <div class="form-item">
             <label>统计月份:</label>
-            <input type="month" class="form-input" v-model="addForm.statistical_month">
+            <input
+                type="month"
+                class="form-input"
+                v-model="addForm.statistical_month"
+                min="2026-01"
+            >
           </div>
-          <!-- 部门ID -->
+
+          <!-- 部门选择（下拉框，映射部门ID） -->
           <div class="form-item">
-            <label>部门ID:</label>
-            <input type="number" placeholder="输入部门ID" class="form-input" v-model="addForm.department_id">
+            <label>所属部门:</label>
+            <select class="form-select" v-model="addForm.department_id">
+              <option value="">请选择部门</option>
+              <option value="1">新闻部</option>
+              <option value="2">编辑部</option>
+              <option value="3">运营部</option>
+            </select>
           </div>
-          <button class="submit-btn" @click="submitAddRoyalty">提交添加</button>
+
+          <button class="submit-btn" @click="submitAddRoyalty" :disabled="selectedMembers.length === 0">提交添加</button>
+        </div>
+
+        <!-- 用户列表弹窗 -->
+        <div class="modal-mask" v-if="showUserListModal" @click="closeUserListModal">
+          <div class="modal-content" @click.stop>
+            <div class="modal-header">
+              <h3>选择成员</h3>
+              <button class="close-modal" @click="closeUserListModal">×</button>
+            </div>
+            <div class="modal-body">
+              <!-- 用户列表（从接口获取后渲染） -->
+              <div class="user-list" v-if="userList.length > 0">
+                <div class="user-item" v-for="user in userList" :key="user.user_id">
+                  <div class="user-info">
+                    <span>姓名：{{ user.real_name }}</span>
+                    <span>学号：{{ user.student_number }}</span>
+                    <span>ID：{{ user.user_id }}</span>
+                  </div>
+                  <button
+                      class="select-user-btn"
+                      @click="selectUser(user)"
+                      :disabled="selectedMembers.some(m => m.user_id === user.user_id)"
+                  >
+                    {{ selectedMembers.some(m => m.user_id === user.user_id) ? '已选择' : '选择' }}
+                  </button>
+                </div>
+              </div>
+              <div class="empty-tip" v-else>暂无用户数据</div>
+            </div>
+            <div class="modal-footer">
+              <button class="user-modal-confirm-btn" @click="closeUserListModal">确认选择</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -275,7 +329,7 @@
             ></textarea>
             <div class="dialog-btns">
               <button class="cancel-btn" @click="closeReplyDialog">取消</button>
-              <button class="confirm-btn" @click="submitReply">提交回复</button>
+              <button class="feedback-confirm-btn" @click="submitReply">提交回复</button>
             </div>
           </div>
         </div>
@@ -290,7 +344,7 @@
             </select>
             <div class="dialog-btns">
               <button class="cancel-btn" @click="closeStatusDialog">取消</button>
-              <button class="confirm-btn" @click="submitStatusUpdate">确认更新</button>
+              <button class="feedback-confirm-btn" @click="submitStatusUpdate">确认更新</button>
             </div>
           </div>
         </div>
@@ -298,29 +352,31 @@
     </template>
   </PageBackground2>
 </template>
-
 <script setup>
 import PageBackground2 from '@/components/PageBackground2.vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { getAllFeedback, replyFeedback, getFeedbackDetail, updateFeedbackStatus } from "@/api/feedback.js";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus"; // 新增：引入ElMessageBox（删除确认）
 import { FEEDBACK_STATUS_LABEL, FEEDBACK_STATUS_CLASS } from '@/utils/feedbackStatus.js';
-import {addRoyaltyRecord, deleteRoyaltyRecord, getDepartmentRoyalty, updateRoyaltyRecord} from "@/api/royalty.js"; // 导入稿费接口
+import {addRoyaltyRecord, deleteRoyaltyRecord, getDepartmentRoyalty, updateRoyaltyRecord} from "@/api/royalty.js";
+// 新增：导入用户列表接口
+import { getUserList } from '@/api/user.js';
+import {generateSign} from "@/utils/format.js";
 
+// ========== 新增：选择成员弹窗相关变量 ==========
+const showUserListModal = ref(false); // 用户列表弹窗显隐
+const userList = ref([]); // 从接口获取的用户列表
+const selectedMembers = ref([]); // 已选成员列表
 
-
-
-// ========== 稿费查询相关变量（新增） ==========
-const royaltyList = ref([]); // 稿费列表数据
-const filteredRoyaltyList = ref([]); // 前端过滤后的列表
-const totalRoyalty = ref(0); // 稿费总条数
-// 前端筛选参数
-const filterMonth = ref(''); // 筛选月份（格式：MM）
-const filterTitle = ref(''); // 筛选任务名称
-const filterName = ref(''); // 筛选姓名
-const currentPage = ref(1); // 条目分页的当前页
-const pageSize = ref(2); // 每页显示2-3个条目（这里设为2）
-// 稿费查询参数（适配接口2.5.10）
+// ========== 稿费查询相关变量（原有，保留） ==========
+const royaltyList = ref([]);
+const filteredRoyaltyList = ref([]);
+const totalRoyalty = ref(0);
+const filterMonth = ref('');
+const filterTitle = ref('');
+const filterName = ref('');
+const currentPage = ref(1);
+const pageSize = ref(2);
 const royaltyQueryParams = reactive({
   startDate: '',
   endDate: '',
@@ -328,43 +384,31 @@ const royaltyQueryParams = reactive({
   size: 10,
   user_id: ''
 });
-// 稿费总页数（计算属性）
 const totalRoyaltyPages = computed(() => {
   return Math.ceil(totalRoyalty.value / royaltyQueryParams.size) || 1;
 });
 
-// ========== 稿费前端筛选方法（新增） ==========
-/**
- * 前端过滤稿费列表（按月份+任务名称）
- * 定义位置：组件内script setup
- * 引用位置：筛选栏「查询」按钮点击事件
- */
+// ========== 稿费前端筛选方法（原有，保留） ==========
 const handleRoyaltyFilter = () => {
   let list = [...royaltyList.value];
-  // 月份过滤（匹配statistical_month的MM部分）
   if (filterMonth.value) {
     list = list.filter(item => item.statistical_month?.endsWith(filterMonth.value));
   }
-  // 任务名称模糊过滤
   if (filterTitle.value) {
     const keyword = filterTitle.value.trim().toLowerCase();
     list = list.filter(item => item.article_title?.toLowerCase().includes(keyword));
   }
   filteredRoyaltyList.value = list;
 };
-// ========== 稿费查询方法（新增） ==========
-/**
- * 获取部门稿费列表
- * 定义位置：组件内script setup
- * 引用位置：template中「查询稿费」按钮点击事件
- */
+
+// ========== 稿费查询方法（原有，保留） ==========
 const fetchDepartmentRoyalty = async () => {
   try {
     const res = await getDepartmentRoyalty(royaltyQueryParams);
     if (res.res_code === '0000') {
       royaltyList.value = res.data.list || [];
       totalRoyalty.value = res.data.total || 0;
-      handleRoyaltyFilter(); // 接口返回后自动执行一次过滤
+      handleRoyaltyFilter();
     } else {
       ElMessage.error(`查询稿费失败：${res.res_msg}`);
       royaltyList.value = [];
@@ -377,20 +421,17 @@ const fetchDepartmentRoyalty = async () => {
   }
 };
 
-/**
- * 稿费分页切换
- * 定义位置：组件内script setup
- * 引用位置：template中分页按钮点击事件
- */
+// ========== 稿费分页切换（原有，保留） ==========
 const handleRoyaltyPageChange = (page) => {
   if (page < 1 || page > totalRoyaltyPages.value) return;
   royaltyQueryParams.page = page;
-  fetchDepartmentRoyalty(); // 切换页码后重新查询
+  fetchDepartmentRoyalty();
 };
-// ========== 稿费修改弹窗变量（新增） ==========
-const editDialogVisible = ref(false); // 弹窗显隐
-const currentEditItem = ref({}); // 当前修改的条目
-const editForm = reactive({ // 修改表单
+
+// ========== 稿费修改弹窗变量（原有，保留） ==========
+const editDialogVisible = ref(false);
+const currentEditItem = ref({});
+const editForm = reactive({
   article_title: '',
   article_type: '',
   fee_amount: 0,
@@ -398,14 +439,9 @@ const editForm = reactive({ // 修改表单
   description: ''
 });
 
-// ========== 稿费修改方法（新增） ==========
-/**
- * 打开修改弹窗
- * 引用位置：表格「修改」按钮点击事件
- */
+// ========== 稿费修改方法（原有，保留） ==========
 const openEditDialog = (item) => {
   currentEditItem.value = item;
-  // 回显数据到表单
   editForm.article_title = item.article_title;
   editForm.article_type = item.article_type;
   editForm.fee_amount = item.fee_amount;
@@ -413,18 +449,13 @@ const openEditDialog = (item) => {
   editForm.description = item.description || '';
   editDialogVisible.value = true;
 };
-
-/**
- * 提交修改（调用接口）
- * 需在src/api/royalty.js中定义updateRoyaltyRecord方法
- */
 const submitEdit = async () => {
   try {
     const res = await updateRoyaltyRecord(currentEditItem.value.record_id, editForm);
     if (res.res_code === '0000') {
       ElMessage.success('修改成功');
       editDialogVisible.value = false;
-      await fetchDepartmentRoyalty(); // 刷新列表
+      await fetchDepartmentRoyalty();
     } else {
       ElMessage.error(`修改失败：${res.res_msg}`);
     }
@@ -432,65 +463,139 @@ const submitEdit = async () => {
     ElMessage.error('网络异常，修改失败');
   }
 };
-// ========== 稿费删除方法（新增） ==========
-/**
- * 删除稿费记录（调用接口）
- * 引用位置：表格「删除」按钮点击事件
- * 需在src/api/royalty.js中定义deleteRoyaltyRecord方法
- */
+
+// ========== 稿费删除方法（原有，优化：增加确认提示） ==========
 const handleDelete = async (recordId) => {
   try {
-    // 可先加确认提示（需引入ElMessageBox）
+    // 新增：删除前确认
+    const confirm = await ElMessageBox.confirm(
+        '确定要删除这条稿费记录吗？',
+        '删除确认',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+    );
+    if (!confirm) return;
+
     const res = await deleteRoyaltyRecord(recordId);
     if (res.res_code === '0000') {
       ElMessage.success('删除成功');
-      await fetchDepartmentRoyalty(); // 刷新列表
+      await fetchDepartmentRoyalty();
     } else {
       ElMessage.error(`删除失败：${res.res_msg}`);
     }
   } catch (err) {
-    ElMessage.error('网络异常，删除失败');
+    if (err !== 'cancel') { // 排除取消操作的异常
+      ElMessage.error('网络异常，删除失败');
+    }
   }
 };
-// ========== 添加稿费记录相关变量（新增） ==========
+
+// ========== 添加稿费记录相关变量（修改：删除手动输入的_str字段，新增规范字段） ==========
 const addForm = reactive({
-  // 字符串形式输入（前端转数组）
-  user_id_str: '',
-  real_names_str: '',
-  student_numbers_str: '',
-  // 接口必填字段
+  // 移除：手动输入的字符串字段
+  // user_id_str: '',
+  // real_names_str: '',
+  // student_numbers_str: '',
+  // 保留：接口必填字段（优化默认值）
   article_title: '',
-  article_type: '',
-  fee_amount: 0,
-  statistical_month: '',
-  department_id: ''
+  article_type: '', // 校对/编辑
+  fee_amount: '', // 改为空字符串，避免初始0值干扰
+  statistical_month: '2026-01',// YYYY-MM
+  department_id: '' // 部门ID（下拉框值）
 });
-// ========== 提交添加稿费记录（新增） ==========
-/**
- * 提交添加稿费记录（调用2.5.12接口）
- * 引用位置：任务管理区域「提交添加」按钮点击事件
- */
-const submitAddRoyalty = async () => {
-  // 1. 表单验证
-  if (!addForm.article_title || !addForm.article_type || !addForm.fee_amount || !addForm.statistical_month || !addForm.department_id) {
-    ElMessage.warning('请填写所有必填字段');
+
+// ========== 新增：选择成员弹窗方法 ==========
+// 打开用户列表弹窗并加载数据
+const openUserListModal = async () => {
+  showUserListModal.value = true;
+  try {
+    // 调用用户列表接口（按需传参，这里默认查第1页，每页100条）
+    const sign = await generateSign();
+    const res = await getUserList({
+      page: 1,
+      size: 100,
+      sign: sign// 替换为实际签名生成逻辑
+    });
+    if (res.res_code === '0000') {
+      userList.value = res.data.list || [];
+    } else {
+      ElMessage.error(`加载用户列表失败：${res.res_msg}`);
+      userList.value = [];
+    }
+  } catch (err) {
+    ElMessage.error('网络异常，加载用户列表失败');
+    userList.value = [];
+  }
+};
+
+// 关闭用户列表弹窗
+const closeUserListModal = () => {
+  showUserListModal.value = false;
+};
+
+// 选择单个用户
+const selectUser = (user) => {
+  // 避免重复选择
+  if (selectedMembers.value.some(m => m.user_id === user.user_id)) {
+    ElMessage.warning(`已选择过${user.real_name}，请勿重复选择`);
     return;
   }
-  if (!addForm.user_id_str || !addForm.real_names_str || !addForm.student_numbers_str) {
-    ElMessage.warning('用户ID、姓名、学号不能为空');
+  // 添加到已选列表
+  selectedMembers.value.push({
+    user_id: user.user_id,
+    real_name: user.real_name,
+    student_number: user.student_number
+  });
+  ElMessage.success(`已选择 ${user.real_name}`);
+};
+
+// 删除已选成员
+const deleteMember = (index) => {
+  selectedMembers.value.splice(index, 1);
+  ElMessage.success('已删除该成员');
+};
+
+// ========== 添加稿费记录（修改：适配选择成员逻辑） ==========
+const submitAddRoyalty = async () => {
+  // 1. 表单验证（增强）
+  if (selectedMembers.value.length === 0) {
+    ElMessage.warning('请至少选择一名成员');
+    return;
+  }
+  if (!addForm.article_title) {
+    ElMessage.warning('请输入稿件标题');
+    return;
+  }
+  if (!addForm.article_type) {
+    ElMessage.warning('请选择稿件类型（校对/编辑）');
+    return;
+  }
+  if (!addForm.fee_amount || Number(addForm.fee_amount) <= 0) {
+    ElMessage.warning('请输入有效的稿费金额（大于0）');
+    return;
+  }
+  if (!addForm.statistical_month) {
+    ElMessage.warning('请选择统计月份');
+    return;
+  }
+  if (!addForm.department_id) {
+    ElMessage.warning('请选择/输入部门ID');
     return;
   }
 
-  // 2. 前端将字符串转数组（适配接口JSON数组要求）
+  // 2. 整理接口参数（从已选成员自动生成数组）
   const submitData = {
-    user_id: addForm.user_id_str.split(',').map(id => Number(id.trim())),
-    real_names: addForm.real_names_str.split(',').map(name => name.trim()),
-    student_numbers: addForm.student_numbers_str.split(',').map(num => num.trim()),
+    user_id: selectedMembers.value.map(m => m.user_id), // ID数组
+    real_names: selectedMembers.value.map(m => m.real_name), // 姓名数组
+    student_numbers: selectedMembers.value.map(m => m.student_number), // 学号数组
     article_title: addForm.article_title,
     article_type: addForm.article_type,
-    fee_amount: addForm.fee_amount,
+    fee_amount: Number(addForm.fee_amount), // 转为数字
     statistical_month: addForm.statistical_month,
-    department_id: addForm.department_id
+    department_id: Number(addForm.department_id) // 转为数字
   };
 
   // 3. 调用添加接口
@@ -498,11 +603,12 @@ const submitAddRoyalty = async () => {
     const res = await addRoyaltyRecord(submitData);
     if (res.res_code === '0000') {
       ElMessage.success('添加稿费记录成功');
-      // 清空表单
+      // 清空表单和已选成员
       Object.keys(addForm).forEach(key => {
-        addForm[key] = key.includes('_str') ? '' : 0;
+        addForm[key] = '';
       });
-      // 可选：切换到任务查询标签页并刷新列表
+      selectedMembers.value = [];
+      // 切换到查询标签页并刷新
       currentTab.value = 'query';
       fetchDepartmentRoyalty();
     } else {
@@ -510,69 +616,56 @@ const submitAddRoyalty = async () => {
     }
   } catch (err) {
     ElMessage.error('网络异常，添加失败');
+    console.error('添加稿费失败详情：', err);
   }
 };
-// ========== 生命周期补充（可选） ==========
-// 若默认选中「任务查询」标签页，挂载时自动查询稿费
+
+// ========== 生命周期补充（原有，保留） ==========
 onMounted(() => {
   if (currentTab.value === 'query') {
     fetchDepartmentRoyalty();
   }
 });
 
-
-
-// ========== 基础变量定义 ==========
+// ========== 基础变量定义（原有，保留） ==========
 const currentTab = ref('query');
-const feedbackList = ref([]); // 原始反馈列表（接口返回）
+const feedbackList = ref([]);
 const totalFeedback = ref(0);
 
-
-
-// 反馈查询参数（接口用）
+// 反馈查询参数（原有，保留）
 const feedbackQueryParams = reactive({
   page: 1,
-  size: 100, // 接口一次性多查点数据，前端做分页
+  size: 100,
   status: ''
 });
 
-// 状态弹窗/回复弹窗变量
+// 状态弹窗/回复弹窗变量（原有，保留）
 const replyDialogVisible = ref(false);
 const currentFeedbackId = ref('');
 const replyForm = reactive({ reply_content: '' });
 const statusDialogVisible = ref(false);
 const statusForm = reactive({ status: 'pending' });
 
-// ========== 计算属性（前端筛选+分页） ==========
-// 筛选后的列表（按月份+姓名模糊匹配）
+// ========== 计算属性（前端筛选+分页）（原有，保留） ==========
 const filteredFeedbackList = computed(() => {
   let list = [...feedbackList.value];
-
-  // 月份筛选
   if (filterMonth.value) {
     list = list.filter(item => {
       const createMonth = item.created_at?.split('-')[1];
       return createMonth === filterMonth.value.padStart(2, '0');
     });
   }
-
-  // 姓名模糊筛选
   if (filterName.value) {
     const keyword = filterName.value.trim().toLowerCase();
     list = list.filter(item => item.real_name?.toLowerCase().includes(keyword));
   }
-
-  // 前端分页（按当前页+每页条数截取）
   const start = (currentPage.value - 1) * pageSize.value;
   const end = start + pageSize.value;
   return list.slice(start, end);
 });
 
-// 条目分页的总页数
 const totalItemPages = computed(() => {
   let list = [...feedbackList.value];
-
-  // 先做筛选
   if (filterMonth.value) {
     list = list.filter(item => {
       const createMonth = item.created_at?.split('-')[1];
@@ -583,19 +676,17 @@ const totalItemPages = computed(() => {
     const keyword = filterName.value.trim().toLowerCase();
     list = list.filter(item => item.real_name?.toLowerCase().includes(keyword));
   }
-
   return Math.ceil(list.length / pageSize.value) || 1;
 });
 
-// ========== 方法定义 ==========
-// 获取接口数据
+// ========== 方法定义（反馈相关，原有，保留） ==========
 const fetchAllFeedback = async () => {
   try {
     const res = await getAllFeedback(feedbackQueryParams);
     if (res.res_code === '0000') {
       feedbackList.value = res.data.list || [];
       totalFeedback.value = res.data.total || 0;
-      currentPage.value = 1; // 重置页码
+      currentPage.value = 1;
     } else {
       ElMessage.error(`查询失败：${res.res_msg}`);
       feedbackList.value = [];
@@ -606,18 +697,15 @@ const fetchAllFeedback = async () => {
   }
 };
 
-// 前端筛选按钮点击
 const handleFrontendFilter = () => {
-  currentPage.value = 1; // 筛选后重置页码
+  currentPage.value = 1;
 };
 
-// 条目分页切换
 const handlePageChange = (page) => {
   if (page < 1 || page > totalItemPages.value) return;
   currentPage.value = page;
 };
 
-// 回复弹窗相关
 const openReplyDialog = (feedbackId) => {
   currentFeedbackId.value = feedbackId;
   replyForm.reply_content = '';
@@ -648,7 +736,6 @@ const submitReply = async () => {
   }
 };
 
-// 状态弹窗相关
 const openStatusDialog = (feedbackId) => {
   currentFeedbackId.value = feedbackId;
   const currentItem = feedbackList.value.find(item => item.feedback_id === feedbackId);
@@ -675,7 +762,6 @@ const submitStatusUpdate = async () => {
   }
 };
 
-// 查看详情（现在ID直接显示在条目里，保留方法）
 const viewFeedbackDetail = async (feedbackId) => {
   try {
     const res = await getFeedbackDetail(feedbackId);
@@ -690,7 +776,7 @@ const viewFeedbackDetail = async (feedbackId) => {
   }
 };
 
-// ========== 生命周期 ==========
+// ========== 生命周期（原有，保留） ==========
 onMounted(() => {
   console.log('进入新闻部，组件挂载，开始初始化数据');
   if (currentTab.value === 'feedback') fetchAllFeedback();
@@ -719,13 +805,16 @@ onMounted(() => {
   align-items: center;
 }
 .form-select, .form-input {
+  width: 150px;
   padding: 6px 8px;
   border: 1px solid #ccc;
 }
 .query-btn {
   padding: 6px 15px;
-  background-color: #ccc;
-  border: none;
+  background-color: #9b8eb4;
+  color: #fff;
+  border:  1px solid;
+  border-radius: 5px;
   cursor: pointer;
 }
 .task-table {
@@ -903,12 +992,14 @@ onMounted(() => {
   border: none;
   cursor: pointer;
 }
-.confirm-btn {
+/* 反馈弹窗确认按钮 */
+.feedback-confirm-btn {
   padding: 6px 12px;
   background-color: #9b8eb4;
   color: #fff;
   border: none;
   cursor: pointer;
+  border-radius: 4px;
 }
 .form-textarea{
   width: 100%;
@@ -916,5 +1007,197 @@ onMounted(() => {
   padding: 8px;
   border: 1px solid #ccc;
   resize: none;
+}
+/* 新增样式：选择成员按钮 */
+.select-member-btn {
+  padding: 8px 16px;
+  background-color: #9b8eb4;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.select-member-btn:hover {
+  background-color:#C0C0C0;
+}
+
+/* 已选成员列表 */
+.selected-members {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+.member-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px dashed #eee;
+}
+.del-member-btn {
+  padding: 2px 8px;
+  background-color: #f56c6c;
+  color: #fff;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* 单选框组 */
+.radio-group {
+  display: flex;
+  gap: 20px;
+  margin-top: 8px;
+}
+.radio-item {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.radio-item input {
+  margin-right: 4px;
+}
+
+/* 下拉选择框 */
+.form-select {
+  width:150px;
+  padding: 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+/* 弹窗遮罩 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  width: 600px;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+.close-modal {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+}
+.modal-body {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.user-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+.user-info {
+  display: flex;
+  gap: 15px;
+}
+.select-user-btn {
+  padding: 4px 12px;
+  border: 1px solid #9b8eb4;
+  color: #9b8eb4;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.select-user-btn:disabled {
+  background-color: #eee;
+  color: #999;
+  border-color: #ddd;
+  cursor: not-allowed;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+/* 选择成员弹窗确认按钮 */
+.user-modal-confirm-btn {
+  padding: 8px 16px;
+  background-color: #9b8eb4;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.empty-tip {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+}
+
+/* 原有样式保留 */
+.manage-title {
+  margin-bottom: 20px;
+}
+.title-line {
+  width: 4px;
+  height: 20px;
+  background-color: #9b8eb4;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.manage-form {
+  max-width: 600px;
+}
+.form-item {
+  margin-bottom: 15px;
+}
+.form-item label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+.form-input {
+  width: 150px;
+  padding: 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+}
+.submit-btn {
+  padding: 10px 20px;
+  background-color: #9b8eb4;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.submit-btn:disabled {
+  background-color: #bbb;
+  cursor: not-allowed;
 }
 </style>
