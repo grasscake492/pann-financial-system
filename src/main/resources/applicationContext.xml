@@ -24,9 +24,9 @@
     <!--配置数据源 - 使用Spring的DriverManagerDataSource-->
     <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
         <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://localhost:3306/pann_financial_system?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Shanghai&amp;useSSL=false"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/pann_financial_system?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Shanghai&amp;useSSL=false&amp;allowPublicKeyRetrieval=true"/>
         <property name="username" value="root"/>
-        <property name="password" value="grasscake0101"/>
+        <property name="password" value="123456"/>
     </bean>
 
     <!--配置事务管理器11-->
