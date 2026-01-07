@@ -9,6 +9,9 @@ export default defineConfig(({ command, mode }) => {
   // 加载环境变量（区分mock/后端环境）
   const env = loadEnv(mode, process.cwd());
   return {
+    // 关键：添加基础路径配置
+    base: '/pann-financial-system/',
+
     plugins: [
       vue(),
       // 删掉vite-plugin-mock相关配置（改用纯MSW）
@@ -47,5 +50,4 @@ export default defineConfig(({ command, mode }) => {
     //  include: ['msw']
     //}
   }
-
-});
+})

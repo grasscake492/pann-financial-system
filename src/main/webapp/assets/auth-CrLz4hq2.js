@@ -1,1 +1,0 @@
-import{hR as r}from"./index-CAl9Fkbs.js";const o=t=>r({method:"POST",url:"/auth/register/xxx",data:t}),s=t=>(console.log("准备发送登录请求，参数：",t),r({method:"POST",url:"/auth/login/xxx",data:t})),u=(t,e)=>r({method:"PUT",url:`/auth/change-password/${t}`,data:e});export{o as a,u as c,s as u};

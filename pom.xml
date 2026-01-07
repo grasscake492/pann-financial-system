@@ -193,10 +193,11 @@
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>RELEASE</version>
-            <scope>compile</scope>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.10.0</version>
+            <scope>test</scope>  <!-- 必须是 test -->
         </dependency>
+
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -235,24 +236,11 @@
     </dependencies>
 
     <build>
-
         <finalName>pann-financial-system</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>3.3.2</version>
-                <configuration>
-                    <warSourceDirectory>web</warSourceDirectory>
-                    <webXml>web/WEB-INF/web.xml</webXml>
-                    <warName>pann-financial-system</warName>
-                </configuration>
-            </plugin>
 
-        </plugins>
-
+        <!-- 资源文件配置 -->
         <resources>
-            <!-- 第一个resource：处理resources目录下的文件 -->
+            <!-- 处理 resources 目录下的配置文件 -->
             <resource>
                 <directory>src/main/resources</directory>
                 <includes>
@@ -262,21 +250,51 @@
                 <filtering>false</filtering>
             </resource>
 
-            <!-- 第二个resource：处理java目录下的mapper xml文件 -->
+            <!-- 处理 java 目录下的 mapper xml 文件 -->
             <resource>
                 <directory>src/main/java</directory>
                 <includes>
-                    <include>**/*.xml</include>  <!-- 包含所有xml文件 -->
+                    <include>**/*.xml</include>
                     <include>**/*.properties</include>
                 </includes>
                 <excludes>
-                    <exclude>**/*.java</exclude>  <!-- 排除Java源文件 -->
+                    <exclude>**/*.java</exclude>
                 </excludes>
                 <filtering>false</filtering>
             </resource>
         </resources>
 
+        <!-- 插件配置 -->
+        <plugins>
+            <!-- WAR 打包插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>  <!-- 使用较新版本 -->
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <!-- 包含 webapp 目录内容 -->
+                    <webResources>
+                        <resource>
+                            <directory>src/main/webapp</directory>
+                            <targetPath>/</targetPath>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
 
+            <!-- 编译器插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 
 </project>

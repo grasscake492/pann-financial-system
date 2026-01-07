@@ -17,40 +17,40 @@
     <!--添加 impl 包扫描 -->
     <context:component-scan base-package="org.service, org.service.impl"/>
 
-<!--    &lt;!&ndash;引用数据库配置文件&ndash;&gt;-->
-<!--    &lt;!&ndash; 改为绝对路径 &ndash;&gt;-->
-<!--    <context:property-placeholder location="classpath:database.properties"/>-->
+    <!--引用数据库配置文件-->
+    <!-- 改为绝对路径 -->
+    <context:property-placeholder location="classpath:database.properties"/>
 
-<!--    &lt;!&ndash;配置数据源 - 使用Spring的DriverManagerDataSource&ndash;&gt;-->
-<!--    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">-->
-<!--        <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>-->
-<!--        <property name="url" value="jdbc:mysql://localhost:3306/pann_financial_system?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Shanghai&amp;useSSL=false"/>-->
-<!--        <property name="username" value="root"/>-->
-<!--        <property name="password" value="grasscake0101"/>-->
-<!--    </bean>-->
+    <!--配置数据源 - 使用Spring的DriverManagerDataSource-->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/pann_financial_system?useUnicode=true&amp;characterEncoding=UTF-8&amp;serverTimezone=Asia/Shanghai&amp;useSSL=false"/>
+        <property name="username" value="root"/>
+        <property name="password" value="grasscake0101"/>
+    </bean>
 
-<!--    &lt;!&ndash;配置事务管理器11&ndash;&gt;-->
-<!--    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">-->
-<!--        <property name="dataSource" ref="dataSource"/>-->
-<!--    </bean>-->
+    <!--配置事务管理器11-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
 
-<!--    &lt;!&ndash;开启注解驱动的事务管理11&ndash;&gt;-->
-<!--    <tx:annotation-driven/>-->
+    <!--开启注解驱动的事务管理11-->
+    <tx:annotation-driven/>
 
-<!--    &lt;!&ndash;将MyBatis与Spring集成11&ndash;&gt;-->
-<!--    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">-->
-<!--        <property name="dataSource" ref="dataSource"/>-->
-<!--        <property name="configLocation" value="classpath:mybatis-config.xml"/>-->
-<!--&lt;!&ndash;        &lt;!&ndash;指定Mapper XML文件的位置&ndash;&gt;&ndash;&gt;-->
-<!--&lt;!&ndash;        <property name="mapperLocations" value="classpath*:org/dao/mapper/*.xml"/>&ndash;&gt;-->
-<!--&lt;!&ndash;        &lt;!&ndash;配置类型别名包&ndash;&gt;&ndash;&gt;-->
-<!--&lt;!&ndash;        <property name="typeAliasesPackage" value="org.entity"/>&ndash;&gt;-->
-<!--    </bean>-->
+    <!--将MyBatis与Spring集成11-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+<!--        &lt;!&ndash;指定Mapper XML文件的位置&ndash;&gt;-->
+<!--        <property name="mapperLocations" value="classpath*:org/dao/mapper/*.xml"/>-->
+<!--        &lt;!&ndash;配置类型别名包&ndash;&gt;-->
+<!--        <property name="typeAliasesPackage" value="org.entity"/>-->
+    </bean>
 
-<!--&lt;!&ndash;    &lt;!&ndash;配置MyBatis的Mapper扫描器，将Mapper接口注册为Spring Bean &ndash;&gt;&ndash;&gt;-->
-<!--&lt;!&ndash;    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">&ndash;&gt;-->
-<!--&lt;!&ndash;        <property name="basePackage" value="org.dao"/>&ndash;&gt;-->
-<!--&lt;!&ndash;        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>&ndash;&gt;-->
-<!--&lt;!&ndash;    </bean>&ndash;&gt;-->
+    <!--配置MyBatis的Mapper扫描器，将Mapper接口注册为Spring Bean -->
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="org.dao"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
 
 </beans>

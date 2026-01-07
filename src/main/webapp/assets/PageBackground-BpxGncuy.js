@@ -1,0 +1,1 @@
+import{hi as s,hs as o,ho as t,hM as n}from"./index-DmjI61J4.js";const r={},a={class:"gradient-bg"};function c(e,d){return t(),o("div",a,[n(e.$slots,"default",{},void 0,!0)])}const i=s(r,[["render",c],["__scopeId","data-v-814594d2"]]);export{i as P};
