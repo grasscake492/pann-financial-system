@@ -207,7 +207,7 @@
           <div class="title-line"></div>
           <h3>目前成员</h3>
           <!-- 新增添加成员按钮 -->
-          <button class="add-btn" @click="editUser()">新增成员</button>
+<!--          <button class="add-btn" @click="editUser()">新增成员</button>-->
         </div>
         <table class="content-table">
           <thead>
@@ -273,14 +273,14 @@
               <label>加入时间:</label>
               <input type="date" class="form-input" v-model="userEditForm.created_at">
             </div>-->
-            <div class="form-row">
+<!--            <div class="form-row">
               <label>所属部门:</label>
               <select class="form-input" v-model="userEditForm.deptId">
                 <option value="1">新闻部</option>
                 <option value="2">编辑部</option>
                 <option value="3">运营部</option>
               </select>
-            </div>
+            </div>-->
             <div class="dialog-btns">
               <button class="cancel-btn" @click="userEditDialogVisible = false">取消</button>
               <button class="confirm-btn" @click="submitUserEdit">确认</button>
@@ -296,13 +296,13 @@
               <label>用户姓名:</label>
               <input type="text" class="form-input" v-model="roleEditForm.real_name" disabled>
             </div>
-            <div class="form-row">
+<!--            <div class="form-row">
               <label>是否超级管理员:</label>
               <select class="form-input" v-model="roleEditForm.is_super_admin">
                 <option :value="false">否</option>
                 <option :value="true">是</option>
               </select>
-            </div>
+            </div>-->
             <div class="form-row">
               <label>所属部门:</label>
               <select class="form-input" v-model="roleEditForm.department_id">
@@ -315,7 +315,7 @@
             <div class="form-row">
               <label>用户角色:</label>
               <select class="form-input" v-model="roleEditForm.role">
-                <option value="普通成员">普通成员</option>
+<!--                <option value="普通成员">普通成员</option>-->
                 <option value="部门管理员">部门管理员</option>
                 <option value="系统管理员">系统管理员</option>
               </select>
@@ -340,7 +340,7 @@
             <!-- 年份下拉选择（支持自定义年份范围） -->
             <select class="form-select" v-model="selectedYear" @change="updateMonthOptions">
               <option value="">请选择年份</option>
-              <!-- 生成近5年 + 未来1年（可自定义范围） -->
+              <!-- （可自定义范围） -->
               <option v-for="year in generateYearOptions()" :key="year" :value="year">
                 {{ year }}年
               </option>
@@ -355,14 +355,14 @@
           </div>
 
           <div style="display: flex; align-items: center;">
-            <label>部门ID:</label>
-            <!-- 部门选择：必填，绑定department_id（bigint类型） -->
+<!--            <label>部门:</label>
+            &lt;!&ndash; 部门选择：必填，绑定department_id（bigint类型） &ndash;&gt;
             <select class="form-select" v-model="summaryForm.department_id">
               <option value="">请选择部门</option>
               <option value="1">新闻部</option>
               <option value="2">编辑部</option>
               <option value="3">运营部</option>
-            </select>
+            </select>-->
           </div>
 
 <!--          <div style="display: flex; align-items: center;">
@@ -375,7 +375,7 @@
             </select>
           </div>-->
 
-          <button class="export-btn" @click="exportSummaryData">导出数据</button>
+<!--          <button class="export-btn" @click="exportSummaryData">导出数据</button>-->
         </div>
 
         <!-- 以下表格部分保留你原有结构，移除重复的稿费汇总表格 -->
@@ -387,26 +387,30 @@
               <th>日期</th>
               <th>任务名称</th>
               <th>拍摄人员</th>
-              <th>金额详情</th>
               <th>任务总金额</th>
             </tr>
             </thead>
             <tbody>
-            <tr v-if="totalSummary.length === 0">
-              <td colspan="5" class="empty-tip">暂无新闻部稿费记录</td>
+            <tr v-if="newsDeptSummary.length === 0">
+              <td colspan="4" class="empty-tip">暂无新闻部稿费记录</td>
             </tr>
-            <tr v-for="item in totalSummary" :key="item.userId">
-              <td>{{ item.newsAmount }}元</td>
-              <td>{{ item.editAmount }}元</td>
-              <td>{{ item.real_name }}</td>
-              <td>{{ item.bigImgAmount }}元</td>
-              <td>{{ item.totalAmount }}元</td>
+            <!-- 修正2：渲染新闻部原始数据newsDeptSummary，而非人员汇总totalSummary -->
+            <!-- 修正3：key用接口唯一标识record_id，避免重复 -->
+            <tr v-for="item in newsDeptSummary" :key="item.record_id">
+              <!-- 修正4：日期格式化 + 空值兜底 -->
+              <td>{{ item.created_at || '-' }}</td>
+              <!-- 修正5：任务名称空值兜底 -->
+              <td>{{ item.article_title || '-' }}</td>
+              <!-- 修正6：拍摄人员数组拼接 + 空值兜底 -->
+              <td>{{ item.real_names || '-' }}</td>
+              <!-- 修正7：金额格式化 + 空值兜底 -->
+              <td>{{ formatMoney(item.fee_amount) }}元</td>
             </tr>
             </tbody>
           </table>
           <div class="total-row bold">
             <label>新闻部总稿费:</label>
-            <span>{{ platformTotal }}元</span>
+            <span>{{ newsDeptTotal }}元</span>
           </div>
         </div>
         <div class="dept-section">
@@ -414,9 +418,9 @@
           <table class="content-table">
             <thead>
             <tr>
-              <th>项目</th>
-              <th>供图人</th>
-              <th>金额详情</th>
+              <th>日期</th>
+              <th>任务名称</th>
+              <th>拍摄人员</th>
               <th>任务总金额</th>
             </tr>
             </thead>
@@ -425,10 +429,10 @@
               <td colspan="4" class="empty-tip">暂无编辑部稿费记录</td>
             </tr>
             <tr v-for="item in editDeptSummary" :key="item.projectId">
+              <td>{{ item.created_at}}元</td>
               <td>{{ item.article_title }}</td>
-              <td>{{ item.real_name }}</td>
-              <td>{{ item.amountDetail }}</td>
-              <td>{{ item.totalAmount }}元</td>
+              <td>{{ item.real_names }}</td>
+              <td>{{ item.fee_amount }}元</td>
             </tr>
             </tbody>
           </table>
@@ -1272,10 +1276,10 @@ const userEditForm = reactive({
   student_number: '', // 新增学号字段
   email: '', // 新增邮箱字段
   created_at: '',
-  deptId: '1' // 默认新闻部
+  deptId: '' // 默认新闻部
 });
 
-// 新增：角色权限编辑弹窗
+// 角色权限编辑弹窗
 const roleEditDialogVisible = ref(false);
 const roleEditForm = reactive({
   user_id: '',
@@ -1339,7 +1343,7 @@ const submitUserEdit = async () => {
   }
 };
 
-// 新增：打开角色权限编辑弹窗
+// 打开角色权限编辑弹窗
 const openRoleEditDialog = (item) => {
   roleEditForm.user_id = item.user_id;
   roleEditForm.real_name = item.real_name;
@@ -1419,7 +1423,7 @@ const summaryForm = reactive({
   format: ''
 });
 
-// 生成年份选项（近5年+未来1年，灵活调整）
+// 生成年份选项
 const generateYearOptions = () => {
   const currentYear = new Date().getFullYear();
   const startYear = currentYear;
@@ -1462,9 +1466,9 @@ const totalSummary = ref([]);
 
 // 新闻部总金额（格式化）
 const newsDeptTotal = computed(() => {
-  return formatMoney(newsDeptSummary.value.reduce((sum, item) => sum + Number(item.totalAmount), 0));
+  // 修正：直接累加接口原始fee_amount（数字），而非格式化后的totalAmount（字符串）
+  return formatMoney(newsDeptSummary.value.reduce((sum, item) => sum + Number(item.fee_amount || 0), 0));
 });
-
 // 编辑部总金额（格式化）
 const editDeptTotal = computed(() => {
   return formatMoney(editDeptSummary.value.reduce((sum, item) => sum + Number(item.totalAmount), 0));
@@ -1476,48 +1480,52 @@ const platformTotal = computed(() => {
 });
 
 // 获取汇总数据：基于接口的statistical_month（YYYY-MM）生成时间范围
+// 获取汇总数据：适配2.5.10 部门稿费查询接口
 const fetchSummaryData = async () => {
   if (!summaryForm.statistical_month) {
     ElMessage.warning('请选择统计月份（YYYY-MM）');
     return;
   }
-  // 可选：如果汇总接口也需要department_id，这里也加校验
-  // if (!summaryForm.department_id) { ElMessage.warning('请选择部门'); return; }
 
   try {
     const [year, month] = summaryForm.statistical_month.split('-');
     const startDate = `${year}-${month}-01`;
     const endDate = new Date(Number(year), Number(month), 0).toISOString().split('T')[0];
 
-    const res = await getAllRoyalty({
+    // 修正1：调用正确的部门稿费接口getDepartmentRoyalty
+    // 修正2：department_id不传0，新闻部固定传1（部门管理员默认查本部门）
+    const res = await getDepartmentRoyalty ({
       startDate,
       endDate,
-      department_id: summaryForm.department_id ? Number(summaryForm.department_id) : 0
+      page: 1,
+      size: 100, // 一次性加载所有数据，避免分页
+      department_id: 1 // 新闻部固定ID
     });
 
     if (res.res_code === '0000') {
       const allData = res.data.list || [];
-      // 处理新闻部数据
-      newsDeptSummary.value = allData
-          .filter(item => item.department_id === 1)
-          .map(item => ({
-            ...item,
-            created_at: formatDateTime(item.created_at),
-            real_names: Array.isArray(item.real_names) ? item.real_names.join(', ') : item.real_names,
-            amountDetail: `稿费: ${formatMoney(item.fee_amount)}元`,
-            totalAmount: item.fee_amount
-          }));
-      // 处理编辑部数据
-      editDeptSummary.value = allData
-          .filter(item => item.department_id === 2)
-          .map(item => ({
-            ...item,
-            real_name: Array.isArray(item.real_names) ? item.real_names.join(', ') : item.real_names,
-            amountDetail: `稿费: ${formatMoney(item.fee_amount)}元`,
-            totalAmount: item.fee_amount
-          }));
-      // 生成总汇总
-      generateTotalSummary(allData);
+      // 处理新闻部数据：仅保留必要映射，移除无用字段
+      newsDeptSummary.value = allData.map(item => ({
+        ...item,
+        // 修正3：real_names数组拼接，避免显示["张三"]格式
+        real_names: Array.isArray(item.real_names) ? item.real_names.join(', ') : item.real_names || '-'
+      }));
+      // 编辑部数据需单独调用接口（department_id=2）
+      const editRes = await getDepartmentRoyalty ({
+        startDate,
+        endDate,
+        page: 1,
+        size: 100,
+        department_id: 2 // 编辑部ID
+      });
+      if (editRes.res_code === '0000') {
+        editDeptSummary.value = editRes.data.list.map(item => ({
+          ...item,
+          real_names: Array.isArray(item.real_names) ? item.real_names.join(', ') : item.real_names || '-'
+        }));
+      }
+      // 生成人员维度总汇总
+      generateTotalSummary([...allData, ...(editRes.data?.list || [])]);
     } else {
       ElMessage.error(`获取汇总数据失败：${res.res_msg}`);
     }
@@ -1526,12 +1534,13 @@ const fetchSummaryData = async () => {
     ElMessage.error('网络异常，获取汇总数据失败');
   }
 };
-
-// 生成总汇总数据
+// 生成总汇总数据（修正：先求和再格式化，避免字符串拼接）
 const generateTotalSummary = (allData) => {
   const summaryMap = new Map();
   allData.forEach(item => {
     const userCount = item.user_ids?.length || 0;
+    // 容错：避免除以0
+    if (userCount === 0) return;
     for (let i = 0; i < userCount; i++) {
       const userId = item.user_ids[i];
       const realName = item.real_names[i] || '未知';
@@ -1546,16 +1555,12 @@ const generateTotalSummary = (allData) => {
       if (item.department_id === 2) userSummary.editAmount += perUserAmount;
     }
   });
-  // 格式化金额
+  // 修正：先保留数字求和，渲染时再格式化
   totalSummary.value = Array.from(summaryMap.values()).map(item => ({
     ...item,
-    newsAmount: formatMoney(item.newsAmount),
-    editAmount: formatMoney(item.editAmount),
-    bigImgAmount: formatMoney(item.bigImgAmount),
-    totalAmount: formatMoney(item.newsAmount + item.editAmount + item.bigImgAmount)
+    totalAmount: item.newsAmount + item.editAmount + item.bigImgAmount
   }));
 };
-
 // 导出汇总数据：严格按接口文档校验所有必填项，参数1:1匹配
 const exportSummaryData = async () => {
   // 1. 校验必填项
