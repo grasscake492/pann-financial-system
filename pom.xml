@@ -129,11 +129,13 @@
             <scope>test</scope>
         </dependency>
 
-        <!--实体类注解-->
+        <!-- Lombok - 实体类注解，简化Java Bean代码 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.34</version>
+            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
 
         <!--分页插件-->

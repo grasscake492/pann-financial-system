@@ -138,11 +138,21 @@ public enum ErrorCode {
 
     /**
      * 错误码
+     * -- GETTER --
+     *  显式添加 getCode 方法（解决 Lombok 可能的编译问题）
+     *
+     * @return 错误码
+
      */
     private final int code;
 
     /**
      * 错误描述
+     * -- GETTER --
+     *  显式添加 getMessage 方法（解决 Lombok 可能的编译问题）
+     *
+     * @return 错误描述
+
      */
     private final String message;
 
@@ -162,9 +172,9 @@ public enum ErrorCode {
      * @return 对应的ErrorCode枚举，如果不存在则返回null
      */
     public static ErrorCode getByCode(int code) {
-        for (ErrorCode errorCode : ErrorCode.values()) {
-            if (errorCode.getCode() == code) {
-                return errorCode;
+        for (ErrorCode ec : ErrorCode.values()) {
+            if (ec.getCode() == code) {
+                return ec;
             }
         }
         return null;
@@ -176,8 +186,8 @@ public enum ErrorCode {
      * @return 错误描述，如果不存在则返回"未知错误"
      */
     public static String getMessageByCode(int code) {
-        ErrorCode errorCode = getByCode(code);
-        return errorCode != null ? errorCode.getMessage() : "未知错误";
+        ErrorCode ec = getByCode(code);
+        return ec != null ? ec.getMessage() : "未知错误";
     }
 
     /**
@@ -227,5 +237,23 @@ public enum ErrorCode {
      */
     public boolean isBusinessError() {
         return this.code >= 6000 && this.code < 7000;
+    }
+
+    // ========== 显式添加的 getter 方法（解决 Lombok 可能的编译问题） ==========
+
+    /**
+     * 获取错误码
+     * @return 错误码
+     */
+    public int getCode() {
+        return this.code;
+    }
+
+    /**
+     * 获取错误描述
+     * @return 错误描述
+     */
+    public String getMessage() {
+        return this.message;
     }
 }
