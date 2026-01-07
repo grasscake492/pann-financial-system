@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dao.FeedbackMapper">
+
+    <!-- 问题反馈表结果映射 -->
+    <resultMap id="FeedbackResultMap" type="org.entity.Feedback">
+        <id property="feedbackId" column="feedback_id" />
+        <result property="userId" column="user_id" />
+        <result property="content" column="content" />
+        <result property="replyContent" column="reply_content" />
+        <result property="repliedAt" column="replied_at" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <!-- 根据反馈ID查询 -->
+    <select id="selectByFeedbackId" parameterType="java.lang.Long" resultMap="FeedbackResultMap">
+        SELECT feedback_id, user_id, content, reply_content, replied_at, created_at, updated_at
+        FROM feedbacks WHERE feedback_id = #{feedbackId}
+    </select>
+
+    <!-- 根据用户ID查询反馈记录 -->
+    <select id="selectByUserId" parameterType="java.lang.Long" resultMap="FeedbackResultMap">
+        SELECT feedback_id, user_id, content, reply_content, replied_at, created_at, updated_at
+        FROM feedbacks WHERE user_id = #{userId} ORDER BY feedback_id
+    </select>
+
+    <!-- 查询所有反馈记录 -->
+    <select id="selectAllFeedbacks" resultMap="FeedbackResultMap">
+        SELECT feedback_id, user_id, content, reply_content, replied_at, created_at, updated_at
+        FROM feedbacks ORDER BY feedback_id
+    </select>
+
+    <!-- 查询待回复的反馈记录 -->
+    <select id="selectPendingFeedbacks" resultMap="FeedbackResultMap">
+        SELECT feedback_id, user_id, content, reply_content, replied_at, created_at, updated_at
+        FROM feedbacks WHERE reply_content IS NULL ORDER BY created_at
+    </select>
+
+    <!-- 分页查询反馈记录 -->
+    <select id="selectByPage" resultMap="FeedbackResultMap">
+        SELECT feedback_id, user_id, content, reply_content, replied_at, created_at, updated_at
+        FROM feedbacks ORDER BY feedback_id LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计反馈记录数量 -->
+    <select id="countFeedbacks" resultType="int">
+        SELECT COUNT(*) FROM feedbacks
+    </select>
+
+    <!-- 插入反馈记录 -->
+    <insert id="insertFeedback" parameterType="org.entity.Feedback" useGeneratedKeys="true" keyProperty="feedbackId">
+        INSERT INTO feedbacks (user_id, content, reply_content, replied_at, created_at, updated_at)
+        VALUES (#{userId}, #{content}, #{replyContent}, #{repliedAt}, NOW(), NOW())
+    </insert>
+
+    <!-- 更新反馈记录 -->
+    <update id="updateFeedback" parameterType="org.entity.Feedback">
+        UPDATE feedbacks SET
+                             user_id = #{userId},
+                             content = #{content},
+                             reply_content = #{replyContent},
+                             replied_at = #{repliedAt},
+                             updated_at = NOW()
+        WHERE feedback_id = #{feedbackId}
+    </update>
+
+    <!-- 回复反馈 -->
+    <update id="replyFeedback">
+        UPDATE feedbacks SET reply_content = #{replyContent}, replied_at = NOW(), updated_at = NOW()
+        WHERE feedback_id = #{feedbackId}
+    </update>
+
+    <!-- 删除反馈记录 -->
+    <delete id="deleteByFeedbackId" parameterType="java.lang.Long">
+        DELETE FROM feedbacks WHERE feedback_id = #{feedbackId}
+    </delete>
+
+</mapper>

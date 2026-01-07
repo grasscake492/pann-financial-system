@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dao.UserPermissionMapper">
+
+    <!-- 用户权限关联表结果映射 -->
+    <resultMap id="UserPermissionResultMap" type="org.entity.UserPermission">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="permissionId" column="permission_id" />
+        <result property="createdAt" column="created_at" />
+    </resultMap>
+
+    <!-- 根据关联ID查询 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="UserPermissionResultMap">
+        SELECT id, user_id, permission_id, created_at
+        FROM user_permissions
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据用户ID查询权限关联 -->
+    <select id="selectByUserId" parameterType="java.lang.Long" resultMap="UserPermissionResultMap">
+        SELECT id, user_id, permission_id, created_at
+        FROM user_permissions
+        WHERE user_id = #{userId}
+        ORDER BY id
+    </select>
+
+    <!-- 根据权限ID查询权限关联 -->
+    <select id="selectByPermissionId" parameterType="java.lang.Long" resultMap="UserPermissionResultMap">
+        SELECT id, user_id, permission_id, created_at
+        FROM user_permissions
+        WHERE permission_id = #{permissionId}
+        ORDER BY id
+    </select>
+
+    <!-- 插入用户权限关联 -->
+    <insert id="insertUserPermission" parameterType="org.entity.UserPermission" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_permissions (user_id, permission_id, created_at)
+        VALUES (#{userId}, #{permissionId}, NOW())
+    </insert>
+
+    <!-- 删除用户权限关联 -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM user_permissions
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 根据用户ID和权限ID删除关联 -->
+    <delete id="deleteByUserAndPermission">
+        DELETE FROM user_permissions
+        WHERE user_id = #{userId} AND permission_id = #{permissionId}
+    </delete>
+
+    <!-- 根据用户ID删除所有权限关联 -->
+    <delete id="deleteByUserId" parameterType="java.lang.Long">
+        DELETE FROM user_permissions
+        WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 检查用户是否拥有某个权限 -->
+    <select id="checkUserPermission" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM user_permissions up
+                 INNER JOIN permissions p ON up.permission_id = p.permission_id
+        WHERE up.user_id = #{userId} AND p.permission_code = #{permissionCode}
+    </select>
+
+</mapper>

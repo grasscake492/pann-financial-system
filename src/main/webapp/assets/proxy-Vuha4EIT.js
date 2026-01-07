@@ -1,0 +1,1 @@
+import{hR as a}from"./index-CAl9Fkbs.js";const e=r=>a({method:"POST",url:"/api/v1/admin/proxy",data:r}),d=r=>a({method:"GET",url:"/api/v1/admin/proxy/list",params:r}),n=(r,o)=>a({method:"PUT",url:`/api/v1/admin/proxy/${r}`,data:o}),s=r=>a({method:"DELETE",url:`/api/v1/admin/proxy/${r}`});export{e as a,s as c,d as g,n as u};
