@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dao.FeeMonthlySummaryMapper">
+
+    <!-- 稿费月汇总表结果映射 -->
+    <resultMap id="FeeMonthlySummaryResultMap" type="org.entity.FeeMonthlySummary">
+        <id property="summaryId" column="summary_id" />
+        <result property="userId" column="user_id" />
+        <result property="realName" column="real_name" />
+        <result property="studentNumber" column="student_number" />
+        <result property="departmentId" column="department_id" />
+        <result property="totalAmount" column="total_amount" />
+        <result property="statisticalMonth" column="statistical_month" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <!-- 根据汇总ID查询 -->
+    <select id="selectBySummaryId" parameterType="java.lang.Long" resultMap="FeeMonthlySummaryResultMap">
+        SELECT summary_id, user_id, real_name, student_number, department_id, total_amount, statistical_month, created_at, updated_at
+        FROM fee_monthly_summary WHERE summary_id = #{summaryId}
+    </select>
+
+    <!-- 根据用户ID和月份查询汇总 -->
+    <select id="selectByUserAndMonth" resultMap="FeeMonthlySummaryResultMap">
+        SELECT summary_id, user_id, real_name, student_number, department_id, total_amount, statistical_month, created_at, updated_at
+        FROM fee_monthly_summary WHERE user_id = #{userId} AND statistical_month = #{month}
+    </select>
+
+    <!-- 根据月份查询所有汇总记录 -->
+    <select id="selectByMonth" parameterType="java.lang.String" resultMap="FeeMonthlySummaryResultMap">
+        SELECT summary_id, user_id, real_name, student_number, department_id, total_amount, statistical_month, created_at, updated_at
+        FROM fee_monthly_summary WHERE statistical_month = #{month} ORDER BY summary_id
+    </select>
+
+    <!-- 根据部门ID和月份查询汇总记录 -->
+    <select id="selectByDepartmentAndMonth" resultMap="FeeMonthlySummaryResultMap">
+        SELECT summary_id, user_id, real_name, student_number, department_id, total_amount, statistical_month, created_at, updated_at
+        FROM fee_monthly_summary WHERE department_id = #{departmentId} AND statistical_month = #{month} ORDER BY summary_id
+    </select>
+
+    <!-- 查询用户所有月份的汇总记录 -->
+    <select id="selectByUser" parameterType="java.lang.Long" resultMap="FeeMonthlySummaryResultMap">
+        SELECT summary_id, user_id, real_name, student_number, department_id, total_amount, statistical_month, created_at, updated_at
+        FROM fee_monthly_summary WHERE user_id = #{userId} ORDER BY statistical_month DESC
+    </select>
+
+    <!-- 插入汇总记录 -->
+    <insert id="insertSummary" parameterType="org.entity.FeeMonthlySummary" useGeneratedKeys="true" keyProperty="summaryId">
+        INSERT INTO fee_monthly_summary
+        (user_id, real_name, student_number, department_id, total_amount, statistical_month, created_at, updated_at)
+        VALUES (#{userId}, #{realName}, #{studentNumber}, #{departmentId}, #{totalAmount}, #{statisticalMonth}, NOW(), NOW())
+    </insert>
+
+    <!-- 更新汇总记录 -->
+    <update id="updateSummary" parameterType="org.entity.FeeMonthlySummary">
+        UPDATE fee_monthly_summary SET
+                                       user_id = #{userId},
+                                       real_name = #{realName},
+                                       student_number = #{studentNumber},
+                                       department_id = #{departmentId},
+                                       total_amount = #{totalAmount},
+                                       statistical_month = #{statisticalMonth},
+                                       updated_at = NOW()
+        WHERE summary_id = #{summaryId}
+    </update>
+
+    <!-- 删除汇总记录 -->
+    <delete id="deleteBySummaryId" parameterType="java.lang.Long">
+        DELETE FROM fee_monthly_summary WHERE summary_id = #{summaryId}
+    </delete>
+
+    <!-- 根据用户ID和月份删除汇总记录 -->
+    <delete id="deleteByUserAndMonth">
+        DELETE FROM fee_monthly_summary WHERE user_id = #{userId} AND statistical_month = #{month}
+    </delete>
+
+    <!-- 统计某个月份的汇总记录数量 -->
+    <select id="countByMonth" parameterType="java.lang.String" resultType="int">
+        SELECT COUNT(*) FROM fee_monthly_summary WHERE statistical_month = #{month}
+    </select>
+
+</mapper>
