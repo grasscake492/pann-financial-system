@@ -59,9 +59,9 @@
             :rules="pwdRules"
             label-width="100px"
         >
-          <ElFormItem label="原密码" prop="oldPassword">
+<!--          <ElFormItem label="原密码" prop="oldPassword">
             <ElInput v-model="pwdForm.oldPassword" type="password" placeholder="请输入原密码" />
-          </ElFormItem>
+          </ElFormItem>-->
           <ElFormItem label="新密码" prop="newPassword">
             <ElInput v-model="pwdForm.newPassword" type="password" placeholder="请输入新密码" />
           </ElFormItem>
@@ -165,15 +165,15 @@ const getUserRoleText = computed(() => {
   const deptName = userStore.userInfo.department_name || '';
   switch (userStore.userRole) {
     case 'super_admin':
-      return `${deptName || ''}管理员`;
+      return `${deptName || '无'}`;
     case 'news_admin':
-      return '新闻部管理员';
+      return '新闻部';
     case 'editorial_admin':
-      return '编辑部管理员';
+      return '编辑部';
     case 'operation_admin':
-      return '运营部管理员';
+      return '运营部';
     case 'normal_user':
-      return '普通用户';
+      return '无';
     default:
       return '未知用户';
   }
@@ -181,7 +181,7 @@ const getUserRoleText = computed(() => {
 
 //================表单验证规则================
 const pwdRules = {
-  oldPassword: [{ required: true, message: '请输入原密码', trigger: 'blur' }],
+ /* oldPassword: [{ required: true, message: '请输入原密码', trigger: 'blur' }],*/
   newPassword: [
     { required: true, message: '请输入新密码', trigger: 'blur' },
     { pattern: /^(?=.*\d)(?=.*[a-zA-Z]).{8,16}$/, message: '新密码需8-16位，包含字母和数字', trigger: 'blur' }
@@ -203,7 +203,7 @@ const pwdRules = {
 const infoRules = {
   real_name: [
     { required: true, message: '请输入真实姓名', trigger: 'blur' },
-    { pattern: /^[\u4e00-\u9fa5]{2,4}$/, message: '姓名需2-4位中文', trigger: 'blur' } // 新增：中文+2-4位限制
+    { pattern: /^[\u4e00-\u9fa5]{2,}$/, message: '姓名需至少2位中文', trigger: 'blur' } // 新增：中文+2-4位限制
   ],
   student_number: [
     { required: true, message: '请输入学号', trigger: 'blur' },

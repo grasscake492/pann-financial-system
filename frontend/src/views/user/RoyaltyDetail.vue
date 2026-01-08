@@ -32,12 +32,14 @@
                 type="date"
                 v-model="queryParams.startDate"
                 class="date-input"
+                min="2026-01-01"
             >
             <label class="ml-20">结束日期:</label>
             <input
                 type="date"
                 v-model="queryParams.endDate"
                 class="date-input"
+                :min="queryParams.startDate || '2026-01-01'"
             >
             <label class="ml-20">任务名称:</label>
             <input
@@ -50,7 +52,7 @@
             <button class="reset-btn ml-20" @click="resetQuery">重置</button>
           </div>
 
-          <!-- 稿费表格：保留原有代码，移除循环内的弹窗 -->
+          <!-- 稿费表格 -->
           <table class="fee-table">
             <thead>
             <tr>
@@ -67,7 +69,7 @@
               <td colspan="6" class="empty-tip">暂无稿费数据</td>
             </tr>
             <tr v-for="(item, index) in feeList" :key="item.feedback_id || index">
-              <td>{{ formatDate(item.created_at) || '-' }}</td>
+              <td>{{ item.statistical_month || '-' }}</td>
               <td>{{ item.article_title || '-' }}</td>
               <td>{{ formatDepartment(item.department_id) }}</td>
               <td>{{ formatMoney(item.fee_amount) }}元</td>
@@ -113,7 +115,7 @@
               <th>提交时间</th>
               <th>反馈状态</th>
               <th>管理员回复</th>
-              <th>回复时间</th>
+<!--              <th>回复时间</th>-->
             </tr>
             </thead>
             <tbody>
@@ -130,7 +132,7 @@
     </span>
               </td>
               <td class="reply-cell">{{ item.reply_content || '暂无回复' }}</td>
-              <td>{{ formatDate(item.replied_at) || '-' }}</td>
+<!--              <td>{{item.replied_at || '-' }}</td>-->
             </tr>
             </tbody>
           </table>
@@ -291,11 +293,14 @@ const fetchRoyaltyList = async () => {
 // 重置查询条件
 const resetQuery = () => {
   queryParams.startDate = '2026-01-01'; // 重置为默认开始日期
-  queryParams.endDate = getTodayDate(); // 重置为当天
+  // 兜底：结束日期不能早于开始日期
+  const today = getTodayDate();
+  queryParams.endDate = today < '2026-01-01' ? '2026-01-01' : today;
   queryParams.taskName = '';
   queryParams.page = 1;
   fetchRoyaltyList();
 };
+
 
 // 分页切换
 const changePage = (page) => {
@@ -394,10 +399,11 @@ const fetchMyFeedback = async () => {
 
 // ===================== 生命周期（保留） =====================
 onMounted(() => {
-  // 初始化结束日期为当天
-  queryParams.endDate = getTodayDate();
-  fetchRoyaltyList(); // 原有：加载稿费列表
-  fetchMyFeedback();  // 修正后：加载反馈列表
+  // 初始化结束日期为当天，且不早于开始日期
+  const today = getTodayDate();
+  queryParams.endDate = today < queryParams.startDate ? queryParams.startDate : today;
+  fetchRoyaltyList(); // 加载稿费列表
+  fetchMyFeedback();  // 加载反馈列表
 });
 </script>
 <style scoped>

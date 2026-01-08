@@ -34,122 +34,122 @@
 </template>
 
 <script setup>
-  // 1. 导入核心依赖
-  import { ref, onMounted, computed } from 'vue';
-  import PageBackground from "@/components/PageBackground.vue";
-  import Navbar from "@/components/Navbar.vue";
-  // 导入登录态校验工具
-  import { storage, format } from '@/utils' // 补充format（生成签名用）
-  import { useUserStore } from '@/stores'
-  import { useNoticeStore } from '@/stores/notice'
-  import { useRouter } from 'vue-router'; // 导入路由钩子
-  import {ElMessage} from "element-plus"; // 导入公告Store
-  const router = useRouter(); // 创建路由实例
+// 1. 导入核心依赖
+import { ref, onMounted, computed } from 'vue';
+import PageBackground from "@/components/PageBackground.vue";
+import Navbar from "@/components/Navbar.vue";
+// 导入登录态校验工具
+import { storage, format } from '@/utils' // 补充format（生成签名用）
+import { useUserStore } from '@/stores'
+import { useNoticeStore } from '@/stores/notice'
+import { useRouter } from 'vue-router'; // 导入路由钩子
+import {ElMessage} from "element-plus"; // 导入公告Store
+const router = useRouter(); // 创建路由实例
 
-  // 2. 定义响应式数据
-  const isLoading = ref(true); // 加载状态
-  const userStore = useUserStore()
-  const noticeStore = useNoticeStore() // 初始化公告Store
- // userStore.loadUserProfile();
-  // 计算属性：从userStore取用户信息（无需单独定义userInfo）
-  const userName = computed(() => {
+// 2. 定义响应式数据
+const isLoading = ref(true); // 加载状态
+const userStore = useUserStore()
+const noticeStore = useNoticeStore() // 初始化公告Store
+// userStore.loadUserProfile();
+// 计算属性：从userStore取用户信息（无需单独定义userInfo）
+const userName = computed(() => {
   return userStore.userInfo.real_name || '未知用户';
 });
 
 
-  // 计算属性：从noticeStore获取最新3条公告（核心）
-  const latestAnnouncements = computed(() => {
-    // 过滤已发布的公告，取前3条（和Store的getter逻辑一致，也可直接用Store的getter）
-    return noticeStore.announcementList
-        .filter(item => item.published_at)
-        .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
-        .slice(0, 3);
-    // 若Store中定义了`latestThreeAnnouncements` getter，可直接用：
-    // return noticeStore.latestThreeAnnouncements;
-  });
-  // 工具函数：日期格式化（YYYY-MM-DD）
-  const formatDate = (dateStr) => {
+// 计算属性：从noticeStore获取最新3条公告（核心）
+const latestAnnouncements = computed(() => {
+  // 过滤已发布的公告，取前3条（和Store的getter逻辑一致，也可直接用Store的getter）
+  return noticeStore.announcementList
+      .filter(item => item.published_at)
+      .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
+      .slice(0, 3);
+  // 若Store中定义了`latestThreeAnnouncements` getter，可直接用：
+  // return noticeStore.latestThreeAnnouncements;
+});
+// 工具函数：日期格式化（YYYY-MM-DD）
+const formatDate = (dateStr) => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
 };
 
-  // 4. 核心函数：初始化页面数据
-  const initPageData = async () => {
-    try {
-      // 校验登录态（无需改）
-      const token = storage.getToken();
-      if (!token) {
-        window.location.href = '/login';
-        return;
-      }
-      // 判断条件：userInfo存在 + token存在 + 真实姓名存在（视为完整用户信息）
-      if (userStore.userInfo && userStore.userInfo.token && userStore.userInfo.real_name) {
-        console.log('【首页】已有完整用户信息，跳过用户信息拉取，仅拉取公告');
-        // 只拉取公告数据，不执行用户信息拉取，避免被张三信息覆盖
-        const noticeRes = await noticeStore.fetchAllAnnouncements({
-          sign: format.generateSign({ timestamp: Date.now() }),
-          pageNum: 1,
-          pageSize: 10
-        });
-        // 公告数据正常赋值
-        if (noticeRes && noticeRes.res_code === '0000') {
-          noticeStore.setAnnouncements(noticeRes.data.records || noticeRes.data);
-        }
-        isLoading.value = false; // 结束加载状态
-        return; // 退出函数，不执行后续原有逻辑
-      }
-
-      // 生成接口签名（按接口文档2.2节规则）
-  const sign = format.generateSign({ timestamp: Date.now() });
-
-  // 并行请求：用户信息 + 公告列表（提升加载效率）
-      const [userRes,noticeRes] = await Promise.all([
-        userStore.loadUserProfile({ sign, token }),
-        noticeStore.fetchAllAnnouncements({
-          sign: sign, // 直接传你生成的sign
-          pageNum: 1,
-          pageSize: 10
-        })
-      ]);
-  // 赋值用户信息到userStore（对齐你现有store逻辑）
-      if (userRes && userRes.res_code === '0000') {
-
-        userStore.setUserInfo(userRes.data); // 调用userStore的赋值方法，存入用户信息
-      }
+// 4. 核心函数：初始化页面数据
+const initPageData = async () => {
+  try {
+    // 校验登录态（无需改）
+    const token = storage.getToken();
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+    // 判断条件：userInfo存在 + token存在 + 真实姓名存在（视为完整用户信息）
+    if (userStore.userInfo && userStore.userInfo.token && userStore.userInfo.real_name) {
+      console.log('【首页】已有完整用户信息，跳过用户信息拉取，仅拉取公告');
+      // 只拉取公告数据，不执行用户信息拉取，避免被张三信息覆盖
+      const noticeRes = await noticeStore.fetchAllAnnouncements({
+        sign: format.generateSign({ timestamp: Date.now() }),
+        pageNum: 1,
+        pageSize: 10
+      });
+      // 公告数据正常赋值
       if (noticeRes && noticeRes.res_code === '0000') {
         noticeStore.setAnnouncements(noticeRes.data.records || noticeRes.data);
       }
-} catch (error) {
-  // 异常处理：打印错误+友好提示
-  console.error('首页数据请求失败：', error);
-  alert('数据加载失败，请刷新页面重试');
-} finally {
-  // 无论成功/失败，结束加载状态
-  isLoading.value = false;
-}
-};
-  //=============点击公告栏跳转页面==========
-  // 跳转公告页面方法
-  const goToAnnouncementPage = () => {
-    try {
-      // 判断是否为管理员（超级管理员/部门管理员）
-      const isAdmin = userStore.isSuperAdmin || userStore.isDeptAdmin;
-      // 关键：路径改成小写，和路由配置的path一致
-      const targetPath = isAdmin
-          ? '/admin/announcement'  // 对应路由里的/admin/announcement
-          : '/user/announcement';  // 对应路由里的/user/announcement
-
-      router.push(targetPath);
-    } catch (error) {
-      console.error('跳转公告页面失败：', error);
-      ElMessage.error('页面跳转失败，请重试');
+      isLoading.value = false; // 结束加载状态
+      return; // 退出函数，不执行后续原有逻辑
     }
-  };
-  //======================================
 
-  // 5. 页面挂载时初始化数据
-  onMounted(async () => {
+    // 生成接口签名（按接口文档2.2节规则）
+    const sign = format.generateSign({ timestamp: Date.now() });
+
+    // 并行请求：用户信息 + 公告列表（提升加载效率）
+    const [userRes,noticeRes] = await Promise.all([
+      userStore.loadUserProfile({ sign, token }),
+      noticeStore.fetchAllAnnouncements({
+        sign: sign, // 直接传你生成的sign
+        pageNum: 1,
+        pageSize: 10
+      })
+    ]);
+    // 赋值用户信息到userStore（对齐你现有store逻辑）
+    if (userRes && userRes.res_code === '0000') {
+
+      userStore.setUserInfo(userRes.data); // 调用userStore的赋值方法，存入用户信息
+    }
+    if (noticeRes && noticeRes.res_code === '0000') {
+      noticeStore.setAnnouncements(noticeRes.data.records || noticeRes.data);
+    }
+  } catch (error) {
+    // 异常处理：打印错误+友好提示
+    console.error('首页数据请求失败：', error);
+    alert('数据加载失败，请刷新页面重试');
+  } finally {
+    // 无论成功/失败，结束加载状态
+    isLoading.value = false;
+  }
+};
+//=============点击公告栏跳转页面==========
+// 跳转公告页面方法
+const goToAnnouncementPage = () => {
+  try {
+    // 判断是否为管理员（超级管理员/部门管理员）
+    const isAdmin = userStore.isSuperAdmin || userStore.isDeptAdmin;
+    // 关键：路径改成小写，和路由配置的path一致
+    const targetPath = isAdmin
+        ? '/admin/announcement'  // 对应路由里的/admin/announcement
+        : '/user/announcement';  // 对应路由里的/user/announcement
+
+    router.push(targetPath);
+  } catch (error) {
+    console.error('跳转公告页面失败：', error);
+    ElMessage.error('页面跳转失败，请重试');
+  }
+};
+//======================================
+
+// 5. 页面挂载时初始化数据
+onMounted(async () => {
   await initPageData(); // 统一调用初始化函数
 });
 </script>
@@ -208,7 +208,7 @@
   border-radius: 4px;
   color: #555;
   font-size: 16px;
-  width: 1000px;
+  width: 210%;
 }
 
 /* 空公告提示样式 */

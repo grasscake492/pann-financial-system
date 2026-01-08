@@ -55,7 +55,6 @@
         <table class="task-table">
           <thead>
           <tr>
-
             <th>任务名称</th>
             <th>参与人</th>
             <th>学号</th>
@@ -97,6 +96,7 @@
           </button>
         </div>
       </div>
+
       <!-- 稿费修改弹窗（新增） -->
       <div class="dialog-mask" v-if="editDialogVisible">
         <div class="dialog-content">
@@ -127,6 +127,7 @@
           </div>
         </div>
       </div>
+
       <!-- 任务管理区域（添加稿费记录） -->
       <div v-if="currentTab === 'manage'">
         <div class="manage-title">
@@ -352,7 +353,9 @@
     </template>
   </PageBackground2>
 </template>
+
 <script setup>
+// ============ 导入依赖 ============
 import PageBackground2 from '@/components/PageBackground2.vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { getAllFeedback, replyFeedback, getFeedbackDetail, updateFeedbackStatus } from "@/api/feedback.js";
@@ -363,12 +366,12 @@ import {addRoyaltyRecord, deleteRoyaltyRecord, getDepartmentRoyalty, updateRoyal
 import { getUserList } from '@/api/user.js';
 import {generateSign} from "@/utils/format.js";
 
-// ========== 新增：选择成员弹窗相关变量 ==========
+// ============ 选择成员弹窗相关变量 ============
 const showUserListModal = ref(false); // 用户列表弹窗显隐
 const userList = ref([]); // 从接口获取的用户列表
 const selectedMembers = ref([]); // 已选成员列表
 
-// ========== 稿费查询相关变量（原有，保留） ==========
+// ============ 稿费查询相关变量 ============
 const royaltyList = ref([]);
 const filteredRoyaltyList = ref([]);
 const totalRoyalty = ref(0);
@@ -388,7 +391,7 @@ const totalRoyaltyPages = computed(() => {
   return Math.ceil(totalRoyalty.value / royaltyQueryParams.size) || 1;
 });
 
-// ========== 稿费前端筛选方法（原有，保留） ==========
+// ============ 稿费前端筛选方法 ============
 const handleRoyaltyFilter = () => {
   let list = [...royaltyList.value];
   if (filterMonth.value) {
@@ -401,7 +404,7 @@ const handleRoyaltyFilter = () => {
   filteredRoyaltyList.value = list;
 };
 
-// ========== 稿费查询方法（原有，保留） ==========
+// ============ 稿费查询方法 ============
 const fetchDepartmentRoyalty = async () => {
   try {
     const res = await getDepartmentRoyalty(royaltyQueryParams);
@@ -421,14 +424,14 @@ const fetchDepartmentRoyalty = async () => {
   }
 };
 
-// ========== 稿费分页切换（原有，保留） ==========
+// ============ 稿费分页切换 ============
 const handleRoyaltyPageChange = (page) => {
   if (page < 1 || page > totalRoyaltyPages.value) return;
   royaltyQueryParams.page = page;
   fetchDepartmentRoyalty();
 };
 
-// ========== 稿费修改弹窗变量（原有，保留） ==========
+// ============ 稿费修改弹窗相关 ============
 const editDialogVisible = ref(false);
 const currentEditItem = ref({});
 const editForm = reactive({
@@ -439,7 +442,7 @@ const editForm = reactive({
   description: ''
 });
 
-// ========== 稿费修改方法（原有，保留） ==========
+// ============ 稿费修改方法 ============
 const openEditDialog = (item) => {
   currentEditItem.value = item;
   editForm.article_title = item.article_title;
@@ -464,7 +467,7 @@ const submitEdit = async () => {
   }
 };
 
-// ========== 稿费删除方法（原有，优化：增加确认提示） ==========
+// ============ 稿费删除方法 ============
 const handleDelete = async (recordId) => {
   try {
     // 新增：删除前确认
@@ -493,7 +496,7 @@ const handleDelete = async (recordId) => {
   }
 };
 
-// ========== 添加稿费记录相关变量（修改：删除手动输入的_str字段，新增规范字段） ==========
+// ============ 添加稿费记录相关变量 ============
 const addForm = reactive({
   // 移除：手动输入的字符串字段
   // user_id_str: '',
@@ -507,7 +510,7 @@ const addForm = reactive({
   department_id: '' // 部门ID（下拉框值）
 });
 
-// ========== 新增：选择成员弹窗方法 ==========
+// ============ 选择成员弹窗方法 ============
 // 打开用户列表弹窗并加载数据
 const openUserListModal = async () => {
   showUserListModal.value = true;
@@ -558,7 +561,7 @@ const deleteMember = (index) => {
   ElMessage.success('已删除该成员');
 };
 
-// ========== 添加稿费记录（修改：适配选择成员逻辑） ==========
+// ============ 添加稿费记录方法 ============
 const submitAddRoyalty = async () => {
   // 1. 表单验证（增强）
   if (selectedMembers.value.length === 0) {
@@ -620,33 +623,26 @@ const submitAddRoyalty = async () => {
   }
 };
 
-// ========== 生命周期补充（原有，保留） ==========
-onMounted(() => {
-  if (currentTab.value === 'query') {
-    fetchDepartmentRoyalty();
-  }
-});
-
-// ========== 基础变量定义（原有，保留） ==========
+// ============ 基础变量定义 ============
 const currentTab = ref('query');
 const feedbackList = ref([]);
 const totalFeedback = ref(0);
 
-// 反馈查询参数（原有，保留）
+// ============ 反馈查询参数 ============
 const feedbackQueryParams = reactive({
   page: 1,
   size: 100,
   status: ''
 });
 
-// 状态弹窗/回复弹窗变量（原有，保留）
+// ============ 反馈弹窗相关变量 ============
 const replyDialogVisible = ref(false);
 const currentFeedbackId = ref('');
 const replyForm = reactive({ reply_content: '' });
 const statusDialogVisible = ref(false);
 const statusForm = reactive({ status: 'pending' });
 
-// ========== 计算属性（前端筛选+分页）（原有，保留） ==========
+// ============ 反馈列表计算属性（前端筛选+分页） ============
 const filteredFeedbackList = computed(() => {
   let list = [...feedbackList.value];
   if (filterMonth.value) {
@@ -679,7 +675,7 @@ const totalItemPages = computed(() => {
   return Math.ceil(list.length / pageSize.value) || 1;
 });
 
-// ========== 方法定义（反馈相关，原有，保留） ==========
+// ============ 反馈相关方法 ============
 const fetchAllFeedback = async () => {
   try {
     const res = await getAllFeedback(feedbackQueryParams);
@@ -776,15 +772,18 @@ const viewFeedbackDetail = async (feedbackId) => {
   }
 };
 
-// ========== 生命周期（原有，保留） ==========
+// ============ 生命周期钩子 ============
 onMounted(() => {
   console.log('进入新闻部，组件挂载，开始初始化数据');
+  if (currentTab.value === 'query') {
+    fetchDepartmentRoyalty();
+  }
   if (currentTab.value === 'feedback') fetchAllFeedback();
 });
 </script>
 
 <style scoped>
-/* 原有样式保留 */
+/* ============ 基础样式 ============ */
 .tab-buttons {
   margin-bottom: 20px;
 }
@@ -872,7 +871,7 @@ onMounted(() => {
   align-self: flex-end;
 }
 
-/* 反馈区域新样式 */
+/* ============ 反馈区域样式 ============ */
 .feedback-filter {
   margin-bottom: 20px;
   display: flex;
@@ -1008,7 +1007,8 @@ onMounted(() => {
   border: 1px solid #ccc;
   resize: none;
 }
-/* 新增样式：选择成员按钮 */
+
+/* ============ 选择成员相关样式 ============ */
 .select-member-btn {
   padding: 8px 16px;
   background-color: #9b8eb4;
@@ -1159,7 +1159,7 @@ onMounted(() => {
   color: #999;
 }
 
-/* 原有样式保留 */
+/* ============ 任务管理区域样式 ============ */
 .manage-title {
   margin-bottom: 20px;
 }

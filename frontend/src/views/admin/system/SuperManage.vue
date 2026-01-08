@@ -206,9 +206,10 @@
         <div class="section-title">
           <div class="title-line"></div>
           <h3>目前成员</h3>
-          <!-- 新增添加成员按钮 -->
-<!--          <button class="add-btn" @click="editUser()">新增成员</button>-->
+
         </div>
+        <!-- 新增添加成员按钮 -->
+        <button class="add-btn" @click="editUser()">新增成员</button>
         <table class="content-table">
           <thead>
           <tr>
@@ -231,7 +232,7 @@
             <td>{{ item.real_name }}</td>
             <td>{{ item.student_number || '-' }}</td>
             <td>{{ item.email || '-' }}</td>
-            <td>{{ deptIdMap[item.department_id] || '未知部门' }}</td>
+            <td>{{ deptIdMap[item.department_id] || '无' }}</td>
             <td>
               <!-- 多层条件判断：先判断超级管理员 → 再判断部门管理员 → 最后普通用户 -->
               <span v-if="item.is_super_admin" class="role-tag super-admin">系统管理员</span>
@@ -252,35 +253,47 @@
           </tr>
           </tbody>
         </table>
-
-        <!-- 人员基础信息编辑弹窗（原有） -->
+        <!-- 人员基础信息编辑弹窗（新增注册字段） -->
         <div class="dialog-mask" v-if="userEditDialogVisible">
           <div class="dialog-content">
             <h4>{{ isAddUser ? '新增成员' : '编辑成员' }}</h4>
             <div class="form-row">
-              <label>成员名称:</label>
+              <label class="justify-label">成员姓名:</label>
               <input type="text" class="form-input" v-model="userEditForm.real_name" placeholder="请输入真实姓名">
             </div>
             <div class="form-row">
-              <label>学号:</label>
-              <input type="text" class="form-input" v-model="userEditForm.student_number" placeholder="请输入学号">
+              <label class="justify-label">学号:</label>
+              <input
+                  type="text"
+                  class="form-input"
+                  v-model="userEditForm.student_number"
+                  placeholder="请输入12位纯数字学号"
+                  maxlength="12"
+              >
             </div>
             <div class="form-row">
-              <label>邮箱:</label>
-              <input type="email" class="form-input" v-model="userEditForm.email" placeholder="请输入邮箱">
+              <label class="justify-label">邮箱:</label>
+              <input type="email" class="form-input" v-model="userEditForm.email" placeholder="请输入有效邮箱">
             </div>
-<!--            <div class="form-row">
-              <label>加入时间:</label>
-              <input type="date" class="form-input" v-model="userEditForm.created_at">
-            </div>-->
-<!--            <div class="form-row">
-              <label>所属部门:</label>
-              <select class="form-input" v-model="userEditForm.deptId">
-                <option value="1">新闻部</option>
-                <option value="2">编辑部</option>
-                <option value="3">运营部</option>
-              </select>
-            </div>-->
+            <!-- 新增：仅新增时显示密码相关字段 -->
+            <div v-if="isAddUser" class="form-row">
+              <label class="justify-label">密码:</label>
+              <input
+                  type="password"
+                  class="form-input"
+                  v-model="userEditForm.password"
+                  placeholder="请设置密码"
+              >
+            </div>
+            <div v-if="isAddUser" class="form-row">
+              <label class="justify-label">确认密码:</label>
+              <input
+                  type="password"
+                  class="form-input"
+                  v-model="userEditForm.confirmPassword"
+                  placeholder="请再次输入密码"
+              >
+            </div>
             <div class="dialog-btns">
               <button class="cancel-btn" @click="userEditDialogVisible = false">取消</button>
               <button class="confirm-btn" @click="submitUserEdit">确认</button>
@@ -696,6 +709,7 @@ import {addProxyRecord, cancelProxyRecord, getProxyList, updateProxyRecord} from
 import {getAllFeedback, getFeedbackDetail, replyFeedback, updateFeedbackStatus} from "@/api/feedback.js";
 import {FEEDBACK_STATUS_CLASS, FEEDBACK_STATUS_LABEL} from "@/utils/feedbackStatus.js"
 import { updateUserRole } from "@/api/user.js";
+import {userRegister} from "@/api/auth.js";
 // 控制顶部标签切换
 const currentTopTab = ref('query');
 // 部门ID与名称映射表（统一维护）
@@ -1273,10 +1287,12 @@ const isAddUser = ref(false);
 const userEditForm = reactive({
   userId: '',
   real_name: '',
-  student_number: '', // 新增学号字段
-  email: '', // 新增邮箱字段
+  student_number: '', // 学号（12位纯数字）
+  email: '', // 邮箱
+  password: '', // 密码
+  confirmPassword: '', //确认密码
   created_at: '',
-  deptId: '' // 默认新闻部
+  deptId: ''
 });
 
 // 角色权限编辑弹窗
@@ -1317,12 +1333,83 @@ const editUser = (item = {}) => {
 
 // 提交人员基础信息编辑
 const submitUserEdit = async () => {
+  // 1. 新增成员：注册接口校验规则
+  if (isAddUser.value) {
+    // 校验真实姓名（不少于两个字的纯中文）
+    const realName = userEditForm.real_name.trim();
+// 纯中文正则：匹配2个及以上中文字符（排除空格、数字、字母、符号）
+    const chineseReg = /^[\u4e00-\u9fa5]{2,}$/;
+
+    if (!realName) {
+      ElMessage.warning('请输入真实姓名');
+      return;
+    }
+    if (!chineseReg.test(realName)) {
+      ElMessage.warning('真实姓名需为不少于两个字的纯中文');
+      return;
+    }
+    // 校验学号（12位纯数字）
+    const studentNumberReg = /^\d{12}$/;
+    if (!userEditForm.student_number || !studentNumberReg.test(userEditForm.student_number)) {
+      ElMessage.warning('请输入12位纯数字的学号');
+      return;
+    }
+    // 校验邮箱格式
+    const emailReg = /^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!userEditForm.email || !emailReg.test(userEditForm.email)) {
+      ElMessage.warning('请输入有效的邮箱地址');
+      return;
+    }
+    // 校验密码
+    if (!userEditForm.password.trim()) {
+      ElMessage.warning('请设置密码');
+      return;
+    }
+    // 校验确认密码
+    if (userEditForm.password !== userEditForm.confirmPassword) {
+      ElMessage.warning('两次输入的密码不一致');
+      return;
+    }
+
+    try {
+      // 构造注册接口参数
+      const registerParams = {
+        sign: 'admin_sign_123456', // 签名（根据实际业务规则生成）
+        student_number: userEditForm.student_number,
+        real_name: userEditForm.real_name,
+        password: userEditForm.password,
+        email: userEditForm.email
+      };
+      const res = await userRegister(registerParams);
+      if (res.res_code === '0000') {
+        ElMessage.success('新增成员（注册）成功');
+        userEditDialogVisible.value = false;
+        await fetchUserList(); // 刷新人员列表
+        // 清空表单
+        Object.assign(userEditForm, {
+          userId: '',
+          real_name: '',
+          student_number: '',
+          email: '',
+          password: '',
+          confirmPassword: ''
+        });
+      } else {
+        ElMessage.error(`新增成员失败：${res.res_msg}`);
+      }
+    } catch (err) {
+      ElMessage.error('网络异常，新增成员失败');
+      console.error('注册接口调用失败：', err);
+    }
+    return;
+  }
+
+  // 2. 编辑成员：保留原有逻辑
   if (!userEditForm.real_name || !userEditForm.created_at || !userEditForm.deptId) {
     ElMessage.warning('请填写所有必填字段');
     return;
   }
   try {
-    // 此处根据实际新增/编辑用户接口调整参数
     const res = await updateUserProfile({
       user_id: userEditForm.userId,
       real_name: userEditForm.real_name,
@@ -1332,14 +1419,14 @@ const submitUserEdit = async () => {
       created_at: userEditForm.created_at
     });
     if (res.res_code === '0000') {
-      ElMessage.success(isAddUser.value ? '新增成员成功' : '编辑成员成功');
+      ElMessage.success('编辑成员成功');
       userEditDialogVisible.value = false;
       await fetchUserList();
     } else {
-      ElMessage.error(`${isAddUser.value ? '新增' : '编辑'}成员失败：${res.res_msg}`);
+      ElMessage.error(`编辑成员失败：${res.res_msg}`);
     }
   } catch (err) {
-    ElMessage.error(`网络异常，${isAddUser.value ? '新增' : '编辑'}成员失败`);
+    ElMessage.error('网络异常，编辑成员失败');
   }
 };
 
@@ -1353,7 +1440,7 @@ const openRoleEditDialog = (item) => {
   roleEditDialogVisible.value = true;
 };
 
-// 新增：提交角色权限修改
+// 提交角色权限修改
 const submitRoleEdit = async () => {
   // 校验必填项
   if (!roleEditForm.user_id || roleEditForm.department_id === '') {
@@ -1377,14 +1464,16 @@ const submitRoleEdit = async () => {
       // 同步更新用户列表中的角色和权限信息
       const updateIndex = userList.value.findIndex(u => u.user_id === roleEditForm.user_id);
       if (updateIndex > -1) {
-        userList.value[updateIndex] = {
+        // 关键：系统管理员强制清空部门ID，避免触发部门管理员判断
+        const syncData = {
           ...userList.value[updateIndex],
           is_super_admin: roleEditForm.is_super_admin,
-          department_id: roleEditForm.department_id,
-          role: roleEditForm.role
+          department_id: roleEditForm.is_super_admin ? '' : roleEditForm.department_id,
+          role: roleEditForm.is_super_admin ? '系统管理员' : roleEditForm.role
         };
+        userList.value[updateIndex] = syncData;
       }
-    } else {
+    }else {
       ElMessage.error(`角色修改失败：${res.res_msg}`);
     }
   } catch (err) {
@@ -1719,10 +1808,43 @@ loadUserList(); // 初始化加载成员列表
 /* 通用表单样式 */
 .form-row {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: center; /* 垂直居中 */
   margin-bottom: 15px;
+  width: 100%;
 }
+/* 核心：实现字符两端对齐的label样式 */
+.justify-label {
+  display: inline-block;
+  width: 70px; /* 固定宽度（根据最长文本调整，比如"确认密码："需要100px） */
+  text-align: justify; /* 字符两端对齐 */
+  text-justify: distribute-all-lines; /* IE兼容，让空格均匀分布 */
+  line-height: 1; /* 消除行高影响 */
+  margin-right: 10px; /* 与输入框的间距 */
+  font-size: 14px;
+}
+/* 关键：给label添加一个隐藏的伪元素，让text-align: justify生效 */
+.justify-label::after {
+  content: '';
+  display: inline-block;
+  width: 100%; /* 占满label宽度，触发两端对齐 */
+}
+/*!* label样式 - 核心：固定宽度+右对齐 *!
+.form-row label {
+  display: inline-block;
+  width: 80px; !* 固定宽度，可根据最长文本调整（比如"确认密码:"最长，80px足够） *!
+  text-align: right; !* 文本右对齐，实现"两端对齐"的视觉效果 *!
+  margin-right: 10px; !* label和input之间的间距 *!
+  font-size: 14px; !* 可选：统一字体大小 *!
+}*/
+/*!* 输入框样式 - 占满剩余宽度 *!
+.form-row .form-input {
+  flex: 1; !* 自动占满剩余宽度 *!
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box; !* 避免padding导致宽度溢出 *!
+}*/
 .form-select, .form-input {
   padding: 6px 8px;
   border: 1px solid #ccc;
@@ -1732,8 +1854,20 @@ loadUserList(); // 初始化加载成员列表
 .form-select {
   width: 120px;
 }
+/* 输入框样式 */
 .form-input {
-  width: 200px;
+  flex: 1; /* 占满剩余宽度 */
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+/* 可选：输入框聚焦样式 */
+.form-input:focus {
+  outline: none;
+  border-color: #9b8eb4;
+  box-shadow: 0 0 0 2px rgba(155, 142, 180, 0.2);
 }
 .small-input {
   width: 180px;
@@ -2039,12 +2173,24 @@ loadUserList(); // 初始化加载成员列表
 /* 新增：按钮样式 */
 .add-btn {
   padding: 6px 12px;
-  background-color: #409eff;
+  background-color: #9b8eb4;
   color: #fff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  margin-left: 10px;
+  /* 移除左外边距，添加右对齐相关样式 */
+ /* margin-left: 0;*/
+  margin-right: 60px;
+  margin-top: -40px;
+  /* 核心：设置按钮靠右 */
+  display: inline-block;
+  float: right;
+  /* 可选：hover效果，保持和其他按钮一致 */
+  transition: background-color 0.2s ease;
+}
+
+.add-btn:hover {
+  background-color: #8a7aa8;
 }
 .op-btn.primary {
   background-color: #9b8eb4;
@@ -2067,5 +2213,23 @@ loadUserList(); // 初始化加载成员列表
 .op-btn-group {
   display: flex; /* 弹性布局让按钮并排 */
   gap: 8px; /* 按钮之间的间距，可根据需求调整（如6px/10px） */
+}
+.query-btn{
+  padding: 6px 12px;
+  background-color: #9b8eb4;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  /* 移除左外边距，添加右对齐相关样式 */
+  /* margin-left: 0;*/
+  /*margin-right: 60px;
+  margin-top: -40px;*/
+  /* 核心：设置按钮靠右 */
+  display: inline-block;
+ /* float: right;*/
+  /* 可选：hover效果，保持和其他按钮一致 */
+  transition: background-color 0.2s ease;
+
 }
 </style>

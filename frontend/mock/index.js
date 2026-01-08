@@ -915,7 +915,7 @@ Mock.mock(/\/api\/v1\/admin\/announcements/, 'post', (options) => {
 });
 
 // ==================== 29. 管理员修改公告接口（2.5.29） ====================
-Mock.mock(/\/api\/v1\/admin\/announcements\/a\d+/, 'put', (options) => {
+Mock.mock(/\/api\/v1\/admin\/announcements\/\d+/, 'put', (options) => {
     // 🌟 修改：不再解析加密的请求体
     // const params = JSON.parse(options.body || '{}');
     const params = decryptData(options.body || '');
@@ -937,7 +937,7 @@ Mock.mock(/\/api\/v1\/admin\/announcements\/a\d+/, 'put', (options) => {
 });
 
 // ==================== 30. 管理员删除公告接口（2.5.30） ====================
-Mock.mock(/\/api\/v1\/admin\/announcements\/a\d+/, 'delete', () => {
+Mock.mock(/\/api\/v1\/admin\/announcements\/\d+/, 'delete', () => {
     if (Math.random() > 0.8) {
         return { res_code: '0003', res_msg: '权限不足！', data: null };
     }

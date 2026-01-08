@@ -89,7 +89,7 @@
           </thead>
           <tbody>
           <tr v-if="taskList.length === 0">
-            <td colspan="5" class="empty-tip">暂无任务记录</td>
+            <td colspan="4" class="empty-tip">暂无任务记录</td>
           </tr>
           <tr v-for="item in taskList" :key="item.record_id">
             <td>{{ item.created_at }}</td>
@@ -249,7 +249,7 @@
                   :key="record.record_id"
                   :value="record.record_id"
               >
-               {{ record.fee_record_id }} - {{ record.real_names[0] || '未知用户' }} - {{ record.fee_amount }}元 - {{ record.month }}月
+                {{ record.record_id }} - {{ record.real_names?.join(',') || '未知用户' }} - {{ formatMoney(record.fee_amount) }}元 - {{ record.created_at?.split('-')[1] || '未知' }}月
               </option>
             </select>
           </div>
@@ -310,10 +310,10 @@
             <td colspan="5" class="empty-tip">暂无代领记录</td>
           </tr>
           <tr v-for="item in proxyList" :key="item.proxy_id">
-            <td>{{ item.proxyUser }}</td>
-            <td>{{ item.beProxyUser }}</td>
-            <td>{{ item.deptName }}</td>
-            <td>{{ item.fee_amount }}</td>
+            <td>{{ item.proxy_user_name }}</td>
+            <td>{{ item.original_user_name }}</td>
+            <td>{{ item.department_name }}</td>
+            <td>{{ formatMoney(item.fee_amount) }}</td>
             <td>
               <button class="op-btn" @click="openEditProxyDialog(item)">修改</button>
               <button class="op-btn danger" @click="confirmDeleteProxy(item)">撤销</button>
@@ -394,11 +394,11 @@
         <table class="content-table">
           <thead>
           <tr>
-            <th>用户ID</th>
+<!--            <th>用户ID</th>-->
             <th>真实姓名</th>
             <th>学号</th>
             <th>邮箱</th>
-            <th>角色</th>
+<!--            <th>角色</th>-->
             <th>操作</th>
           </tr>
           </thead>
@@ -407,11 +407,11 @@
             <td colspan="6" class="empty-tip">暂无成员记录</td>
           </tr>
           <tr v-for="item in userList" :key="item.user_id">
-            <td>{{ item.user_id }}</td>
+<!--            <td>{{ item.user_id }}</td>-->
             <td>{{ item.real_name }}</td>
             <td>{{ item.student_number }}</td>
             <td>{{ item.email }}</td>
-            <td>{{ item.role }}</td>
+<!--            <td>{{ item.role }}</td>-->
             <td>
               <button class="op-btn" @click="editUser(item)">编辑</button>
               <button class="op-btn danger" @click="deleteUser(item.user_id)">移除</button>
@@ -423,25 +423,29 @@
         <div class="dialog-mask" v-if="userEditDialogVisible">
           <div class="dialog-content">
             <h4>{{ isAddUser ? '新增成员' : '编辑成员' }}</h4>
-            <div class="form-row">
-              <label>成员名称:</label>
-              <input type="text" class="form-input" v-model="userEditForm.real_name">
+            <!-- 只读展示用户ID（方便核对） -->
+            <div class="form-row" v-if="!isAddUser">
+              <label>用户ID:</label>
+              <input type="text" class="form-input" :value="userEditForm.userId" disabled>
             </div>
-            <div class="form-row">
-              <label>加入时间:</label>
-              <input type="date" class="form-input" v-model="userEditForm.created_at">
+            <!-- 只读展示学号（接口不支持修改） -->
+            <div class="form-row" v-if="!isAddUser">
+              <label>学号:</label>
+              <input type="text" class="form-input" :value="userEditForm.student_number" disabled>
             </div>
+            <!-- 可修改：真实姓名 -->
             <div class="form-row">
-              <label>部门:</label>
-              <select class="form-input" v-model="userEditForm.deptId">
-                <option value="news">新闻部</option>
-                <option value="edit">编辑部</option>
-                <option value="operation">运营部</option>
-              </select>
+              <label>真实姓名:</label>
+              <input type="text" class="form-input" v-model="userEditForm.real_name" placeholder="请输入真实姓名">
+            </div>
+            <!-- 可修改：邮箱 -->
+            <div class="form-row">
+              <label>邮箱:</label>
+              <input type="email" class="form-input" v-model="userEditForm.email" placeholder="请输入邮箱地址">
             </div>
             <div class="dialog-btns">
               <button class="cancel-btn" @click="userEditDialogVisible = false">取消</button>
-              <button class="confirm-btn" @click="submitUserEdit">确认</button>
+              <button class="confirm-btn" @click="submitUserEdit">确认更新</button>
             </div>
           </div>
         </div>
@@ -474,25 +478,25 @@
           </div>
 
           <div style="display: flex; align-items: center;">
-            <label>部门ID:</label>
+            <label>部门:</label>
             <!-- 部门选择：必填，绑定department_id（bigint类型） -->
             <select class="form-select" v-model="summaryForm.department_id">
               <option value="">请选择部门</option>
-              <option value="1">新闻部（ID:1）</option>
-              <option value="2">编辑部（ID:2）</option>
-              <option value="3">运营部（ID:3）</option>
+              <option value="1">新闻部</option>
+              <option value="2">编辑部</option>
+              <option value="3">运营部</option>
             </select>
           </div>
 
-          <div style="display: flex; align-items: center;">
+<!--          <div style="display: flex; align-items: center;">
             <label>导出格式:</label>
-            <!-- 导出格式：必填，绑定format（仅Excel/PDF，匹配接口要求） -->
+            &lt;!&ndash; 导出格式：必填，绑定format（仅Excel/PDF，匹配接口要求） &ndash;&gt;
             <select class="form-select" v-model="summaryForm.format">
               <option value="">请选择格式</option>
               <option value="Excel">Excel</option>
               <option value="PDF">PDF</option>
             </select>
-          </div>
+          </div>-->
 
           <button class="export-btn" @click="exportSummaryData">导出数据</button>
         </div>
@@ -506,7 +510,7 @@
               <th>姓名</th>
               <th>新闻部稿费</th>
               <th>编辑部稿费</th>
-              <th>大图稿费</th>
+<!--              <th>大图稿费</th>-->
               <th>总金额</th>
             </tr>
             </thead>
@@ -518,7 +522,7 @@
               <td>{{ item.real_name }}</td>
               <td>{{ item.newsAmount }}元</td>
               <td>{{ item.editAmount }}元</td>
-              <td>{{ item.bigImgAmount }}元</td>
+<!--              <td>{{ item.bigImgAmount }}元</td>-->
               <td>{{ item.totalAmount }}元</td>
             </tr>
             </tbody>
@@ -564,7 +568,7 @@
               <th>姓名</th>
               <th>新闻部稿费</th>
               <th>编辑部稿费</th>
-              <th>大图稿费</th>
+<!--              <th>大图稿费</th>-->
               <th>总金额</th>
             </tr>
             </thead>
@@ -576,7 +580,7 @@
               <td>{{ item.real_name }}</td>
               <td>{{ item.newsAmount }}元</td>
               <td>{{ item.editAmount }}元</td>
-              <td>{{ item.bigImgAmount }}元</td>
+<!--              <td>{{ item.bigImgAmount }}元</td>-->
               <td>{{ item.totalAmount }}元</td>
             </tr>
             </tbody>
@@ -601,29 +605,43 @@
           <div class="title-line"></div>
           <h3>代领调整后稿费</h3>
         </div>
+        <div class="query-form mb-20">
+          <el-form :inline="true" :model="accountForm" class="demo-form-inline">
+            <!-- 用ElConfigProvider包裹，配置中文语言 -->
+            <ElConfigProvider :locale="zhCn">
+              <el-form-item label="选择月份：">
+                <el-date-picker
+                    v-model="accountForm.month"
+                    type="month"
+                    placeholder="选择月份"
+                    format="YYYY年MM月"
+                value-format="YYYY-MM"
+                :disabled-date="disabledDate"
+                @change="fetchAccountData"
+                :picker-options="{
+                disabledDate: disabledDate,
+                onPick: ({ maxDate, minDate }) => {
+                // 选中年份时，强制限制最小年份为2026
+                const pickYear = minDate?.getFullYear();
+                if (pickYear && pickYear < 2026) {
+                this.accountForm.month = ''; // 清空无效选择
+                }
+                },
+                // 隐藏年份左翻按钮（2026之前不可翻）
+                prevYearIcon: accountForm.month?.split('-')[0] <= 2026 ? 'hidden' : '',
+                }"
+                />
+              </el-form-item>
+            </ElConfigProvider>
+          </el-form>
+        </div>
+<!--        <div class="form-row">
 
-        <div class="form-row">
-          <label>选择月份:</label>
-          <select class="form-select" v-model="accountForm.month" @change="fetchAllAccountData">
-            <option value="">请选择</option>
-            <option value="01">1月</option>
-            <option value="02">2月</option>
-            <option value="03">3月</option>
-            <option value="04">4月</option>
-            <option value="05">5月</option>
-            <option value="06">6月</option>
-            <option value="07">7月</option>
-            <option value="08">8月</option>
-            <option value="09">9月</option>
-            <option value="10">10月</option>
-            <option value="11">11月</option>
-            <option value="12">12月</option>
-          </select>
-          <!-- 新增导出按钮 -->
+          &lt;!&ndash; 新增导出按钮 &ndash;&gt;
           <button class="export-btn" @click="exportAccountData" :disabled="!accountForm.month">
             导出本月做账数据
           </button>
-        </div>
+        </div>-->
 
         <!-- 1. 代领人基础信息表 -->
         <table class="content-table">
@@ -633,7 +651,7 @@
             <th>被代领人</th>
             <th>代领部门</th>
             <th>代领金额</th>
-            <th>最终金额</th>
+
           </tr>
           </thead>
           <tbody>
@@ -645,7 +663,6 @@
             <td>{{ item.original_user_name }}</td>
             <td>{{ item.department_name }}</td>
             <td>{{ formatMoney(item.fee_amount) }}</td>
-            <td>{{ formatMoney(item.final_fee_amount) }}</td>
           </tr>
           </tbody>
         </table>
@@ -660,9 +677,9 @@
           <tr>
             <th>日期</th>
             <th>任务名称</th>
-            <th>拍摄人员</th>
-            <th>任务金额</th>
-            <th>总金额</th>
+            <th>人员姓名</th>
+            <th>金额</th>
+            <th>部门</th>
           </tr>
           </thead>
           <tbody>
@@ -670,20 +687,22 @@
             <td colspan="5" class="empty-tip">暂无新闻部代领后数据</td>
           </tr>
           <tr v-for="item in newsDeptList" :key="item.record_id">
-            <td>{{ formatDate(item.created_at) }}</td>
+            <td>{{ item.created_at }}</td>
             <td>{{ item.article_title }}</td>
-            <td>{{ item.real_names.join(', ') }}</td>
+            <td>{{ item.proxy_user_name }}</td>
             <td>{{ formatMoney(item.fee_amount) }}</td>
-            <td>{{ formatMoney(newsDeptTotal) }}</td>
+            <td>{{ item.department_name }}</td>
           </tr>
           </tbody>
           <tfoot v-if="newsDeptList.length > 0">
           <tr class="total-row">
-            <td colspan="4" align="right">新闻部总计：</td>
-            <td>{{ formatMoney(newsDeptTotal) }}</td>
+            <td colspan="3" align="right">新闻部总计：</td>
+            <td>{{ formatMoney( newsDept_Total) }}</td>
+            <td></td>
           </tr>
           </tfoot>
         </table>
+
 
         <!-- 3. 编辑部代领后明细表格 -->
         <div class="section-title mt-20">
@@ -693,31 +712,33 @@
         <table class="content-table">
           <thead>
           <tr>
-            <th>项目</th>
-            <th>供图人</th>
-            <th>金额详情</th>
-            <th>总金额</th>
+            <th>日期</th>
+            <th>任务名称</th>
+            <th>人员姓名</th>
+            <th>金额</th>
+            <th>部门</th>
           </tr>
           </thead>
           <tbody>
           <tr v-if="editDeptList.length === 0">
-            <td colspan="4" class="empty-tip">暂无编辑部代领后数据</td>
+            <td colspan="5" class="empty-tip">暂无编辑部代领后数据</td>
           </tr>
           <tr v-for="item in editDeptList" :key="item.record_id">
+            <td>{{ item.created_at }}</td>
             <td>{{ item.article_title }}</td>
-            <td>{{ item.real_names.join(', ') }}</td>
+            <td>{{ item.proxy_user_name }}</td>
             <td>{{ formatMoney(item.fee_amount) }}</td>
-            <td>{{ formatMoney(editDeptTotal) }}</td>
+            <td>{{ item.department_name }}</td>
           </tr>
           </tbody>
           <tfoot v-if="editDeptList.length > 0">
           <tr class="total-row">
             <td colspan="3" align="right">编辑部总计：</td>
-            <td>{{ formatMoney(editDeptTotal) }}</td>
+            <td>{{ formatMoney(editDept_Total) }}</td>
+            <td></td>
           </tr>
           </tfoot>
         </table>
-
         <!-- 4. 稿费代领后汇总表 -->
         <div class="section-title mt-20">
           <div class="title-line"></div>
@@ -726,32 +747,30 @@
         <table class="content-table">
           <thead>
           <tr>
-            <th>姓名</th>
-            <th>新闻部稿费</th>
-            <th>编辑部稿费</th>
-            <th>大图稿费</th>
-            <th>总金额</th>
+            <th>日期</th>
+            <th>任务名称</th>
+            <th>人员姓名</th>
+            <th>金额</th>
+            <th>部门</th>
           </tr>
           </thead>
           <tbody>
           <tr v-if="summaryList.length === 0">
             <td colspan="5" class="empty-tip">暂无稿费汇总数据</td>
           </tr>
-          <tr v-for="item in summaryList" :key="item.user_name">
-            <td>{{ item.user_name }}</td>
-            <td>{{ formatMoney(item.news_fee) }}</td>
-            <td>{{ formatMoney(item.edit_fee) }}</td>
-            <td>{{ formatMoney(item.big_img_fee) }}</td>
-            <td>{{ formatMoney(item.total_fee) }}</td>
+          <tr v-for="item in summaryList" :key="item.record_id">
+            <td>{{ item.created_at }}</td>
+            <td>{{ item.article_title }}</td>
+            <td>{{ item.proxy_user_name }}</td>
+            <td>{{ formatMoney(item.fee_amount) }}</td>
+            <td>{{ item.department_name }}</td>
           </tr>
           </tbody>
           <tfoot v-if="summaryList.length > 0">
           <tr class="total-row">
-            <td colspan="1" align="right">平台总计：</td>
-            <td>{{ formatMoney(totalNewsFee) }}</td>
-            <td>{{ formatMoney(totalEditFee) }}</td>
-            <td>{{ formatMoney(totalBigImgFee) }}</td>
+            <td colspan="3" align="right">平台总计：</td>
             <td>{{ formatMoney(totalAllFee) }}</td>
+            <td></td>
           </tr>
           </tfoot>
         </table>
@@ -798,7 +817,8 @@ import {ElMessage, ElMessageBox} from 'element-plus';
 // 引入接口方法（需在api目录下创建对应文件）
 // 引入格式化工具（按你的实际路径调整）
 import { formatDateTime, formatMoney, formatDepartment } from '@/utils/format';
-
+import { ElConfigProvider } from 'element-plus';
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs';
 import {getUserList, updateUserProfile} from "@/api/user.js";
 import {
   addRoyaltyRecord,
@@ -1172,34 +1192,60 @@ const loadFeeRecordList = async () => {
     ElMessage.error('网络异常，加载稿费记录失败');
   }
 };
-// 获取代领列表
-const fetchProxyList = async () => {
+
+/// 获取代领列表（支持传入筛选参数，如月份、部门ID）
+const fetchProxyList = async (params = {}) => {
   try {
-    const res = await getProxyList();
+    // 1. 构造请求参数：默认获取全量数据（page=1，size=999），覆盖大部分场景
+    const requestParams = {
+      page: 1,
+      size: 999, // 一次性获取所有代领记录，避免分页
+      ...params // 合并外部传入的筛选参数（如proxy_month、department_id）
+    };
+
+    // 2. 调用接口（严格匹配文档的getProxyList方法）
+    const res = await getProxyList(requestParams);
+
     if (res.res_code === '0000') {
       const list = res.data?.list || [];
 
-      // 转换ID为名称 - 统一使用 user 作为参数名
+      // 3. 数据映射：字段名严格匹配模板中的使用名称
       proxyList.value = list.map(item => {
+        // 关键修复1：统一转为字符串匹配（兼容数字/字符串ID，避免BigInt问题）
+        const proxyUserIdStr = String(item.proxy_user_id);
+        const originalUserIdStr = String(item.original_user_id);
+
+        // 关键修复2：兼容userList中ID的多种字段名（userId/id/user_id）
         // 匹配代领人姓名
-        const proxyUser = userList.value.find(user => user.user_id == item.proxy_user_id)?.real_name || '未知用户';
+        const proxy_user_name = userList.value.find(user =>
+            String(user.user_id || user.userId || user.id) === proxyUserIdStr
+        )?.real_name || '未知用户';
+
         // 匹配被代领人姓名
-        const beProxyUser = userList.value.find(user => user.user_id == item.original_user_id)?.real_name || '未知用户';
-        // 匹配部门名称
-        const deptName = deptIdMap[item.department_id] || '未知部门';
+        const original_user_name = userList.value.find(user =>
+            String(user.user_id || user.userId || user.id) === originalUserIdStr
+        )?.real_name || '未知用户';
+
+        // 匹配部门名称（接口返回department_id，无则显示未知部门）
+        const department_name = deptIdMap[item.department_id] || '未知部门';
 
         return {
-          ...item,
-          proxyUser,
-          beProxyUser,
-          deptName
+          ...item, // 保留原始字段
+          proxy_user_name, // 模板中用的字段名
+          original_user_name, // 模板中用的字段名
+          department_name, // 模板中用的字段名
+          // 兼容金额格式化（确保是数字类型）
+          fee_amount: Number(item.fee_amount) || 0
         };
       });
     } else {
       ElMessage.error(`获取代领列表失败：${res.res_msg}`);
+      proxyList.value = []; // 失败时清空列表，避免渲染异常
     }
   } catch (err) {
     ElMessage.error('网络异常，获取代领列表失败');
+    proxyList.value = [];
+    console.error('代领列表请求失败：', err);
   }
 };
 // 提交代领设置
@@ -1230,12 +1276,13 @@ const submitProxySetting = async () => {
     return;
   }
   try {
+    const currentYear = new Date().getFullYear();
     const submitParams = {
       fee_record_id: proxyForm.feeRecordId,
-      proxy_month: proxyForm.month,
+      proxy_month: `${currentYear}-${proxyForm.month.padStart(2, '0')}`,
       proxy_user_id: proxyForm.proxyUserId,
       original_user_id: proxyForm.beProxyUserId,
-      department_id: deptIdMap[proxyForm.deptId], // 转数字ID传给接口
+      department_id: deptIdMap[proxyForm.deptId],
       fee_amount: proxyForm.amount
     };
     const res = await addProxyRecord(submitParams);
@@ -1329,9 +1376,9 @@ const submitProxyEdit = async () => {
 const confirmDeleteProxy = (proxyItem) => {
   ElMessageBox.confirm(
       `确认要撤销这条代领记录吗？<br>
-    代领人：${proxyItem.proxyUser}<br>
-    被代领人：${proxyItem.beProxyUser}<br>
-    金额：${proxyItem.fee_amount}元`,
+  代领人：${proxyItem.proxy_user_name}<br>
+  被代领人：${proxyItem.original_user_name}<br>
+  金额：${formatMoney(proxyItem.fee_amount)}元`,
       '确认撤销',
       {
         confirmButtonText: '确认撤销',
@@ -1372,11 +1419,13 @@ const initData = async () => {
 
   await loadFeeRecordList();
   await fetchProxyList();
+  await fetchAccountData();
 };
 // 页面挂载时加载稿费记录
 onMounted(() => {
   console.log('进入运营部，组件挂载，开始初始化数据');
   initData();
+
 });
 // ====================== 3. 人员管理相关 ======================
 
@@ -1384,10 +1433,10 @@ onMounted(() => {
 const userEditDialogVisible = ref(false);
 const isAddUser = ref(false);
 const userEditForm = reactive({
-  userId: '',
-  real_name: '',
-  created_at: '',
-  deptId: 'operation'
+  userId: '', // 用户ID（必填，用于接口URL）
+  student_number: '', // 学号（只读）
+  real_name: '', // 真实姓名（可修改）
+  email: '' // 邮箱（可修改）
 });
 // 获取人员列表
 const fetchUserList = async () => {
@@ -1404,30 +1453,56 @@ const fetchUserList = async () => {
 };
 // 打开人员编辑弹窗
 const editUser = (item = {}) => {
-  isAddUser.value = !item.userId;
-  userEditForm.userId = item.userId || '';
+  isAddUser.value = !item.user_id; // 修正：item的字段是user_id而非userId
+  // 回显只读字段
+  userEditForm.userId = item.user_id || '';
+  userEditForm.student_number = item.student_number || '';
+  // 回显可修改字段
   userEditForm.real_name = item.real_name || '';
-  userEditForm.created_at = item.created_at || '';
-  userEditForm.deptId = item.deptId || 'operation';
+  userEditForm.email = item.email || '';
   userEditDialogVisible.value = true;
 };
 // 提交人员编辑
 const submitUserEdit = async () => {
-  if (!userEditForm.real_name || !userEditForm.created_at || !userEditForm.deptId) {
-    ElMessage.warning('请填写所有必填字段');
+  // 1. 新增用户：接口仅支持更新，提示不支持新增
+  if (isAddUser.value) {
+    ElMessage.warning('当前接口仅支持更新用户信息，暂不支持新增成员');
+    userEditDialogVisible.value = false;
     return;
   }
+
+  // 2. 校验必填项
+  if (!userEditForm.userId) {
+    ElMessage.warning('用户ID不能为空');
+    return;
+  }
+  // 3. 构造接口请求参数（仅传有值的字段 + 签名）
+  const submitParams = {
+    sign: 'your_admin_sign_value', // 替换为真实签名（同fetchAllUsers里的签名）
+    // 选填字段：有值才传
+    ...(userEditForm.real_name && { real_name: userEditForm.real_name }),
+    ...(userEditForm.email && { email: userEditForm.email })
+  };
+
+  // 4. 无更新内容时提示
+  if (Object.keys(submitParams).length === 1) { // 只有sign，无实际更新字段
+    ElMessage.warning('请填写要更新的姓名或邮箱');
+    return;
+  }
+
   try {
-    const res = await updateUserProfile(userEditForm);
+    // 5. 调用更新接口（传入userId + 参数）
+    const res = await updateUserProfile(userEditForm.userId, submitParams);
     if (res.res_code === '0000') {
-      ElMessage.success(isAddUser.value ? '新增成员成功' : '编辑成员成功');
+      ElMessage.success('用户信息更新成功');
       userEditDialogVisible.value = false;
-      await fetchUserList();
+      await fetchUserList(); // 刷新人员列表
     } else {
-      ElMessage.error(`${isAddUser.value ? '新增' : '编辑'}成员失败：${res.res_msg}`);
+      ElMessage.error(`更新失败：${res.res_msg}`);
     }
   } catch (err) {
-    ElMessage.error(`网络异常，${isAddUser.value ? '新增' : '编辑'}成员失败`);
+    console.error('更新用户信息异常:', err);
+    ElMessage.error('网络异常，更新用户信息失败');
   }
 };
 // 删除人员
@@ -1463,8 +1538,8 @@ const summaryForm = reactive({
 // 生成年份选项（近5年+未来1年，灵活调整）
 const generateYearOptions = () => {
   const currentYear = new Date().getFullYear();
-  const startYear = currentYear - 5;
-  const endYear = currentYear + 1;
+  const startYear ='2026';
+  const endYear = '2035';
   const years = [];
   for (let y = startYear; y <= endYear; y++) {
     years.push(y);
@@ -1643,53 +1718,155 @@ const exportSummaryData = async () => {
   }
 };
 // ====================== 5. 做账稿费相关 ======================
-// 做账表单
+
+import { ElLoading } from 'element-plus'; // 补全 ElMessage 导入
+
+
+const newsDeptList = ref([]);
+const editDeptList = ref([]);
+const summaryList = ref([]);
+const newsDept_Total = ref(0);
+const editDept_Total = ref(0);
+const totalAllFee = ref(0);
+
+// 做账表单 - month 改为直接存储 YYYY-MM 格式
 const accountForm = reactive({
   month: ''
 });
-// 做账列表
 const accountList = ref([]);
+
+// 新增：限制日期选择范围（2026-01 至 2035-12）
+const disabledDate = (date) => {
+  // 最小日期：2026年1月
+  const minDate = new Date(2026, 0, 1); // 月份从0开始，0=1月
+  // 最大日期：2035年12月
+  const maxDate = new Date(2035, 11, 31);
+
+  // 禁用小于2026-01 或 大于2035-12的日期
+  return date < minDate || date > maxDate;
+};
 
 // 获取做账数据
 const fetchAccountData = async () => {
+  // 初始化变量
+  newsDeptList.value = [];
+  editDeptList.value = [];
+  summaryList.value = [];
+  newsDept_Total.value = 0;
+  editDept_Total.value = 0;
+  totalAllFee.value = 0;
+
   if (!accountForm.month) {
     ElMessage.warning('请选择月份');
     return;
   }
-  // 构造YYYY-MM格式的月份参数
-  const currentYear = new Date().getFullYear();
-  const statisticalMonth = `${currentYear}-${accountForm.month}`;
+
+  // 直接使用选择的月份（格式已为 YYYY-MM）
+  const statisticalMonth = accountForm.month;
+
+  // 创建加载实例
+  const loadingInstance = ElLoading.service({
+    lock: true,
+    text: '加载中...',
+    background: 'rgba(0, 0, 0, 0.7)'
+  });
 
   try {
-    ElMessage.loading({ message: '加载中...', duration: 0 });
-    // 传入正确的参数名（proxy_month），匹配接口要求
-    const res = await getProxyList({ proxy_month: statisticalMonth });
-    ElMessage.closeAll();
+    // 1. 获取代领记录（直接传 YYYY-MM 格式的 proxy_month）
+    const proxyRes = await getProxyList({ proxy_month: statisticalMonth });
 
-    if (res.res_code === '0000') {
-      const rawList = res.data.list || [];
-      // 格式化数据：ID转姓名、部门ID转名称、金额格式化
-      accountList.value = rawList.map(item => ({
-        ...item,
-        // 代领人姓名（从userList匹配）
-        proxy_user_name: userList.value.find(u => u.user_id === item.proxy_user_id)?.real_name || '未知用户',
-        // 被代领人姓名
-        original_user_name: userList.value.find(u => u.user_id === item.original_user_id)?.real_name || '未知用户',
-        // 部门名称
-        department_name: deptIdMap[item.department_id] || '未知部门',
-        // 最终金额（若无则用代领金额）
-        final_fee_amount: item.final_fee_amount || item.proxy_fee_amount
-      }));
-    } else {
-      ElMessage.error(`获取做账数据失败：${res.res_msg}`);
+    // ===== 关键调整：先声明 proxyList，再使用 =====
+    const proxyList = proxyRes.data.list || [];
+
+
+    if (proxyRes.res_code !== '0000') {
+      ElMessage.error(`获取代领记录失败：${proxyRes.res_msg}`);
+      loadingInstance.close();
+      return;
     }
+
+    if (proxyList.length === 0) {
+      ElMessage.info('暂无该月份代领记录');
+      loadingInstance.close();
+      return;
+    }
+
+    // 2. 获取全部稿费记录
+    // 构造当月的开始/结束日期（如 2026-01-01 至 2026-01-31）
+    const [year, month] = statisticalMonth.split('-');
+    const startDate = `${statisticalMonth}-01`;
+    // 获取当月最后一天
+    const endDate = new Date(Number(year), Number(month), 0).toISOString().split('T')[0];
+
+    const royaltyRes = await getAllRoyalty({
+      startDate: startDate,
+      endDate: endDate,
+      size: 9999 // 拉取当月全部数据
+    });
+
+    if (royaltyRes.res_code !== '0000') {
+      ElMessage.error(`获取稿费记录失败：${royaltyRes.res_msg}`);
+      loadingInstance.close();
+      return;
+    }
+    const royaltyList = royaltyRes.data.list || [];
+
+    // 3. 关联代领记录和稿费记录
+    const finalList = proxyList.map(proxyItem => {
+      const royaltyItem = royaltyList.find(item => item.record_id === proxyItem.fee_record_id);
+
+      if (!royaltyItem) return null;
+
+      // 获取代领人姓名（兼容 userList 未定义）
+      const proxyUserName = userList?.value?.find(u => u.user_id === proxyItem.proxy_user_id)?.real_name || '未知用户';
+      const deptName = deptIdMap[royaltyItem.department_id] || '未知部门';
+
+      return {
+        ...royaltyItem,
+        proxy_user_id: proxyItem.proxy_user_id,
+        proxy_user_name: proxyUserName,
+        original_user_name: userList?.value?.find(u => u.user_id === proxyItem.original_user_id)?.real_name || '未知用户',
+        department_name: deptName,
+        fee_amount: proxyItem.fee_amount || royaltyItem.fee_amount
+      };
+    }).filter(Boolean);
+
+    // 4. 分类统计
+    finalList.forEach(item => {
+      summaryList.value.push(item);
+      if (item.department_name === '新闻部') {
+        newsDeptList.value.push(item);
+        newsDept_Total.value += Number(item.fee_amount);
+      } else if (item.department_name === '编辑部') {
+        editDeptList.value.push(item);
+        editDept_Total.value += Number(item.fee_amount);
+      }
+      totalAllFee.value += Number(item.fee_amount);
+    });
+
+    accountList.value = finalList;
+    loadingInstance.close();
   } catch (err) {
-    ElMessage.closeAll();
+    loadingInstance.close();
     ElMessage.error('网络异常，获取做账数据失败');
     console.error('做账数据请求失败：', err);
   }
 };
 
+// 页面挂载时初始化
+onMounted(() => {
+  // 可选：默认选中当前月份（若在2026-01至2035-12范围内）
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
+  const currentMonthStr = `${currentYear}-${currentMonth}`;
+
+  // 若当前月份在可选范围内，默认选中
+  if (currentYear >= 2026 && currentYear <= 2035) {
+    accountForm.month = currentMonthStr;
+    fetchAccountData();
+  }
+});
 // 导出做账数据
 const exportAccountData = async () => {
   if (!accountForm.month) {
@@ -1697,7 +1874,7 @@ const exportAccountData = async () => {
     return;
   }
   const currentYear = new Date().getFullYear();
-  const statisticalMonth = `${currentYear}-${accountForm.month}`;
+  const statisticalMonth = `${currentYear}-${accountForm.month.padStart(2, '0')}`;
 
   try {
     ElMessage.loading({ message: '导出中...', duration: 0 });
@@ -1764,6 +1941,7 @@ loadUserList(); // 初始化加载成员列表
   border: 1px solid #ccc;
   border-radius: 2px;
   font-size: 14px;
+  width: 150px;
 }
 .form-select {
   width: 120px;
@@ -1979,7 +2157,7 @@ loadUserList(); // 初始化加载成员列表
 /* 代领设置区域的表单控件样式（作用域限定） */
 .manage-form .form-select,
 .manage-form .form-input {
-  flex: 1; /* 占满剩余空间 */
+  /*flex: 1; !* 占满剩余空间 *!*/
   min-width: 200px; /* 最小宽度，防止太窄 */
   padding: 8px;
   border: 1px solid #ddd;
@@ -2056,5 +2234,13 @@ loadUserList(); // 初始化加载成员列表
 .status-tag.replied {
   background-color: #e6f7ff;
   color: #40a9ff;
+}
+.query-btn {
+  padding: 6px 15px;
+  background-color: #9b8eb4;
+  color: #fff;
+  border:  1px solid;
+  border-radius: 5px;
+  cursor: pointer;
 }
 </style>

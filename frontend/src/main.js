@@ -11,8 +11,7 @@ import App from './App.vue'
 import './assets/css/global.css'
 import ElementPlus from 'element-plus' // 引入Element Plus核心
 import 'element-plus/dist/index.css' // 引入样式
-// 1. 注释掉静态全局导入的Mock
- import '../mock/index.js'
+
 // 仅开发环境加载MSW
 
 // 创建Vue应用实例
@@ -27,6 +26,10 @@ app.use(ElementPlus) // 注册Element Plus组件库
 // 将Vue实例挂载到public/index.html中的#app容器
 app.mount('#app')
 
+//frontend/main.js
+//要关掉模拟数据注释！下方！所有内容
+// 1. 注释掉静态全局导入的Mock
+import '../mock/index.js'
 // 2. 注释掉开发环境动态导入的Mock
 if (process.env.NODE_ENV === 'development') {
      import('../mock/index.js').then(() => {

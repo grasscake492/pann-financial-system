@@ -59,8 +59,9 @@
           <thead>
           <tr>
             <th>日期</th>
-            <th>日历图张数</th>
-            <th>参与人以及金额详情</th>
+            <th>任务名称</th>
+            <th>参与人</th>
+            <th>金额详情</th>
             <th>操作</th>
           </tr>
           </thead>
@@ -70,11 +71,9 @@
           </tr>
           <tr v-for="item in taskList" :key="item.record_id">
             <td>{{ item.created_at }}</td>
-            <td>{{ item.image_count || 0 }}</td>
-            <td>
-              {{ item.real_names?.join(', ') || '-' }}
-              ({{ item.fee_amount || 0 }}元)
-            </td>
+            <td>{{ item.article_title || 0 }}</td>
+            <td>{{ item.real_names?.join(', ') || '-' }}</td>
+            <td> {{ item.fee_amount || 0 }}元</td>
             <td>
               <button class="op-btn" @click="openTaskEditDialog(item)">修改</button>
               <button class="op-btn danger" @click="confirmDeleteTask(item.record_id)">删除</button>
@@ -199,125 +198,109 @@
         </div>
       </div>
 
-      <!-- 任务管理区域 -->
+      <!-- 新的任务管理区域（添加稿费记录） -->
       <div v-if="currentTab === 'manage'">
         <div class="manage-title">
           <div class="title-line"></div>
-          <h3>新建任务</h3>
+          <h3>添加稿费记录</h3>
         </div>
         <div class="manage-form">
+          <!-- 选择成员按钮 -->
           <div class="form-item">
-            <label>任务名称:</label>
-            <input
-                type="text"
-                placeholder="输入"
-                class="form-input"
-                v-model="taskEditForm.article_title"
-            >
+            <button class="select-member-btn" @click="openUserListModal">选择成员</button>
           </div>
-          <div class="form-item">
-            <label>任务日期:</label>
-            <input
-                type="date"
-                placeholder="弹出日期选择框"
-                class="form-input"
-                v-model="taskEditForm.created_at"
-            >
-          </div>
-          <!-- 新增：部门选择单选框 -->
-          <div class="form-item">
-            <label>所属部门:</label>
-            <div class="radio-group">
-              <label class="radio-item">
-                <input
-                    type="radio"
-                    name="department"
-                    v-model="taskEditForm.departmentId"
-                    value="1"
-                >
-                新闻部
-              </label>
-              <label class="radio-item">
-                <input
-                    type="radio"
-                    name="department"
-                    v-model="taskEditForm.departmentId"
-                    value="2"
-                >
-                编辑部
-              </label>
-              <label class="radio-item">
-                <input
-                    type="radio"
-                    name="department"
-                    v-model="taskEditForm.departmentId"
-                    value="3"
-                >
-                运营部
-              </label>
+
+          <!-- 已选成员列表（动态渲染） -->
+          <div class="selected-members" v-if="selectedMembers.length > 0">
+            <h4>已选成员：</h4>
+            <div class="member-item" v-for="(member, index) in selectedMembers" :key="member.user_id">
+              <span>成员{{ index + 1 }}：姓名={{ member.real_name }}，学号={{ member.student_number }}，ID={{ member.user_id }}</span>
+              <button class="del-member-btn" @click="deleteMember(index)">删除</button>
             </div>
           </div>
 
-          <!-- 原有表单项：稿件类型、执行人选择等 -->
+          <!-- 稿件标题（手动输入） -->
+          <div class="form-item">
+            <label>稿件标题:</label>
+            <input type="text" placeholder="输入稿件标题" class="form-input" v-model="addForm.article_title">
+          </div>
+
+          <!-- 稿件类型（单选框，限定选项） -->
           <div class="form-item">
             <label>稿件类型:</label>
-            <select class="form-select" v-model="taskEditForm.articleType">
-              <option value="">请选择稿件类型</option>
-              <option value="日历图">日历图</option>
-              <option value="文案">文案</option>
-              <option value="设计">设计</option>
-            </select>
+            <div class="radio-group">
+              <label class="radio-item">
+                <input type="radio" name="article_type" v-model="addForm.article_type" value="校对"> 校对
+              </label>
+              <label class="radio-item">
+                <input type="radio" name="article_type" v-model="addForm.article_type" value="编辑"> 编辑
+              </label>
+            </div>
           </div>
-          <!-- 多执行人选择区域 -->
+
+          <!-- 稿费金额（数字输入，限制小数） -->
           <div class="form-item">
-            <label>执行人</label>
-            <select class="form-select" v-model="taskEditForm.selectUserId" @change="onUserSelect">
-              <option value="">请选择执行人</option>
-              <option v-for="user in userList" :key="user.user_id" :value="user.user_id">
-                {{ user.real_name }}
-              </option>
+            <label>稿费金额:</label>
+            <input type="number" step="1" min="0" placeholder="0.00" class="form-input" v-model="addForm.fee_amount">
+          </div>
+
+          <!-- 统计月份（月份选择器，自动匹配YYYY-MM格式） -->
+          <div class="form-item">
+            <label>统计月份:</label>
+            <input
+                type="month"
+                class="form-input"
+                v-model="addForm.statistical_month"
+                min="2026-01"
+                max="2035-12"
+            >
+          </div>
+
+          <!-- 部门选择（下拉框，映射部门ID） -->
+          <div class="form-item">
+            <label>所属部门:</label>
+            <select class="form-select" v-model="addForm.department_id">
+              <option value="">请选择部门</option>
+              <option value="1">新闻部</option>
+              <option value="2">编辑部</option>
+              <option value="3">运营部</option>
             </select>
-            <!-- 自动显示选中执行人的学号，无需手动输入 -->
-            <label>学号:</label>
-            <input
-                type="text"
-                class="form-input small-input"
-                v-model="taskEditForm.inputStudentNumber"
-                readonly
-            placeholder="选择执行人后自动填充"
-            >
-            <label>金额:</label>
-            <input
-                type="number"
-                placeholder="输入"
-                class="form-input small-input"
-                v-model="taskEditForm.inputAmount"
-                min="0"
-                step="0.01"
-            >
-            <button class="add-btn" @click="addExecutor">添加执行人</button>
           </div>
 
-          <!-- 已选执行人列表（优化多执行人展示） -->
-          <div class="executor-list" v-if="taskEditForm.executors.length > 0">
-            <div class="executor-header">
-              <label>已选执行人 (共{{ taskEditForm.executors.length }}人)</label>
-              <button class="clear-btn" @click="clearAllExecutors">清空</button>
+          <button class="submit-btn" @click="submitAddRoyalty" :disabled="selectedMembers.length === 0">提交添加</button>
+        </div>
+
+        <!-- 用户列表弹窗 -->
+        <div class="modal-mask" v-if="showUserListModal" @click="closeUserListModal">
+          <div class="modal-content" @click.stop>
+            <div class="modal-header">
+              <h3>选择成员</h3>
+              <button class="close-modal" @click="closeUserListModal">×</button>
             </div>
-            <div class="executor-tags">
-      <span v-for="(item, index) in taskEditForm.executors" :key="index" class="executor-tag">
-        {{ item.real_name }}
-        <span class="amount-text">({{ item.amount.toFixed(2) }}元)</span>
-        <button class="tag-close" @click="removeExecutor(index)">×</button>
-      </span>
+            <div class="modal-body">
+              <!-- 用户列表（从接口获取后渲染） -->
+              <div class="user-list" v-if="userList.length > 0">
+                <div class="user-item" v-for="user in userList" :key="user.user_id">
+                  <div class="user-info">
+                    <span>姓名：{{ user.real_name }}</span>
+                    <span>学号：{{ user.student_number }}</span>
+                    <span>ID：{{ user.user_id }}</span>
+                  </div>
+                  <button
+                      class="select-user-btn"
+                      @click="selectUser(user)"
+                      :disabled="selectedMembers.some(m => m.user_id === user.user_id)"
+                  >
+                    {{ selectedMembers.some(m => m.user_id === user.user_id) ? '已选择' : '选择' }}
+                  </button>
+                </div>
+              </div>
+              <div class="empty-tip" v-else>暂无用户数据</div>
             </div>
-            <!-- 总金额展示 -->
-            <div class="total-amount">
-              执行人总金额: <span class="total-value">{{ totalAmount.toFixed(2) }}元</span>
+            <div class="modal-footer">
+              <button class="user-modal-confirm-btn" @click="closeUserListModal">确认选择</button>
             </div>
           </div>
-
-          <button class="submit-btn" @click="submitTask">提交任务</button>
         </div>
       </div>
     </template>
@@ -357,7 +340,7 @@ const handleTabChange = async (tab) => {
       await fetchAllFeedback();
       break;
     case 'manage':
-      await loadUserList();
+      await loadUserList(); // 切换到任务管理时加载用户列表
       break;
   }
 };
@@ -389,18 +372,31 @@ const fetchTaskList = async () => {
   }
 };
 
-// 打开任务编辑弹窗
+// 打开任务编辑弹窗（兼容原有逻辑，跳转到任务管理标签）
 const openTaskEditDialog = (item = {}) => {
-  taskEditForm.record_id = item.record_id || '';
-  taskEditForm.article_title = item.article_title || '';
-  taskEditForm.created_at = item.created_at || '';
-  taskEditForm.executors = item.real_names && item.fee_amount
-      ? item.real_names.map((name, index) => ({
-        real_name: name,
-        amount: (item.fee_amount / item.real_names.length) || 0
-      }))
-      : [];
   currentTab.value = 'manage';
+  // 可选：如果需要编辑功能，可在这里给addForm赋值原有数据
+  addForm.article_title = item.article_title || '';
+  addForm.article_type = item.article_type || '';
+  addForm.fee_amount = item.fee_amount || '';
+  // 强制校验：回显月份不能小于2026-01
+  const targetMonth = item.statistical_month || '2026-01';
+  addForm.statistical_month = targetMonth < '2026-01' ? '2026-01' : targetMonth;
+  addForm.department_id = item.department_id || '';
+  // 可选：回显已选成员
+  if (item.user_id && item.real_name && item.student_number) {
+    selectedMembers.value = Array.isArray(item.user_id)
+        ? item.user_id.map((id, index) => ({
+          user_id: id,
+          real_name: item.real_name[index],
+          student_number: item.student_number[index]
+        }))
+        : [{
+          user_id: item.user_id,
+          real_name: item.real_name,
+          student_number: item.student_number
+        }];
+  }
 };
 
 // 确认删除任务
@@ -578,29 +574,24 @@ const submitStatusUpdate = async () => {
     ElMessage.error('网络异常，状态更新失败');
   }
 };
-//=================== 任务管理模块 ===================
 
-const userList = ref([]);
-const taskEditForm = reactive({
-  record_id: '',
+//=================== 新任务管理模块（添加稿费记录） ===================
+// ============ 选择成员弹窗相关变量 ============
+const showUserListModal = ref(false); // 用户列表弹窗显隐
+const userList = ref([]); // 从接口获取的用户列表
+const selectedMembers = ref([]); // 已选成员列表
+
+// ============ 添加稿费记录相关变量 ============
+const addForm = reactive({
   article_title: '',
-  created_at: '',
-  selectUserId: '',
-  inputAmount: '',
-  inputStudentNumber: '', // 用于存储自动填充的学号
-  executors: [] // 存储多个执行人，格式：[{user_id, real_name, amount}, ...]
+  article_type: '', // 校对/编辑
+  fee_amount: '', // 改为空字符串，避免初始0值干扰
+  statistical_month: '2026-01',// YYYY-MM（固定默认最小月份）
+  department_id: '' // 部门ID（下拉框值）
 });
 
-// 响应式计算总金额（多执行人金额总和）
-const totalAmount = computed(() => {
-  return taskEditForm.executors.reduce((sum, item) => sum + Number(item.amount), 0);
-});
-// 可选：响应式获取选中的部门名称（用于页面展示）
-const selectedDepartmentName = computed(() => {
-  // 将字符串类型的departmentId转为数字，传入formatDepartment方法
-  return formatDepartment(Number(taskEditForm.departmentId));
-});
-// 加载用户列表
+// ============ 选择成员弹窗方法 ============
+// 加载用户列表（独立封装，供标签切换和弹窗打开调用）
 const loadUserList = async () => {
   try {
     const res = await getUserList({ page: 1, size: 999 });
@@ -614,440 +605,725 @@ const loadUserList = async () => {
   }
 };
 
-
-// 选择执行人时自动填充学号
-const onUserSelect = () => {
-  if (!taskEditForm.selectUserId) {
-    // 清空选择时，学号也清空
-    taskEditForm.inputStudentNumber = '';
-    return;
-  }
-  // 根据选中的user_id查找对应的用户对象
-  const selectedUser = userList.value.find(user => user.user_id === taskEditForm.selectUserId);
-  if (selectedUser && selectedUser.student_number) {
-    // 将用户的学号赋值到表单中
-    taskEditForm.inputStudentNumber = selectedUser.student_number;
-  } else {
-    taskEditForm.inputStudentNumber = '';
-    ElMessage.warning('该执行人暂无学号信息，请联系管理员补充');
-  }
+// 打开用户列表弹窗并加载数据
+const openUserListModal = async () => {
+  showUserListModal.value = true;
+  await loadUserList(); // 打开弹窗时确保用户列表已加载
 };
-// 添加执行人（优化：增加去重、金额校验）
-const addExecutor = () => {
-  // 1. 基础校验
-  if (!taskEditForm.selectUserId || !taskEditForm.inputAmount) {
-    ElMessage.warning('请选择执行人和输入金额');
+
+// 关闭用户列表弹窗
+const closeUserListModal = () => {
+  showUserListModal.value = false;
+};
+
+// 选择单个用户
+const selectUser = (user) => {
+  // 避免重复选择
+  if (selectedMembers.value.some(m => m.user_id === user.user_id)) {
+    ElMessage.warning(`已选择过${user.real_name}，请勿重复选择`);
     return;
   }
-  // 2. 金额合法性校验
-  const amount = Number(taskEditForm.inputAmount);
-  if (amount <= 0) {
-    ElMessage.warning('金额必须大于0');
-    return;
-  }
-  // 3. 查找用户
-  const user = userList.value.find(u => u.user_id === taskEditForm.selectUserId);
-  if (!user) {
-    ElMessage.warning('选择的执行人不存在');
-    return;
-  }
-  // 4. 去重校验（避免重复添加同一执行人）
-  const isDuplicate = taskEditForm.executors.some(item => item.user_id === user.user_id);
-  if (isDuplicate) {
-    ElMessage.warning('该执行人已添加，请勿重复添加');
-    return;
-  }
-  // 5. 添加执行人
-  taskEditForm.executors.push({
+  // 添加到已选列表
+  selectedMembers.value.push({
     user_id: user.user_id,
     real_name: user.real_name,
-    student_number: taskEditForm.inputStudentNumber, // 自动填充的学号
-    amount: amount
+    student_number: user.student_number
   });
-  // 清空选择框
-  taskEditForm.selectUserId = '';
-  taskEditForm.inputStudentNumber = '';
-  taskEditForm.inputAmount = '';
+  ElMessage.success(`已选择 ${user.real_name}`);
 };
 
-// 移除单个执行人
-const removeExecutor = (index) => {
-  taskEditForm.executors.splice(index, 1);
+// 删除已选成员
+const deleteMember = (index) => {
+  selectedMembers.value.splice(index, 1);
+  ElMessage.success('已删除该成员');
 };
 
-// 批量清空所有执行人
-const clearAllExecutors = () => {
-  if (taskEditForm.executors.length === 0) return;
-  ElMessageBox.confirm(
-      '确定要清空所有执行人吗？',
-      '清空确认',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-  ).then(() => {
-    taskEditForm.executors = [];
-  });
-};
-
-// 提交任务（适配多执行人的参数处理）
-const submitTask = async () => {
-  // 1. 新增部门选择的校验
-  if (!taskEditForm.departmentId) {
+// ============ 添加稿费记录方法 ============
+const submitAddRoyalty = async () => {
+  // 1. 表单验证（增强）
+  if (selectedMembers.value.length === 0) {
+    ElMessage.warning('请至少选择一名成员');
+    return;
+  }
+  if (!addForm.article_title) {
+    ElMessage.warning('请输入稿件标题');
+    return;
+  }
+  if (!addForm.article_type) {
+    ElMessage.warning('请选择稿件类型（校对/编辑）');
+    return;
+  }
+  if (!addForm.fee_amount || Number(addForm.fee_amount) <= 0) {
+    ElMessage.warning('请输入有效的稿费金额（大于0）');
+    return;
+  }
+  if (!addForm.statistical_month) {
+    ElMessage.warning('请选择统计月份');
+    return;
+  }
+// 二次校验：确保月份不小于2026-01
+  if (addForm.statistical_month < '2026-01') {
+    ElMessage.warning('统计月份不能早于2026年1月，请重新选择');
+    addForm.statistical_month = '2026-01'; // 强制重置为最小月份
+    return;
+  }
+  if (!addForm.department_id) {
     ElMessage.warning('请选择所属部门');
     return;
   }
-  // 1. 基础表单校验
-  if (!taskEditForm.article_title || !taskEditForm.created_at) {
-    ElMessage.warning('请填写任务名称和日期');
-    return;
-  }
-  if (taskEditForm.executors.length === 0) {
-    ElMessage.warning('请添加至少一个执行人');
-    return;
-  }
 
-  // 2. 处理多执行人的参数（关键：适配后端接收格式）
-  const realNames = taskEditForm.executors.map(item => item.real_name);
-  const userIds = taskEditForm.executors.map(item => Number(item.user_id));
-  const studentNumbers = taskEditForm.executors.map(item => item.student_number);
-  const totalFee = taskEditForm.executors.reduce((sum, item) => sum + Number(item.amount), 0);
-  const [year, month] = taskEditForm.created_at.split('-');
-  const statistical_month = `${year}-${month}`;
-
-  const submitParams = {
-    record_id: taskEditForm.record_id || '',
-    article_title: taskEditForm.article_title,
-    created_at: taskEditForm.created_at,
-    statistical_month: statistical_month,
-    real_names: realNames,
-    user_id: userIds,
-    student_numbers: studentNumbers, // 新增：学号数组（后端必填）
-    article_type: taskEditForm.articleType, // 新增：稿件类型（后端必填）
-    fee_amount: totalFee,
-    // 将选中的部门ID转为数字类型传入
-    department_id: Number(taskEditForm.departmentId),
-    executor_amounts: taskEditForm.executors.map(item => item.amount)
+  // 2. 整理接口参数（从已选成员自动生成数组）
+  const submitData = {
+    user_id: selectedMembers.value.map(m => m.user_id), // ID数组
+    real_names: selectedMembers.value.map(m => m.real_name), // 姓名数组
+    student_numbers: selectedMembers.value.map(m => m.student_number), // 学号数组
+    article_title: addForm.article_title,
+    article_type: addForm.article_type,
+    fee_amount: Number(addForm.fee_amount), // 转为数字
+    statistical_month: addForm.statistical_month,
+    department_id: Number(addForm.department_id) // 转为数字
   };
 
+  // 3. 调用添加接口
   try {
-    console.log('提交参数：', submitParams);
-    const res = await addRoyaltyRecord(submitParams);
+    const res = await addRoyaltyRecord(submitData);
     if (res.res_code === '0000') {
-      ElMessage.success(taskEditForm.record_id ? '编辑任务成功' : '新建任务成功');
-      // 重置表单
-      resetTaskForm();
-      // 切回查询标签（需确保currentTab已定义）
-      // currentTab.value = 'query';
-      // 刷新任务列表（需确保fetchTaskList已定义）
-      // await fetchTaskList();
+      ElMessage.success('添加稿费记录成功');
+      // 清空表单和已选成员
+      Object.keys(addForm).forEach(key => {
+        addForm[key] = key === 'statistical_month' ? '2026-01' : '';
+      });
+      selectedMembers.value = [];
+      // 切换到查询标签页并刷新
+      currentTab.value = 'query';
+      await fetchTaskList();
     } else {
-      ElMessage.error(`${taskEditForm.record_id ? '编辑' : '新建'}任务失败：${res.res_msg}`);
+      ElMessage.error(`添加失败：${res.res_msg}`);
     }
   } catch (err) {
-    ElMessage.error(`网络异常，${taskEditForm.record_id ? '编辑' : '新建'}任务失败`);
-    console.error('提交任务报错：', err);
+    ElMessage.error('网络异常，添加失败');
+    console.error('添加稿费失败详情：', err);
   }
 };
-// 重置表单时重置部门选择
-const resetTaskForm = () => {
-  Object.assign(taskEditForm, {
-    record_id: '',
-    article_title: '',
-    created_at: '',
-    articleType: '',
-    departmentId: '1', // 重置为默认选中新闻部
-    selectUserId: '',
-    inputStudentNumber: '',
-    inputAmount: '',
-    executors: []
-  });
-};
 
-// 初始化加载用户列表
-onMounted(() => {
-  loadUserList();
-});
 //=================== 初始化 ===================
 onMounted(async () => {
   await fetchTaskList();
-  await loadUserList();
+  await fetchAllFeedback();
 });
 </script>
-
 <style scoped>
+/* ============ 新增/修改的任务管理区域样式（放在最前面） ============ */
+/* 整体视觉优化 - 圆角、阴影、间距调整 */
+.manage-title {
+margin-bottom: 24px;
+display: flex;
+align-items: center;
+}
+.manage-title h3 {
+margin: 0;
+font-size: 18px;
+font-weight: 600;
+color: #333;
+}
+.manage-form {
+max-width: 700px;
+padding: 20px;
+background-color: #fff;
+border-radius: 12px;
+/*box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);*/
+gap: 20px;
+}
+/* 表单元素优化 */
+.manage-form .form-item {
+margin-bottom: 0;
+}
+.manage-form .form-item label {
+color: #444;
+font-size: 14px;
+margin-bottom: 6px;
+}
+.manage-form .form-input,
+.manage-form .form-select {
+border-color: #e5e7eb;
+transition: border-color 0.2s ease, box-shadow 0.2s ease;
+font-size: 14px;
+}
+.manage-form .form-input:focus,
+.manage-form .form-select:focus {
+border-color: #9b8eb4;
+box-shadow: 0 0 0 3px rgba(155, 142, 180, 0.1);
+outline: none;
+}
+/* 按钮样式优化 */
+.select-member-btn {
+background-color: #9b8eb4;
+transition: background-color 0.2s ease;
+border-radius: 6px;
+font-size: 14px;
+font-weight: 500;
+}
+.select-member-btn:hover {
+background-color: #8a7aa8;
+}
+.manage-form .submit-btn {
+background-color: #9b8eb4;
+border-radius: 6px;
+font-size: 14px;
+font-weight: 500;
+padding: 10px 24px;
+transition: background-color 0.2s ease;
+margin-top: 8px;
+}
+.manage-form .submit-btn:hover:not(:disabled) {
+background-color: #8a7aa8;
+}
+.manage-form .submit-btn:disabled {
+background-color: #d1c9d9;
+color: #fff;
+}
+/* 已选成员列表优化 */
+.selected-members {
+border-radius: 8px;
+border-color: #f0f0f0;
+background-color: #f9f9fb;
+margin: 12px 0;
+padding: 16px;
+}
+.selected-members h4 {
+margin: 0 0 12px 0;
+font-size: 14px;
+color: #555;
+font-weight: 600;
+}
+.member-item {
+padding: 8px 0;
+border-bottom-color: #eee;
+align-items: center;
+}
+.member-item span {
+font-size: 13px;
+color: #666;
+line-height: 1.5;
+}
+.del-member-btn {
+border-radius: 4px;
+font-size: 12px;
+padding: 3px 8px;
+background-color: #fef2f2;
+color: #f56c6c;
+transition: background-color 0.2s ease;
+}
+.del-member-btn:hover {
+background-color: #fee2e2;
+}
+/* 弹窗样式优化 */
+.modal-mask {
+backdrop-filter: blur(2px);
+}
+.modal-content {
+border-radius: 12px;
+box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+width: 650px;
+padding: 24px;
+}
+.modal-header {
+margin-bottom: 20px;
+padding-bottom: 12px;
+border-bottom-color: #f0f0f0;
+}
+.modal-header h3 {
+margin: 0;
+font-size: 16px;
+font-weight: 600;
+color: #333;
+}
+.close-modal {
+font-size: 22px;
+color: #999;
+transition: color 0.2s ease;
+}
+.close-modal:hover {
+color: #f56c6c;
+}
+.user-item {
+border-radius: 8px;
+border-color: #f0f0f0;
+padding: 12px;
+transition: background-color 0.2s ease;
+}
+.user-item:hover {
+background-color: #f9f9fb;
+}
+.user-info {
+gap: 20px;
+}
+.user-info span {
+font-size: 13px;
+color: #666;
+}
+.select-user-btn {
+border-radius: 6px;
+font-size: 13px;
+padding: 4px 12px;
+border-color: #9b8eb4;
+color: #9b8eb4;
+transition: all 0.2s ease;
+}
+.select-user-btn:hover:not(:disabled) {
+background-color: #9b8eb4;
+color: #fff;
+}
+.select-user-btn:disabled {
+border-color: #ddd;
+color: #999;
+background-color: #f5f5f5;
+}
+.user-modal-confirm-btn {
+border-radius: 6px;
+font-size: 14px;
+padding: 8px 20px;
+background-color: #9b8eb4;
+transition: background-color 0.2s ease;
+}
+.user-modal-confirm-btn:hover {
+background-color: #8a7aa8;
+}
+.empty-tip {
+color: #999;
+font-size: 14px;
+padding: 40px 20px;
+}
+/* 单选框样式优化 */
+.radio-group {
+gap: 24px;
+}
+.radio-item {
+font-size: 14px;
+color: #666;
+}
+.radio-item input {
+width: 16px;
+height: 16px;
+margin-right: 6px;
+accent-color: #9b8eb4;
+}
+
+/* ============ 原有样式（保持不变） ============ */
 /* 基础样式 */
 .tab-buttons {
-  margin-bottom: 20px;
+margin-bottom: 20px;
 }
 .tab-btn {
-  padding: 8px 20px;
-  background-color: #e0e0e0;
-  border: none;
-  cursor: pointer;
-  margin-right: 2px;
-  font-size: 14px;
+padding: 8px 20px;
+background-color: #e0e0e0;
+border: none;
+cursor: pointer;
+margin-right: 2px;
+font-size: 14px;
 }
 .tab-btn.active {
-  background-color: #9b8eb4;
-  color: #fff;
+background-color: #9b8eb4;
+color: #fff;
 }
 
 /* 通用表单样式 */
 .form-select, .form-input {
-  padding: 6px 8px;
-  border: 1px solid #ccc;
-  border-radius: 2px;
-  font-size: 14px;
+padding: 6px 8px;
+border: 1px solid #ccc;
+border-radius: 2px;
+font-size: 14px;
 }
 .form-select {
-  width: 120px;
+width: 120px;
 }
 .form-input {
-  width: 200px;
+width: 200px;
 }
 .small-input {
-  width: 100px;
+width: 100px;
 }
 .query-btn, .add-btn, .submit-btn {
-  padding: 6px 15px;
-  border: none;
-  border-radius: 2px;
-  cursor: pointer;
-  font-size: 14px;
+padding: 6px 15px;
+border: none;
+border-radius: 2px;
+cursor: pointer;
+font-size: 14px;
 }
 .query-btn {
-  background-color: #9b8eb4;
-  color: #fff;
+background-color: #9b8eb4;
+color: #fff;
 }
 .add-btn {
-  background-color: #67c23a;
-  color: #fff;
+background-color: #67c23a;
+color: #fff;
 }
 .submit-btn {
-  background-color: #409eff;
-  color: #fff;
-  align-self: flex-end;
+background-color: #409eff;
+color: #fff;
+align-self: flex-end;
 }
 
 /* 任务查询区域 */
 .query-form {
-  margin-bottom: 20px;
-  display: flex;
-  gap: 15px;
-  align-items: center;
+margin-bottom: 20px;
+display: flex;
+gap: 15px;
+align-items: center;
 }
 .task-table {
-  width: 100%;
-  border-collapse: collapse;
-  border: 1px solid #ccc;
+width: 100%;
+border-collapse: collapse;
+border: 1px solid #ccc;
 }
 .task-table th, .task-table td {
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  text-align: left;
-  font-size: 14px;
+padding: 8px 10px;
+border: 1px solid #ccc;
+text-align: left;
+font-size: 14px;
 }
 .task-table th {
-  background-color: #e0e0e0;
+background-color: #e0e0e0;
 }
 .op-btn {
-  padding: 4px 8px;
-  background-color: #9b8eb4;
-  color: #fff;
-  border: none;
-  border-radius: 2px;
-  cursor: pointer;
-  margin-right: 5px;
-  font-size: 12px;
+padding: 4px 8px;
+background-color: #9b8eb4;
+color: #fff;
+border: none;
+border-radius: 2px;
+cursor: pointer;
+margin-right: 5px;
+font-size: 12px;
 }
 .op-btn.danger {
-  background-color: rgba(192, 192, 224, 0.85);
+background-color: rgba(192, 192, 224, 0.85);
 }
 .empty-tip {
-  text-align: center;
-  padding: 30px;
-  color: #999;
-  font-style: italic;
+text-align: center;
+padding: 30px;
+color: #999;
+font-style: italic;
 }
 
 /* 反馈处理区域 */
 .feedback-filter {
-  margin-bottom: 20px;
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  flex-wrap: wrap;
+margin-bottom: 20px;
+display: flex;
+gap: 15px;
+align-items: center;
+flex-wrap: wrap;
 }
 .feedback-item-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+display: flex;
+flex-direction: column;
+gap: 20px;
 }
 .feedback-item {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 15px;
-  background-color: #f9f9f9;
+border: 1px solid #e0e0e0;
+border-radius: 8px;
+padding: 15px;
+background-color: #f9f9f9;
 }
 .feedback-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-  font-weight: bold;
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 10px;
+font-weight: bold;
 }
 .feedback-id {
-  color: #666;
+color: #666;
 }
 .status-tag {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
+padding: 2px 8px;
+border-radius: 4px;
+font-size: 12px;
 }
 .status-tag.pending {
-  background-color: #fff7e6;
-  color: #ff9900;
+background-color: #fff7e6;
+color: #ff9900;
 }
 .status-tag.replied {
-  background-color: #e6f7ff;
-  color: #1890ff;
+background-color: #e6f7ff;
+color: #1890ff;
 }
 .feedback-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  line-height: 1.6;
+display: flex;
+flex-direction: column;
+gap: 8px;
+line-height: 1.6;
 }
 .feedback-content .label {
-  color: #999;
-  font-weight: 500;
+color: #999;
+font-weight: 500;
 }
 .feedback-actions {
-  margin-top: 15px;
-  display: flex;
-  gap: 10px;
+margin-top: 15px;
+display: flex;
+gap: 10px;
 }
 .pagination {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
+margin-top: 20px;
+display: flex;
+justify-content: center;
+align-items: center;
+gap: 15px;
 }
 .page-btn {
-  padding: 6px 12px;
-  background-color: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
+padding: 6px 12px;
+background-color: #f0f0f0;
+border: 1px solid #ddd;
+border-radius: 4px;
+cursor: pointer;
 }
 .page-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+opacity: 0.5;
+cursor: not-allowed;
 }
 
 /* 弹窗样式 */
 .dialog-mask {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0,0,0,0.5);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 999;
 }
 .dialog-content {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  width: 500px;
-  max-width: 90%;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+background: #fff;
+padding: 20px;
+border-radius: 8px;
+width: 500px;
+max-width: 90%;
+display: flex;
+flex-direction: column;
+gap: 15px;
 }
 .reply-textarea {
-  width: 100%;
-  height: 120px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  resize: vertical;
+width: 100%;
+height: 120px;
+padding: 10px;
+border: 1px solid #ddd;
+border-radius: 4px;
+resize: vertical;
 }
 .dialog-btns {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 10px;
+display: flex;
+justify-content: flex-end;
+gap: 10px;
+margin-top: 10px;
 }
 .cancel-btn {
-  padding: 8px 16px;
-  background-color: #e0e0e0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+padding: 8px 16px;
+background-color: #e0e0e0;
+border: none;
+border-radius: 4px;
+cursor: pointer;
 }
 .confirm-btn {
-  padding: 8px 16px;
-  background-color: #9b8eb4;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+padding: 8px 16px;
+background-color: #9b8eb4;
+color: #fff;
+border: none;
+border-radius: 4px;
+cursor: pointer;
 }
 
-/* 任务管理区域 */
+/* ============ 原有任务管理区域样式（保持不变） ============ */
+/* 选择成员相关样式 */
+.select-member-btn {
+padding: 8px 16px;
+background-color: #9b8eb4;
+color: #fff;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+margin-bottom: 10px;
+}
+.select-member-btn:hover {
+background-color:#C0C0C0;
+}
+
+/* 已选成员列表 */
+.selected-members {
+margin: 10px 0;
+padding: 10px;
+border: 1px solid #eee;
+border-radius: 4px;
+}
+.member-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 6px 0;
+border-bottom: 1px dashed #eee;
+}
+.del-member-btn {
+padding: 2px 8px;
+background-color: #f56c6c;
+color: #fff;
+border: none;
+border-radius: 2px;
+cursor: pointer;
+font-size: 12px;
+}
+
+/* 单选框组 */
+.radio-group {
+display: flex;
+gap: 20px;
+margin-top: 8px;
+}
+.radio-item {
+display: flex;
+align-items: center;
+cursor: pointer;
+}
+.radio-item input {
+margin-right: 4px;
+}
+
+/* 下拉选择框 */
+.manage-form .form-select {
+width:150px;
+padding: 8px;
+border: 1px solid #dcdfe6;
+border-radius: 4px;
+margin-top: 4px;
+}
+
+/* 弹窗遮罩 */
+.modal-mask {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0, 0, 0, 0.5);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+}
+.modal-content {
+width: 600px;
+background-color: #fff;
+border-radius: 8px;
+padding: 20px;
+}
+.modal-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 15px;
+border-bottom: 1px solid #eee;
+padding-bottom: 10px;
+}
+.close-modal {
+background: none;
+border: none;
+font-size: 20px;
+cursor: pointer;
+color: #999;
+}
+.modal-body {
+max-height: 400px;
+overflow-y: auto;
+margin-bottom: 15px;
+}
+.user-list {
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+.user-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 8px;
+border: 1px solid #eee;
+border-radius: 4px;
+}
+.user-info {
+display: flex;
+gap: 15px;
+}
+.select-user-btn {
+padding: 4px 12px;
+border: 1px solid #9b8eb4;
+color: #9b8eb4;
+background: #fff;
+border-radius: 4px;
+cursor: pointer;
+}
+.select-user-btn:disabled {
+background-color: #eee;
+color: #999;
+border-color: #ddd;
+cursor: not-allowed;
+}
+.modal-footer {
+display: flex;
+justify-content: flex-end;
+}
+/* 选择成员弹窗确认按钮 */
+.user-modal-confirm-btn {
+padding: 8px 16px;
+background-color: #9b8eb4;
+color: #fff;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+}
+
+/* 任务管理区域样式 */
 .manage-title {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  font-size: 16px;
+margin-bottom: 20px;
 }
-.title-line {
-  width: 4px;
-  height: 20px;
-  background-color: #9b8eb4;
-  margin-right: 8px;
+
+.manage-title .title-line {
+width: 4px;
+height: 20px;
+background-color: #9b8eb4;
+margin-right: 8px;
 }
+
 .manage-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+max-width: 600px;
+display: flex;
+flex-direction: column;
+gap: 15px;
 }
-.form-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.manage-form .form-item {
+margin-bottom: 15px;
 }
-.executor-list {
-  margin-top: 10px;
+.manage-form .form-item label {
+display: block;
+margin-bottom: 4px;
+font-weight: 500;
 }
-.executor-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 5px;
+.manage-form .form-input {
+width: 150px;
+padding: 8px;
+border: 1px solid #dcdfe6;
+border-radius: 4px;
 }
-.executor-tag {
-  padding: 4px 8px;
-  background-color: #e6f7ff;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+.manage-form .submit-btn {
+padding: 10px 20px;
+background-color: #9b8eb4;
+color: #fff;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+align-self: flex-start;
 }
-.tag-close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #999;
-}
-.tag-close:hover {
-  color: #f56c6c;
+.manage-form .submit-btn:disabled {
+background-color: #bbb;
+cursor: not-allowed;
 }
 </style>
