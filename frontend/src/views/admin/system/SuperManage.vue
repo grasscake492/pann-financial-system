@@ -388,7 +388,7 @@
             </select>
           </div>-->
 
-<!--          <button class="export-btn" @click="exportSummaryData">导出数据</button>-->
+          <button class="export-btn" @click="exportSummaryData">导出数据</button>
         </div>
 
         <!-- 以下表格部分保留你原有结构，移除重复的稿费汇总表格 -->
@@ -493,7 +493,7 @@
           </div>
         </div>
       </div>
-      <!-- 5. 做账稿费 -->
+<!--      5. 做账稿费
       <div v-if="currentTopTab === 'account'" class="tab-content">
         <div class="section-title">
           <div class="title-line"></div>
@@ -517,13 +517,13 @@
             <option value="11">11月</option>
             <option value="12">12月</option>
           </select>
-          <!-- 新增导出按钮 -->
+          &lt;!&ndash; 新增导出按钮 &ndash;&gt;
           <button class="export-btn" @click="exportAccountData" :disabled="!accountForm.month">
             导出本月做账数据
           </button>
         </div>
 
-        <!-- 1. 代领人基础信息表 -->
+        &lt;!&ndash; 1. 代领人基础信息表 &ndash;&gt;
         <table class="content-table">
           <thead>
           <tr>
@@ -548,7 +548,7 @@
           </tbody>
         </table>
 
-        <!-- 2. 新闻部代领后明细表格 -->
+        &lt;!&ndash; 2. 新闻部代领后明细表格 &ndash;&gt;
         <div class="section-title mt-20">
           <div class="title-line"></div>
           <h3>新闻部代领后</h3>
@@ -583,7 +583,7 @@
           </tfoot>
         </table>
 
-        <!-- 3. 编辑部代领后明细表格 -->
+        &lt;!&ndash; 3. 编辑部代领后明细表格 &ndash;&gt;
         <div class="section-title mt-20">
           <div class="title-line"></div>
           <h3>编辑部代领后</h3>
@@ -616,7 +616,7 @@
           </tfoot>
         </table>
 
-        <!-- 4. 稿费代领后汇总表 -->
+        &lt;!&ndash; 4. 稿费代领后汇总表 &ndash;&gt;
         <div class="section-title mt-20">
           <div class="title-line"></div>
           <h3>稿费代领后汇总</h3>
@@ -653,7 +653,7 @@
           </tr>
           </tfoot>
         </table>
-      </div>
+      </div>-->
 
       <!-- 任务编辑弹窗（新增/编辑） -->
       <div class="dialog-mask" v-if="taskEditDialogVisible">
@@ -1657,10 +1657,10 @@ const exportSummaryData = async () => {
     ElMessage.warning('请选择统计月份（YYYY-MM）');
     return;
   }
-  if (!summaryForm.department_id) {
-    ElMessage.warning('请选择部门ID');
-    return;
-  }
+  // if (!summaryForm.department_id) {
+  //   ElMessage.warning('请选择部门ID');
+  //   return;
+  // }
  /* if (!summaryForm.format) {
     ElMessage.warning('请选择导出格式（Excel/PDF）');
     return;
@@ -1670,8 +1670,8 @@ const exportSummaryData = async () => {
     // 2. 构建参数：将department_id转为普通数字，避免BigInt序列化错误
     const params = {
       statistical_month: summaryForm.statistical_month,
-      department_id: Number(summaryForm.department_id), // 关键修复：用Number替代BigInt
-      format: summaryForm.format
+      /*department_id: summaryForm.department_id, // 关键修复：用Number替代BigInt
+      format: summaryForm.format*/
     };
 
     console.log('导出接口请求参数：', params);

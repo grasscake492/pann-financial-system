@@ -60,7 +60,7 @@
               <th>任务名称</th>
               <th>部门</th>
               <th>金额</th>
-<!--              <th>状态</th>-->
+              <!--              <th>状态</th>-->
               <th>操作</th>
             </tr>
             </thead>
@@ -73,7 +73,7 @@
               <td>{{ item.article_title || '-' }}</td>
               <td>{{ formatDepartment(item.department_id) }}</td>
               <td>{{ formatMoney(item.fee_amount) }}元</td>
-<!--              <td>已结算</td>-->
+              <!--              <td>已结算</td>-->
               <td>
                 <button class="feedback-btn" @click="handleFeedback(item)">反馈</button>
               </td>
@@ -115,7 +115,7 @@
               <th>提交时间</th>
               <th>反馈状态</th>
               <th>管理员回复</th>
-<!--              <th>回复时间</th>-->
+              <!--              <th>回复时间</th>-->
             </tr>
             </thead>
             <tbody>
@@ -127,15 +127,32 @@
               <td class="content-cell">{{ item.content || '-' }}</td>
               <td>{{ formatDate(item.created_at) || '-' }}</td>
               <td>
-    <span class="status-tag" :class="getStatusClass(item.status)">
-      {{ getStatusText(item.status) }}
-    </span>
+                <span class="status-tag" :class="getStatusClass(item.status)">
+                  {{ getStatusText(item.status) }}
+                </span>
               </td>
               <td class="reply-cell">{{ item.reply_content || '暂无回复' }}</td>
-<!--              <td>{{item.replied_at || '-' }}</td>-->
+              <!--              <td>{{item.replied_at || '-' }}</td>-->
             </tr>
             </tbody>
           </table>
+
+          <!-- 新增反馈列表分页控件 -->
+          <div class="pagination-area" v-if="feedbackTotalCount > 0">
+            <button
+                class="page-btn"
+                @click="changeFeedbackPage(feedbackQueryParams.page - 1)"
+                :disabled="feedbackQueryParams.page <= 1"
+            >上一页</button>
+            <span class="page-info">
+              第{{ feedbackQueryParams.page }}页 / 共{{ feedbackTotalPage }}页
+            </span>
+            <button
+                class="page-btn"
+                @click="changeFeedbackPage(feedbackQueryParams.page + 1)"
+                :disabled="feedbackQueryParams.page >= feedbackTotalPage"
+            >下一页</button>
+          </div>
         </div>
       </div>
 
@@ -192,6 +209,19 @@ const noticeStore = useNoticeStore();
 const activeTab = ref('fee');
 // 2. 反馈列表数据（初始化为空数组，避免length读取报错）
 const feedbackList = ref([]);
+
+// ===================== 新增反馈分页相关变量 =====================
+// 反馈列表查询参数
+const feedbackQueryParams = reactive({
+  page: 1, // 当前页码
+  size: 10 // 每页条数
+});
+// 反馈列表总条数
+const feedbackTotalCount = ref(0);
+// 反馈列表总页数（计算属性）
+const feedbackTotalPage = computed(() => {
+  return Math.ceil(feedbackTotalCount.value / feedbackQueryParams.size);
+});
 
 // ===================== 原有变量（保留） =====================
 // 反馈弹窗+表单状态
@@ -358,8 +388,8 @@ const getStatusText = (status) => {
   const statusMap = {
     pending: '待处理',
     replied: '已回复',
-    resolved: '已解决',
-    rejected: '已驳回'
+    /*resolved: '已解决',
+    rejected: '已驳回'*/
   };
   return statusMap[status] || '未知状态';
 };
@@ -380,21 +410,33 @@ const fetchMyFeedback = async () => {
   try {
     // 调用你提供的getUserFeedbackList接口，传分页参数（接口2.5.21要求）
     const res = await getUserFeedbackList({
-      page: 1, // 默认第一页
-      size: 10 // 默认每页10条
+      page: feedbackQueryParams.page, // 使用反馈分页参数
+      size: feedbackQueryParams.size // 使用反馈分页参数
     });
     if (res.res_code === '0000') {
-      // 接口返回结构：list为反馈列表（按你文档2.5.21）
+      // 接口返回结构：list为反馈列表，total为总条数（按你文档2.5.21）
       feedbackList.value = res.data.list || [];
+      feedbackTotalCount.value = res.data.total || 0;
     } else {
       ElMessage.error(`获取反馈列表失败：${res.res_msg}`);
       feedbackList.value = [];
+      feedbackTotalCount.value = 0;
     }
   } catch (err) {
     ElMessage.error('网络异常，获取反馈列表失败');
     console.error('获取反馈列表失败:', err);
     feedbackList.value = [];
+    feedbackTotalCount.value = 0;
   }
+};
+
+// ===================== 新增：反馈列表分页切换方法 =====================
+const changeFeedbackPage = (page) => {
+  // 边界校验：页码不能小于1，不能大于总页数
+  if (page < 1 || page > feedbackTotalPage.value) return;
+  feedbackQueryParams.page = page;
+  // 重新请求反馈列表
+  fetchMyFeedback();
 };
 
 // ===================== 生命周期（保留） =====================
@@ -448,15 +490,30 @@ onMounted(() => {
   width: 100%;
   border-collapse: collapse;
   text-align: center;
+  /* ========== 新增核心优化 ========== */
+  table-layout: fixed; /* 锁定表格布局规则，只根据表头计算列宽，避免内容撑开列宽 */
+  table-layout: fixed; /* 重复声明兼容部分浏览器 */
+  min-width: 100%; /* 防止表格宽度收缩 */
+  border: 1px solid #ddd; /* 给表格加外层边框，避免单元格边框拼接的视觉波动 */
 }
+
 .fee-table th, .fee-table td {
   border: 1px solid #ddd;
   padding: 12px 8px;
+  /* ========== 新增核心优化 ========== */
+  box-sizing: border-box; /* 确保边框和内边距不影响单元格宽度计算 */
+  white-space: nowrap; /* 禁止文字换行，避免单元格高度波动 */
+  overflow: hidden; /* 隐藏超出内容 */
+  text-overflow: ellipsis; /* 超出部分显示省略号，保持单元格尺寸稳定 */
 }
+
 .fee-table th {
   background-color: #eee;
   font-weight: 500;
+  /* ========== 新增优化 ========== */
+  position: relative; /* 增强表头渲染稳定性 */
 }
+
 .feedback-btn {
   border: none;
   background: transparent;

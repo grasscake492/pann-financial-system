@@ -201,10 +201,10 @@ Mock.mock(/\/auth\/change-password\/\d+/, 'put', (options) => {
     // const params = JSON.parse(options.body || '{}');
     const params = decryptData(options.body || '');
 
-    // 模拟旧密码错误
+    /*// 模拟旧密码错误
     if (params.old_password !== 'e10adc3949ba59abbe56e057f20f883e') {
         return { res_code: '0001', res_msg: '旧密码错误，修改失败', data: null };
-    }
+    }*/
 
     // 成功返回：data为null无需加密
     return { res_code: '0000', res_msg: '密码修改成功', data: null };
@@ -534,18 +534,15 @@ Mock.mock(/\/api\/v1\/admin\/royalty\/\d+/, 'delete', () => {
 
 // ==================== 15. 导出稿费记录接口（2.5.15） ====================
 Mock.mock(/\/api\/v1\/admin\/royalty\/export/, 'get', (options) => {
-    // 解析URL参数
-    const urlParams = options.url.split('?')[1] || '';
-    const params = {};
-    urlParams.split('&').forEach(item => {
-        const [key, val] = item.split('=');
-        if (key) params[key] = val;
-    });
-    const { statistical_month, format = 'Excel' } = params;
+    // 1. 读取 Mock 解析的 params（axios 传的参数在这里）
+    const params = options.params || {};
+    console.log('Mock解析后的参数：', params);
 
-    if (!statistical_month) {
+    const { statistical_month, format = 'Excel' } = params;
+    console.log('Mock解析后的参数：', params);
+    /*if (!statistical_month) {
         return { res_code: '0002', res_msg: '参数错误！缺少统计月份', data: null };
-    }
+    }*/
 
     const successData = {
         fileUrl: `https://example.com/fee_${statistical_month}.${format.toLowerCase()}`,

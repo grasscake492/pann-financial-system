@@ -105,10 +105,10 @@
             <label>稿件标题:</label>
             <input type="text" class="form-input" v-model="editForm.article_title">
           </div>
-          <div class="form-item">
+<!--          <div class="form-item">
             <label>稿件类型:</label>
             <input type="text" class="form-input" v-model="editForm.article_type">
-          </div>
+          </div>-->
           <div class="form-item">
             <label>稿费金额:</label>
             <input type="number" step="1" class="form-input" v-model="editForm.fee_amount">
@@ -156,7 +156,7 @@
           </div>
 
           <!-- 稿件类型（单选框，限定选项） -->
-          <div class="form-item">
+<!--          <div class="form-item">
             <label>稿件类型:</label>
             <div class="radio-group">
               <label class="radio-item">
@@ -166,7 +166,7 @@
                 <input type="radio" name="article_type" v-model="addForm.article_type" value="编辑"> 编辑
               </label>
             </div>
-          </div>
+          </div>-->
 
           <!-- 稿费金额（数字输入，限制小数） -->
           <div class="form-item">
@@ -504,7 +504,7 @@ const addForm = reactive({
   // student_numbers_str: '',
   // 保留：接口必填字段（优化默认值）
   article_title: '',
-  article_type: '', // 校对/编辑
+  /*article_type: '', // 校对/编辑*/
   fee_amount: '', // 改为空字符串，避免初始0值干扰
   statistical_month: '2026-01',// YYYY-MM
   department_id: '' // 部门ID（下拉框值）
@@ -572,10 +572,10 @@ const submitAddRoyalty = async () => {
     ElMessage.warning('请输入稿件标题');
     return;
   }
-  if (!addForm.article_type) {
+  /*if (!addForm.article_type) {
     ElMessage.warning('请选择稿件类型（校对/编辑）');
     return;
-  }
+  }*/
   if (!addForm.fee_amount || Number(addForm.fee_amount) <= 0) {
     ElMessage.warning('请输入有效的稿费金额（大于0）');
     return;

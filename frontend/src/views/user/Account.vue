@@ -306,8 +306,7 @@ const submitChangePwd = async () => {
     const sign = generateSign(signStr);
 
     const pwdData = {
-      old_password: encryptData(pwdForm.oldPassword),
-      new_password: encryptData(pwdForm.newPassword),
+      new_password: pwdForm.newPassword,
       sign: sign
     };
 

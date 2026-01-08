@@ -230,10 +230,10 @@
             <label>稿件类型:</label>
             <div class="radio-group">
               <label class="radio-item">
-                <input type="radio" name="article_type" v-model="addForm.article_type" value="校对"> 校对
+                <input type="radio" name="article_type" v-model="addForm.article_type" value="校对"> 日历图
               </label>
               <label class="radio-item">
-                <input type="radio" name="article_type" v-model="addForm.article_type" value="编辑"> 编辑
+                <input type="radio" name="article_type" v-model="addForm.article_type" value="编辑"> 策划
               </label>
             </div>
           </div>
@@ -257,7 +257,7 @@
           </div>
 
           <!-- 部门选择（下拉框，映射部门ID） -->
-          <div class="form-item">
+<!--          <div class="form-item">
             <label>所属部门:</label>
             <select class="form-select" v-model="addForm.department_id">
               <option value="">请选择部门</option>
@@ -265,7 +265,7 @@
               <option value="2">编辑部</option>
               <option value="3">运营部</option>
             </select>
-          </div>
+          </div>-->
 
           <button class="submit-btn" @click="submitAddRoyalty" :disabled="selectedMembers.length === 0">提交添加</button>
         </div>
@@ -667,10 +667,10 @@ const submitAddRoyalty = async () => {
     addForm.statistical_month = '2026-01'; // 强制重置为最小月份
     return;
   }
-  if (!addForm.department_id) {
+  /*if (!addForm.department_id) {
     ElMessage.warning('请选择所属部门');
     return;
-  }
+  }*/
 
   // 2. 整理接口参数（从已选成员自动生成数组）
   const submitData = {
@@ -681,7 +681,7 @@ const submitAddRoyalty = async () => {
     article_type: addForm.article_type,
     fee_amount: Number(addForm.fee_amount), // 转为数字
     statistical_month: addForm.statistical_month,
-    department_id: Number(addForm.department_id) // 转为数字
+    //department_id: Number(addForm.department_id) // 转为数字
   };
 
   // 3. 调用添加接口

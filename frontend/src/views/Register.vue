@@ -46,13 +46,21 @@
       <!-- 密码输入框 + 错误提示 -->
       <div class="form-group">
         <input
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             placeholder="请输入密码"
             class="input-field"
             v-model="form.password"
             @blur="validatePassword"
             :disabled="isSubmitting"
+            style="padding-right: 30px; /* 给小眼睛留空间，不遮挡密码 */"
         >
+        <span
+            @click="showPassword = !showPassword"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999; user-select: none;"
+        >
+          <!-- 可替换为任意字符/图标，这里用简单符号，无需额外资源 -->
+          {{ showPassword ? '&#128065;' : '👁️‍🗨️' }}
+        </span>
         <div class="error-tip" v-if="errors.password">{{ errors.password }}</div>
       </div>
 
@@ -66,6 +74,13 @@
             @blur="validateConfirmPwd"
             :disabled="isSubmitting"
         >
+        <span
+            @click="showPassword = !showPassword"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999; user-select: none;"
+        >
+          <!-- 可替换为任意字符/图标，这里用简单符号，无需额外资源 -->
+          {{ showPassword ? '&#128065;' : '👁️‍🗨️' }}
+        </span>
         <div class="error-tip" v-if="errors.confirmPwd">{{ errors.confirmPwd }}</div>
       </div>
 
@@ -96,6 +111,8 @@ import {validateRegisterForm} from "@/utils/validate.js";
 import { encryptData, decryptData, generateSign } from '@/utils/request.js'
 const router = useRouter()
 const emailInput = ref(null);
+// 新增：控制密码显示/隐藏的变量（默认隐藏，核心补充）
+const showPassword = ref(false);
 const form = reactive({
   username: '',
   account: '',
@@ -294,10 +311,30 @@ const handleRegister = async () => {
 }
 
 .form-group {
+  position: relative;
   margin-bottom: 20px;
   text-align: left; /* 错误提示左对齐 */
 }
+/* 隐藏 Chrome/Edge 等 WebKit 内核浏览器的原生密码显隐按钮 */
+input[type="password"]::-webkit-reveal-button,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
 
+/* 隐藏 Firefox 原生密码图标 */
+input[type="password"]::-moz-password-input-revealer {
+  display: none !important;
+  -moz-appearance: none !important;
+}
+
+/* 隐藏 Edge/IE 原生密码图标 */
+input::-ms-reveal {
+  display: none !important;
+}
 .input-field {
   width: 100%;
   height: 45px;

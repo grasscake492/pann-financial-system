@@ -21,11 +21,11 @@
       <div class="form-group" style="position: relative;">
         <input
             :type="showPassword ? 'text' : 'password'"
-        placeholder="密码"
-        class="input-field"
-        v-model="form.password"
-        @blur="handleFieldBlur('password')"
-        style="padding-right: 30px; /* 给小眼睛留空间，不遮挡密码 */"
+            placeholder="密码"
+            class="input-field"
+            v-model="form.password"
+            @blur="handleFieldBlur('password')"
+            style="padding-right: 30px; /* 给小眼睛留空间，不遮挡密码 */"
         >
         <!-- 自定义小眼睛按钮（固定存在，不受失焦影响，样式极简） -->
         <span
@@ -33,9 +33,9 @@
             style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999; user-select: none;"
         >
     <!-- 可替换为任意字符/图标，这里用简单符号，无需额外资源 -->
-     {{ showPassword ? '&#128065;' : '&#128064;' }}
+     {{ showPassword ? '&#128065;' : '👁️‍🗨️' }}
   </span>
-        <!-- 密码错误提示（完全保留原有代码） -->
+        <!-- 密码错误提示   -->
         <div class="error-tip" v-if="errors.password">{{ errors.password }}</div>
       </div>
 
@@ -233,7 +233,26 @@ const handleLogin = async () => {
   box-sizing: border-box;
   background-color: rgba(255, 255, 255, 0.8);
 }
+/* 隐藏 Chrome/Edge 等 WebKit 内核浏览器的原生密码显隐按钮 */
+input[type="password"]::-webkit-reveal-button,
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
 
+/* 隐藏 Firefox 原生密码图标 */
+input[type="password"]::-moz-password-input-revealer {
+  display: none !important;
+  -moz-appearance: none !important;
+}
+
+/* 隐藏 Edge/IE 原生密码图标 */
+input::-ms-reveal {
+  display: none !important;
+}
 .input-field::placeholder {
   color: #999;
 }
