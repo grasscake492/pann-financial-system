@@ -8,20 +8,21 @@ import path from 'path'
 export default defineConfig(({ command, mode }) => {
   // 加载环境变量（区分mock/后端环境）
   const env = loadEnv(mode, process.cwd());
+
   return {
     // 关键：添加基础路径配置
     base: '/pann-financial-system/',
 
     plugins: [
       vue(),
-      // 删掉vite-plugin-mock相关配置（改用纯MSW）
-      // viteMockServe({...}) 这一段全部删除
     ],
+
     resolve: {
       alias: {
         '@': path.resolve(__dirname, 'src')
       }
     },
+
     server: {
       // 仅在非mock环境下启用代理（对接后端），mock环境保留空proxy（MSW拦截）
       proxy: env.VITE_USE_MSW === 'true' ? {} : {
@@ -45,9 +46,20 @@ export default defineConfig(({ command, mode }) => {
         ].join('; ')
       }
     },
-    // 可选：添加优化依赖，避免MSW加载问题
-    //optimizeDeps: {
-    //  include: ['msw']
-    //}
+
+    // 构建配置优化
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          // 确保生成的资源文件路径正确
+          chunkFileNames: 'assets/[name]-[hash].js',
+          entryFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]'
+        }
+      }
+    }
   }
 })
