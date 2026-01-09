@@ -9,8 +9,6 @@
         <result property="realName" column="real_name" />
         <result property="password" column="password" />
         <result property="email" column="email" />
-        <result property="createdAt" column="created_at" />
-        <result property="updatedAt" column="updated_at" />
     </resultMap>
 
     <!-- 根据用户ID查询用户 -->

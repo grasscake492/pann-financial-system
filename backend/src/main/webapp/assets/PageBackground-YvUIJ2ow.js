@@ -1,0 +1,1 @@
+import{hh as n,hr as r,hn as s,hL as t}from"./index-C7oC9Sm-.js";const o={},a={class:"gradient-bg"};function c(e,d){return s(),r("div",a,[t(e.$slots,"default",{},void 0,!0)])}const f=n(o,[["render",c],["__scopeId","data-v-814594d2"]]);export{f as P};

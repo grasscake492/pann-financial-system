@@ -1,31 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="AnalysisUIOptions">
-    <option name="SCOPE_TYPE" value="3" />
-  </component>
   <component name="ArtifactsWorkspaceSettings">
     <artifacts-to-build>
-      <artifact name="pann-financial-system:Web exploded" />
       <artifact name="pann-financial-system:war" />
+      <artifact name="pann-financial-system:war exploded" />
     </artifacts-to-build>
   </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8e9f21c8-288c-4499-93b5-215a6aa4e639" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/webapp/WEB-INF/web.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/artifacts/pann_financial_system_Web_exploded.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/artifacts/pann_financial_system_Web_exploded/WEB-INF/classes/spring-mvc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/out/artifacts/pann_financial_system_Web_exploded/WEB-INF/classes/spring-mvc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/applicationContext.xml" beforeDir="false" />
+    <list default="true" id="406361d8-e4a8-4cd9-a1a8-7a01149f62fe" name="更改" comment="Merge branch 'main' of https://github.com/grasscake492/pann-financial-system&#10;Merge remote-tracking branch 'origin/main'">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/webapp/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/webapp/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/dao/mapper/UserMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/dao/mapper/UserMapper.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/applicationContext.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/applicationContext.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/database.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/database.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/spring-mvc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/spring-mvc.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,7 +27,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Jsp File" />
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -46,13 +38,13 @@
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
     &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;grasscake492&quot;
+    &quot;assignee&quot;: &quot;123lymhhhh456&quot;
   }
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/grasscake492/pann-financial-system.git&quot;,
-    &quot;accountId&quot;: &quot;7dafd945-28d2-4cd4-9335-772f432f2ad6&quot;
+    &quot;accountId&quot;: &quot;2296f294-c800-4f41-8e1a-2ecde4ccbe2f&quot;
   }
 }</component>
   <component name="LogFilters">
@@ -62,98 +54,107 @@
     <option name="FILTER_DEBUG" value="true" />
     <option name="CUSTOM_FILTER" />
   </component>
-  <component name="MavenImportPreferences">
-    <option name="generalSettings">
-      <MavenGeneralSettings>
-        <option name="customMavenHome" value="E:\IDEA\apache-maven-3.9.10-bin\apache-maven-3.9.10" />
-        <option name="localRepository" value="E:\IDEA\apache-maven-3.9.10-bin\MAVEN—local repository" />
-        <option name="mavenHomeTypeForPersistence" value="CUSTOM" />
-        <option name="userSettingsFile" value="C:\Users\12824\.m2\repository\conf\settings.xml" />
-      </MavenGeneralSettings>
-    </option>
-  </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 0
+  &quot;associatedIndex&quot;: 8
 }</component>
-  <component name="ProjectId" id="35okSw51F3X8xnTnl0GvOiznPIv" />
+  <component name="ProjectId" id="35p6yNrnOJlRJFRsao0GhkI4dF1" />
   <component name="ProjectViewState">
-    <option name="flattenModules" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
-    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
-    &quot;JavaScript 调试.index.html.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.pann-financial-system [Reload,All,Maven...].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.pann-financial-system [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.pann-financial-system [test].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.pann-financial-system [validate].executor&quot;: &quot;Run&quot;,
+    &quot;HTTP 请求.generated-requests | #1.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP 请求.generated-requests | #3.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP 请求.generated-requests | #4.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP 请求.generated-requests | #5.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP 请求.generated-requests | #6.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP 请求.generated-requests | #7.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP 请求.generated-requests | 3. 测试应用的静态资源（如果有）.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP 请求.generated-requests | 4. 测试 Tomcat 默认应用.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.DatabaseConnectionTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.DepartmentLogicTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.MyBatisConfigTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.ProxyDepartmentTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RoyaltyDepartmentTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.RoyaltyServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.SimpleConnectionTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.UserMapperTest.executor&quot;: &quot;Run&quot;,
+    &quot;JavaScript 调试.Tomcat 10.1.48 JavaScript.executor&quot;: &quot;Debug&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;Tomcat 服务器.Tomcat 10.1.49.executor&quot;: &quot;Run&quot;,
-    &quot;Tomcat 服务器.Tomcat 9.0.105.executor&quot;: &quot;Run&quot;,
+    &quot;TestNG.RoyaltyServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;Tomcat 服务器.Tomcat 10.1.48.executor&quot;: &quot;Run&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;F:/pann-financial-system/pann-financial-system&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/qiyejiyingyongkecheng/pann-financial-system&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;onboarding.tips.debug.path&quot;: &quot;F:/pann-financial-system/pann-financial-system/src/main/java/org/pann/Main.java&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Facet&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;模块&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.applicationServers&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;E:\\IDEA\\IntelliJ IDEA 2025.1\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;Errors&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;D:\\IDEA U\\IntelliJ IDEA 2025.1.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;,
+    &quot;应用程序.NewDatabaseConnectionTest.executor&quot;: &quot;Debug&quot;,
+    &quot;应用程序.SimpleSpringTest.executor&quot;: &quot;Run&quot;,
+    &quot;应用程序.TestPath.executor&quot;: &quot;Run&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;ChangesTree.GroupingKeys&quot;: [
+      &quot;directory&quot;,
+      &quot;module&quot;,
+      &quot;repository&quot;
+    ],
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql&quot;
+    ]
   }
 }</component>
-  <component name="QodanaReportsService">
-    <option name="descriptions">
-      <ReportDescription localRun="true" path="C:\Users\12824\AppData\Local\Temp\qodana_output\qodana.sarif.json" reportGuid="4bf58848-f9de-4c9b-891e-3075863bf4d3" reportId="pann-financial-system/qodana/2026-01-05" />
-    </option>
-  </component>
   <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="F:\pann-financial-system\pann-financial-system\src\main\resources" />
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\qiyejiyingyongkecheng\pann-financial-system\src\main\webapp" />
+      <recent name="D:\qiyejiyingyongkecheng\pann-financial-system\src\main\java\org\test" />
+      <recent name="D:\企业级应用课程\pann-financial-system\src\main\java\org\dao" />
+      <recent name="D:\企业级应用课程\pann-financial-system\src\main" />
+      <recent name="D:\企业级应用课程\pann-financial-system\src\test\resources" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="org.test" />
+      <recent name="org.service.impl" />
     </key>
   </component>
-  <component name="RunAnythingCache">
-    <option name="myCommands">
-      <command value="mvn Reload All Maven --projects" />
-    </option>
-  </component>
-  <component name="RunManager" selected="Tomcat 服务器.Tomcat 10.1.49">
-    <configuration name="index.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/pann-financial-system/src/main/webapp/index.html" useBuiltInWebServerPort="true">
+  <component name="RunManager" selected="Tomcat 服务器.Tomcat 10.1.48">
+    <configuration name="generated-requests | #3" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/generated-requests.http" executionIdentifier="#3" index="3" runType="运行单个请求">
       <method v="2" />
     </configuration>
-    <configuration name="Tomcat 10.1.49" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 10.1.49" ALTERNATIVE_JRE_ENABLED="false">
+    <configuration name="Tomcat 10.1.48" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 10.1.48" ALTERNATIVE_JRE_ENABLED="false" nameIsGenerated="true">
+      <option name="OPEN_IN_BROWSER_URL" value="http://localhost:8090/pann-financial-system/" />
+      <option name="START_JAVASCRIPT_DEBUGGER" value="true" />
       <option name="UPDATING_POLICY" value="restart-server" />
       <deployment>
-        <artifact name="pann-financial-system:Web exploded">
+        <artifact name="pann-financial-system:war exploded">
           <settings>
-            <option name="CONTEXT_PATH" value="/" />
+            <option name="CONTEXT_PATH" value="/pann_financial_system_war_exploded" />
           </settings>
         </artifact>
         <artifact name="pann-financial-system:war">
           <settings>
-            <option name="CONTEXT_PATH" value="/pann-financial-system" />
+            <option name="CONTEXT_PATH" value="/pann_financial_system_war" />
           </settings>
         </artifact>
       </deployment>
       <server-settings>
-        <option name="BASE_DIRECTORY_NAME" value="c35c9e47-519f-4294-b8d6-0396f49dbd60" />
+        <option name="BASE_DIRECTORY_NAME" value="ea50b0ef-c77f-457c-bd6b-d59869c9adfc" />
         <option name="DEPLOY_TOMCAT_APPS" value="true" />
-        <option name="HTTP_PORT" value="8084" />
+        <option name="HTTP_PORT" value="8090" />
       </server-settings>
       <predefined_log_file enabled="true" id="Tomcat" />
       <predefined_log_file enabled="true" id="Tomcat Catalina" />
@@ -161,7 +162,7 @@
       <predefined_log_file id="Tomcat Host Manager" />
       <predefined_log_file id="Tomcat Localhost Access" />
       <RunnerSettings RunnerId="Debug">
-        <option name="DEBUG_PORT" value="54639" />
+        <option name="DEBUG_PORT" value="52695" />
       </RunnerSettings>
       <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Cover">
         <option name="USE_ENV_VARIABLES" value="true" />
@@ -226,89 +227,103 @@
       <method v="2">
         <option name="Make" enabled="true" />
         <option name="BuildArtifacts" enabled="true">
-          <artifact name="pann-financial-system:Web exploded" />
+          <artifact name="pann-financial-system:war exploded" />
           <artifact name="pann-financial-system:war" />
         </option>
       </method>
     </configuration>
+    <list>
+      <item itemvalue="HTTP 请求.generated-requests | #3" />
+      <item itemvalue="Tomcat 服务器.Tomcat 10.1.48" />
+    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="JavaScript 调试.index.html" />
+        <item itemvalue="HTTP 请求.generated-requests | #3" />
       </list>
     </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.23774.435" />
-        <option value="bundled-js-predefined-d6986cc7102b-f27c65a3e318-JavaScript-IU-251.23774.435" />
+        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.26927.53" />
+        <option value="bundled-js-predefined-d6986cc7102b-09060db00ec0-JavaScript-IU-251.26927.53" />
       </set>
     </attachedChunks>
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="默认任务">
-      <changelist id="8e9f21c8-288c-4499-93b5-215a6aa4e639" name="更改" comment="" />
-      <created>1763783816435</created>
+      <changelist id="406361d8-e4a8-4cd9-a1a8-7a01149f62fe" name="更改" comment="" />
+      <created>1763794920356</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1763783816435</updated>
-      <workItem from="1763783817631" duration="4429000" />
-      <workItem from="1763795604917" duration="188000" />
-      <workItem from="1763795966875" duration="28000" />
-      <workItem from="1763909380481" duration="13000" />
-      <workItem from="1764671458843" duration="4115000" />
-      <workItem from="1764740912954" duration="11233000" />
-      <workItem from="1764926282538" duration="644000" />
-      <workItem from="1766042783933" duration="6331000" />
-      <workItem from="1766123605087" duration="2912000" />
-      <workItem from="1766236535332" duration="2312000" />
-      <workItem from="1766294498485" duration="2505000" />
-      <workItem from="1766407118396" duration="1399000" />
-      <workItem from="1766408561598" duration="1998000" />
-      <workItem from="1766472275595" duration="5382000" />
-      <workItem from="1766815978686" duration="3308000" />
-      <workItem from="1767020679705" duration="6878000" />
-      <workItem from="1767406673295" duration="1351000" />
-      <workItem from="1767544120271" duration="10716000" />
-      <workItem from="1767602908062" duration="8279000" />
-      <workItem from="1767611669610" duration="470000" />
-      <workItem from="1767612157672" duration="9727000" />
-      <workItem from="1767688465300" duration="1837000" />
-      <workItem from="1767690334701" duration="40338000" />
-      <workItem from="1767799453306" duration="16188000" />
-      <workItem from="1767874703228" duration="127000" />
-      <workItem from="1767874862851" duration="41000" />
+      <updated>1763794920356</updated>
+      <workItem from="1763794921447" duration="632000" />
+      <workItem from="1763887322043" duration="41000" />
+      <workItem from="1764152681949" duration="9504000" />
+      <workItem from="1764396819365" duration="12619000" />
+      <workItem from="1764772084876" duration="2237000" />
+      <workItem from="1764821405357" duration="365000" />
+      <workItem from="1765116718230" duration="2527000" />
+      <workItem from="1765166590831" duration="8449000" />
+      <workItem from="1765356663274" duration="12549000" />
+      <workItem from="1765715098963" duration="3000" />
+      <workItem from="1766018859745" duration="10919000" />
+      <workItem from="1766040229163" duration="12118000" />
+      <workItem from="1766056955706" duration="7620000" />
+      <workItem from="1766241229504" duration="8686000" />
+      <workItem from="1766250711493" duration="4132000" />
+      <workItem from="1766255458196" duration="4628000" />
+      <workItem from="1766362621231" duration="2517000" />
+      <workItem from="1766386183045" duration="1601000" />
+      <workItem from="1766407776074" duration="199000" />
+      <workItem from="1766407990544" duration="1184000" />
+      <workItem from="1766810166709" duration="588000" />
+      <workItem from="1766816033534" duration="3995000" />
+      <workItem from="1766820086657" duration="10142000" />
+      <workItem from="1767022492247" duration="1237000" />
+      <workItem from="1767055645329" duration="15310000" />
+      <workItem from="1767377608399" duration="5000" />
+      <workItem from="1767598192552" duration="4383000" />
+      <workItem from="1767602642213" duration="3268000" />
+      <workItem from="1767606041688" duration="8952000" />
+      <workItem from="1767615661453" duration="2550000" />
+      <workItem from="1767620549842" duration="8720000" />
+      <workItem from="1767665118240" duration="11925000" />
+      <workItem from="1767691587031" duration="19741000" />
+      <workItem from="1767766628898" duration="25656000" />
+      <workItem from="1767797597194" duration="11760000" />
+      <workItem from="1767857037951" duration="1052000" />
+      <workItem from="1767858112237" duration="4811000" />
+      <workItem from="1767863027748" duration="10149000" />
+      <workItem from="1767876892029" duration="181000" />
+      <workItem from="1767877084396" duration="334000" />
+      <workItem from="1767877461193" duration="103000" />
+      <workItem from="1767877583503" duration="5990000" />
+      <workItem from="1767883642743" duration="5181000" />
+      <workItem from="1767889167055" duration="2670000" />
+      <workItem from="1767891923294" duration="174000" />
+      <workItem from="1767941732915" duration="536000" />
     </task>
+    <task id="LOCAL-00001" summary="Merge branch 'main' of https://github.com/grasscake492/pann-financial-system&#10;Merge remote-tracking branch 'origin/main'">
+      <option name="closed" value="true" />
+      <created>1764407840011</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1764407840011</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Merge branch 'main' of https://github.com/grasscake492/pann-financial-system&#10;Merge remote-tracking branch 'origin/main'" />
+    <option name="LAST_COMMIT_MESSAGE" value="Merge branch 'main' of https://github.com/grasscake492/pann-financial-system&#10;Merge remote-tracking branch 'origin/main'" />
   </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/org/pann/Main.java</url>
-          <line>13</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/frontend/src/components/PageBackground2.vue</url>
-          <line>23</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>
