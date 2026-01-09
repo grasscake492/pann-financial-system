@@ -29,10 +29,10 @@ app.mount('#app')
 //frontend/main.js
 //要关掉模拟数据注释！下方！所有内容
 // 1. 注释掉静态全局导入的Mock
-import '../mock/index.js'
+//import '../mock/index.js'
 // 2. 注释掉开发环境动态导入的Mock
-if (process.env.NODE_ENV === 'development') {
-     import('../mock/index.js').then(() => {
-         console.log('Mock服务已动态导入');
-     });
- }
+//if (process.env.NODE_ENV === 'development') {
+//     import('../mock/index.js').then(() => {
+//         console.log('Mock服务已动态导入');
+//     });
+// }

@@ -12,12 +12,7 @@
   <component name="ChangeListManager">
     <list default="true" id="406361d8-e4a8-4cd9-a1a8-7a01149f62fe" name="更改" comment="Merge branch 'main' of https://github.com/grasscake492/pann-financial-system&#10;Merge remote-tracking branch 'origin/main'">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/webapp/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/webapp/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/dao/mapper/UserMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/dao/mapper/UserMapper.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/applicationContext.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/applicationContext.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/database.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/database.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/main.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -302,7 +297,8 @@
       <workItem from="1767883642743" duration="5181000" />
       <workItem from="1767889167055" duration="2670000" />
       <workItem from="1767891923294" duration="174000" />
-      <workItem from="1767941732915" duration="536000" />
+      <workItem from="1767941732915" duration="2320000" />
+      <workItem from="1767944090435" duration="2520000" />
     </task>
     <task id="LOCAL-00001" summary="Merge branch 'main' of https://github.com/grasscake492/pann-financial-system&#10;Merge remote-tracking branch 'origin/main'">
       <option name="closed" value="true" />
