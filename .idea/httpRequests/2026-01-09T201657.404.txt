@@ -1,0 +1,1 @@
+The server is configured with a public base URL of /pann-financial-system/ - did you mean to visit /pann-financial-system/pann_financial_system_war_exploded/users/me?userId=2 instead?

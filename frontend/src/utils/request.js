@@ -7,7 +7,7 @@ import { getStorage } from './storage';
 import { isLogin } from './permission';
 // 创建axios实例，配置基础路径和超时时间
 const service = axios.create({
-    baseURL: 'http://pannfmis', // 接口基础地址（对应接口文档测试地址）
+    baseURL: 'http://localhost:8090/pann-financial-system', // 接口基础地址（对应接口文档测试地址）
     timeout: 10000 // 请求超时时间：10秒
 });
 

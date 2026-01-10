@@ -1,8 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-// 导入权限工具：替换为改造后的auth.js函数
-import { isLogin, checkHomeLoginStatus } from '@/utils/auth.js'
-// 修复：精准导入useUserStore
 import { useUserStore } from '@/stores/user'
+
 // 修复：ElMessage 导入容错
 let ElMessage = null
 try {
@@ -34,12 +32,10 @@ const SuperManage = () => import(/* @vite-ignore */ '@/views/admin/system/SuperM
 
 // 路由规则配置
 const routes = [
-    // 默认路由：未登录跳登录页，已登录跳首页（修复：redirect参数为当前路径）
+    // 关键修改：根路径直接重定向到登录页，不再进行复杂判断
     {
         path: '/',
-        redirect: (to) => {
-            return isLogin() ? '/home' : { path: '/login', query: { redirect: to.fullPath } }
-        }
+        redirect: '/login'
     },
 
     // 公开路由（无需登录）
@@ -86,7 +82,7 @@ const routes = [
         component: UserAnnouncement,
         meta: {
             requiresAuth: true,
-            role: 'user', // 改为字符串，统一格式
+            role: 'user',
             title: '查看公告'
         }
     },
@@ -98,7 +94,7 @@ const routes = [
         component: AdminAnnouncement,
         meta: {
             requiresAuth: true,
-            role: ['super_admin','news_admin', 'editorial_admin', 'operation_admin'], // 所有部门管理员都能进
+            role: ['super_admin','news_admin', 'editorial_admin', 'operation_admin'],
             dept: ['新闻部', '编辑部', '运营部'],
             title: '修改公告'
         }
@@ -111,7 +107,7 @@ const routes = [
         component: EditorCenter,
         meta: {
             requiresAuth: true,
-            role: 'editorial_admin', // 仅编辑部管理员能进
+            role: 'editorial_admin',
             dept: '编辑部',
             title: '编辑部管理中心'
         }
@@ -122,7 +118,7 @@ const routes = [
         component: NewsCenter,
         meta: {
             requiresAuth: true,
-            role: 'news_admin', // 仅新闻部管理员能进
+            role: 'news_admin',
             dept: '新闻部',
             title: '新闻部任务管理'
         }
@@ -133,7 +129,7 @@ const routes = [
         component: OperationCenter,
         meta: {
             requiresAuth: true,
-            role: 'operation_admin', // 仅运营部管理员能进
+            role: 'operation_admin',
             dept: '运营部',
             title: '运营部人员管理'
         }
@@ -159,33 +155,45 @@ const router = createRouter({
 })
 
 // 全局前置守卫（核心：角色+部门权限校验）
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+    console.log('路由守卫开始:', to.path)
+
+    const userStore = useUserStore()
+
     // 1. 处理公开页面：已登录访问login/register，直接跳首页
     if (to.meta?.requiresAuth === false) {
-        if (isLogin()) {
-            if (router.resolve('/home').meta?.requiresAuth) {
-                next('/home');
-                return;
-            }
+        // 等待验证完成（如果尚未验证）
+        if (!userStore.authChecked && localStorage.getItem('pann_token')) {
+            await userStore.initAndValidateUser()
         }
-        next();
-        return;
+
+        // 如果已登录，跳转到首页
+        if (userStore.isValidLogin) {
+            next('/home')
+            return
+        }
+        next()
+        return
     }
 
     // 2. 需要登录的页面：先校验登录态
-    if (!isLogin()) {
+    // 等待权限验证完成（如果尚未验证）
+    if (!userStore.authChecked) {
+        console.log('等待权限验证...')
+        await userStore.initAndValidateUser()
+    }
+
+    if (!userStore.isValidLogin) {
+        console.log('未登录，跳转到登录页')
         next({
             path: '/login',
             query: { redirect: to.fullPath }
         })
-        return;
+        return
     }
 
     // 3. 已登录：初始化用户Store + 校验角色+部门权限
-    const userStore = useUserStore()
-    // 修复：使用userRole getter，而非role属性
     const userRole = userStore.userRole || localStorage.getItem('pann_user_role') || ''
-    // 修复：localStorage解析容错
     const userInfoStr = localStorage.getItem('pann_user_info') || '{}'
     let userInfo = {}
     try {
@@ -195,10 +203,14 @@ router.beforeEach((to, from, next) => {
     }
     const userDept = userInfo.department_name || ''
 
-    // 辅助函数：安全调用checkHomeLoginStatus
+    // 辅助函数：安全调用checkHomeLoginStatus（如果这个函数存在）
     const safeCheckHomeLogin = () => {
-        if (typeof checkHomeLoginStatus === 'function') {
-            checkHomeLoginStatus()
+        // 如果没有这个函数，直接返回
+        if (typeof window.checkHomeLoginStatus !== 'function') return
+        try {
+            window.checkHomeLoginStatus()
+        } catch (e) {
+            console.warn('checkHomeLoginStatus调用失败:', e)
         }
     }
 
@@ -230,7 +242,6 @@ router.beforeEach((to, from, next) => {
     }
 
     // 6. 普通用户：仅放行无角色限制/角色为user的页面
-    // 修复：统一处理role为字符串/数组的情况
     const allowRoles = Array.isArray(to.meta.role) ? to.meta.role : [to.meta.role]
     if (!to.meta.role || allowRoles.includes('user')) {
         if (to.name === 'Home') safeCheckHomeLogin()
@@ -239,7 +250,6 @@ router.beforeEach((to, from, next) => {
         next('/home')
         ElMessage.error('无访问权限，请联系管理员！')
     }
-
 })
 
 // 路由后置守卫：设置页面标题

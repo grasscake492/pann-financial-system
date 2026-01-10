@@ -1,3 +1,101 @@
+GET http://localhost:8090/pann-financial-system/users/me?userId=2
+Content-Type: application/json
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2025.1.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2026-01-09T224320.200.html
+
+###
+
+GET http://localhost:8090/pann-financial-system/users/me?userId=2
+Content-Type: application/json
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2025.1.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2026-01-09T224109.200.html
+
+###
+
+GET http://localhost:8090/pann-financial-system/users/me?userId=2
+Content-Type: application/json
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2025.1.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2026-01-09T223442.200.html
+
+###
+
+GET http://localhost:8080/pann-financial-system/api/test
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2025.1.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2026-01-09T205947.404.html
+
+###
+
+GET http://localhost:8080/pann-financial-system/api/test
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2025.1.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2026-01-09T205635.404.html
+
+###
+
+GET http://localhost:8090/pann-financial-system/users/me?userId=2
+Content-Type: application/json
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2025.1.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2026-01-09T202831.200.html
+
+###
+
+GET http://localhost:8090/pann_financial_system/users/me?userId=2
+Content-Type: application/json
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2025.1.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2026-01-09T202549.404.txt
+
+###
+
+GET http://localhost:8090/pann_financial_system_war_exploded/users/me?userId=2
+Content-Type: application/json
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2025.1.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2026-01-09T202107.404.txt
+
+###
+
+GET http://localhost:8090/pann_financial_system/users/me?userId=2
+Content-Type: application/json
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2025.1.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2026-01-09T202005.404.txt
+
+###
+
+GET http://localhost:8090/pann_financial_system_war_exploded/users/me?userId=2
+Content-Type: application/json
+User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2025.1.3
+Accept-Encoding: br, deflate, gzip, x-gzip
+Accept: */*
+
+<> 2026-01-09T201657.404.txt
+
+###
+
 GET http://localhost:8888/pann_financial_system_war_exploded/users/me?userId=2
 Content-Type: application/json
 User-Agent: IntelliJ HTTP Client/IntelliJ IDEA 2025.1.3

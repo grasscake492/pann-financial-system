@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia'
 import { storage } from '@/utils/index.js'
 // 替换为真实的用户信息接口（需你根据项目调整路径）
-import {fetchUserProfile} from "@/api/user.js";
-
+import { fetchUserProfile } from "@/api/user.js";
 
 /**
  * @typedef {Object} UserInfo
@@ -31,13 +30,14 @@ export const useUserStore = defineStore('user', {
             department_id: '',
             department_name: '',
             admin_id: '',
-            isLogin: !!storage.getToken() // 用Token判断登录状态，更稳定
-        }
+            isLogin: false // 强制初始为false，等待验证
+        },
+        authChecked: false // 新增：标记是否已完成权限验证
     }),
 
     getters: {
         userRole() {
-            const userInfo = this.userInfo || {}; // 兜底 userInfo 为空对象
+            const userInfo = this.userInfo || {};
             // 1. 优先判断超级管理员（最高权限）
             if (userInfo.is_super_admin) {
                 return 'super_admin';
@@ -46,102 +46,192 @@ export const useUserStore = defineStore('user', {
             // 2. 按 department_name 区分具体部门管理员
             const deptName = userInfo.department_name || '';
             if (deptName === '新闻部') {
-                return 'news_admin'; // 新闻部管理员
+                return 'news_admin';
             } else if (deptName === '编辑部') {
-                return 'editorial_admin'; // 编辑部管理员
+                return 'editorial_admin';
             } else if (deptName === '运营部') {
-                return 'operation_admin'; // 运营部管理员
+                return 'operation_admin';
             }
 
             // 3. 其余情况（无部门/非上述部门）均为普通用户
             return 'normal_user';
         },
-        // 可选：新增快捷判断各部门管理员的 getter（方便后续使用）
+
         isNewsAdmin() {
             return this.userRole === 'news_admin';
         },
+
         isEditorAdmin() {
             return this.userRole === 'editorial_admin';
         },
+
         isOperationAdmin() {
             return this.userRole === 'operation_admin';
         },
+
         isDeptAdmin() {
-            // 只要是任意部门管理员，都返回 true
             return ['news_admin', 'editorial_admin', 'operation_admin'].includes(this.userRole);
         },
+
         isSuperAdmin() {
             return this.userRole === 'super_admin';
         },
+
         isNormalUser() {
             return this.userRole === 'normal_user';
+        },
+
+        // 新增：严格的登录验证getter
+        isValidLogin() {
+            return (
+                this.userInfo.token &&
+                this.userInfo.isLogin &&
+                this.userInfo.user_id &&
+                this.authChecked
+            );
         }
     },
 
     actions: {
+        // 新增：初始化时验证token有效性
+        async initAndValidateUser() {
+            const token = storage.getToken();
+
+            // 如果没有token，直接设为未登录
+            if (!token) {
+                this.clearUserInfo();
+                this.authChecked = true;
+                return false;
+            }
+
+            // 如果有token，验证其有效性
+            try {
+                console.log('开始验证token有效性...');
+                const res = await this.loadUserProfile();
+
+                if (res && res.res_code === "0000") {
+                    // token有效，设置登录状态
+                    this.userInfo.isLogin = true;
+                    this.authChecked = true;
+                    console.log('Token验证成功，用户已登录');
+                    return true;
+                } else {
+                    // token无效，清理
+                    console.warn('Token验证失败，清理用户数据');
+                    this.clearUserInfo();
+                    this.authChecked = true;
+                    return false;
+                }
+            } catch (error) {
+                console.error('Token验证异常:', error);
+                this.clearUserInfo();
+                this.authChecked = true;
+                return false;
+            }
+        },
+
         // 修复：真实调用用户信息接口
         async loadUserProfile() {
-            const token = this.userInfo.token; // 读的是登录页存入stores的token
+            const token = this.userInfo.token;
             if (!token) {
-                console.warn('【fetchUserProfile】无Token，跳过用户信息拉取'); // 补充日志，便于调试
-                return; // 直接返回，避免后续逻辑执行
+                console.warn('【fetchUserProfile】无Token，跳过用户信息拉取');
+                this.userInfo.isLogin = false;
+                return;
             }
 
             try {
-                // 调用真实接口（参数需根据后端要求调整）
-                const res = await fetchUserProfile()
+                // 调用真实接口
+                const res = await fetchUserProfile();
 
                 if (res.res_code === "0000") {
                     // 兜底：如果接口返回的data为空，不覆盖原有数据
                     const newData = res.data || {};
+
                     // 合并接口返回的用户信息，标记登录状态
                     this.userInfo = {
-                        ...newData, // 接口数据（空则为{}，避免覆盖）
-                        ...this.userInfo, // 登录时的原始数据（优先级更高）
-                        isLogin: true
+                        ...newData,
+                        token: this.userInfo.token, // 保持原有token
+                        isLogin: true // 验证成功才设为true
+                    };
+
+                    // 更新本地存储的用户信息
+                    if (newData.user_id) {
+                        localStorage.setItem('pann_user_info', JSON.stringify(newData));
                     }
 
+                    console.log('用户信息加载成功');
+                    return res;
                 } else {
-                    console.error('【fetchUserProfile】接口返回错误：', res.res_msg || '未知错误'); // 修正：接口返回的是res_msg而非msg
+                    console.error('【fetchUserProfile】接口返回错误：', res.res_msg || '未知错误');
+                    this.userInfo.isLogin = false;
+                    return res;
                 }
-                return res;
             } catch (error) {
                 console.error('【fetchUserProfile】请求失败：', error);
-                // 兜底：请求失败时不修改原有用户信息，避免登录态丢失
+                // 请求失败，设为未登录状态
+                this.userInfo.isLogin = false;
+                throw error; // 抛出错误让调用者处理
             }
         },
+
         // 登录成功后更新用户信息（登录页调用）
         updateUserInfo(data) {
-            this.userInfo.token = data.token || this.userInfo.token
-            this.userInfo = { ...this.userInfo, ...data.userInfo, isLogin: true }
-            // 同步存储Token到本地（保证刷新页面不丢失）
-            storage.setToken(this.userInfo.token)
+            if (data.token) {
+                this.userInfo.token = data.token;
+                storage.setToken(data.token);
+            }
+
+            // 合并用户信息，但isLogin暂时不设置
+            this.userInfo = {
+                ...this.userInfo,
+                ...data.userInfo
+            };
+
+            // 保存用户信息到本地存储
+            if (data.userInfo) {
+                localStorage.setItem('pann_user_info', JSON.stringify(data.userInfo));
+            }
+        },
+
+        // 登录验证成功后的最终确认
+        confirmLogin() {
+            this.userInfo.isLogin = true;
+            this.authChecked = true;
+
+            // 保存角色信息到本地存储（用于路由守卫）
+            localStorage.setItem('pann_user_role', this.userRole);
         },
 
         setIsSuperAdmin(isSuperAdmin) {
-            this.userInfo.is_super_admin = isSuperAdmin
+            this.userInfo.is_super_admin = isSuperAdmin;
         },
 
         setDeptName(deptName) {
-            this.userInfo.department_name = deptName.trim()
+            this.userInfo.department_name = deptName.trim();
         },
 
         setIsAdmin(isAdmin) {
             if (typeof isAdmin === 'boolean') {
-                this.userInfo.admin_id = isAdmin ? this.userInfo.admin_id : ''
+                this.userInfo.admin_id = isAdmin ? this.userInfo.admin_id : '';
             } else {
-                this.userInfo.admin_id = isAdmin
+                this.userInfo.admin_id = isAdmin;
             }
         },
 
         setUserInfo(userData) {
-            this.userInfo = { ...this.userInfo, ...userData, isLogin: true }
-            storage.setToken(this.userInfo.token) // 同步Token
+            this.userInfo = {
+                ...this.userInfo,
+                ...userData
+            };
+
+            if (userData.token) {
+                storage.setToken(userData.token);
+            }
         },
 
         updateUserProfile(data) {
-            this.userInfo.real_name = data.real_name || this.userInfo.real_name
-            this.userInfo.email = data.email || this.userInfo.email
+            this.userInfo.real_name = data.real_name || this.userInfo.real_name;
+            this.userInfo.email = data.email || this.userInfo.email;
         },
 
         async changePassword(oldPwd, newPwd) {
@@ -165,16 +255,27 @@ export const useUserStore = defineStore('user', {
                 department_name: '',
                 admin_id: '',
                 isLogin: false
-            }
-            // 清空本地Token
-            storage.removeToken()
+            };
+            this.authChecked = false;
+
+            // 清空本地存储的所有登录相关数据
+            storage.removeToken();
+            localStorage.removeItem('pann_user_info');
+            localStorage.removeItem('pann_user_role');
+
+            console.log('用户信息已清除');
         },
 
         updateUserRole(data) {
             if (this.userInfo.is_super_admin) {
-                this.userInfo.is_super_admin = data.is_super_admin || this.userInfo.is_super_admin
-                this.userInfo.department_id = data.department_id || this.userInfo.department_id
+                this.userInfo.is_super_admin = data.is_super_admin || this.userInfo.is_super_admin;
+                this.userInfo.department_id = data.department_id || this.userInfo.department_id;
             }
+        },
+
+        // 新增：检查并更新本地存储的角色信息
+        updateLocalStorageRole() {
+            localStorage.setItem('pann_user_role', this.userRole);
         }
     }
-})
+});

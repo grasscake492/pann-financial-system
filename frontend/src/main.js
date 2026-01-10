@@ -12,27 +12,65 @@ import './assets/css/global.css'
 import ElementPlus from 'element-plus' // 引入Element Plus核心
 import 'element-plus/dist/index.css' // 引入样式
 
-// 仅开发环境加载MSW
-
 // 创建Vue应用实例
-// 全局唯一的Pinia实例
-
 const app = createApp(App)
+const pinia = createPinia()
+
+// 关键修改：在安装路由之前执行清理
+const cleanupStorage = () => {
+    console.log('应用启动，清理可能残留的登录数据...')
+
+    // 检查并清理不完整的登录数据
+    const token = localStorage.getItem('pann_token')
+    const userRole = localStorage.getItem('pann_user_role')
+    const userInfo = localStorage.getItem('pann_user_info')
+
+    // 如果只有token没有其他信息，视为无效数据
+    if (token && (!userRole || !userInfo)) {
+        console.warn('发现不完整的登录数据，执行清理...')
+        localStorage.removeItem('pann_token')
+        localStorage.removeItem('pann_user_role')
+        localStorage.removeItem('pann_user_info')
+    }
+
+    // 尝试解析userInfo，如果不是有效JSON，清理
+    if (userInfo) {
+        try {
+            JSON.parse(userInfo)
+        } catch {
+            console.warn('userInfo不是有效JSON，执行清理...')
+            localStorage.removeItem('pann_token')
+            localStorage.removeItem('pann_user_role')
+            localStorage.removeItem('pann_user_info')
+        }
+    }
+}
+
+// 执行清理
+cleanupStorage()
 
 // 注册全局插件/依赖
-app.use(createPinia()) // 注册Pinia，后续可使用stores中的状态
-app.use(router) // 注册路由，后续可通过路由跳转页面
-app.use(ElementPlus) // 注册Element Plus组件库
+app.use(pinia)
+app.use(router)
+app.use(ElementPlus)
+
 // 将Vue实例挂载到public/index.html中的#app容器
 app.mount('#app')
 
-//frontend/main.js
-//要关掉模拟数据注释！下方！所有内容
-// 1. 注释掉静态全局导入的Mock
-//import '../mock/index.js'
-// 2. 注释掉开发环境动态导入的Mock
-//if (process.env.NODE_ENV === 'development') {
-//     import('../mock/index.js').then(() => {
-//         console.log('Mock服务已动态导入');
-//     });
-// }
+
+// =============================================
+// Mock 模拟数据开关配置
+// 通过注释以下两处代码来控制是否启用Mock数据
+// =============================================
+
+// ==========【方法一：静态全局导入Mock】==========
+// 如果启用Mock数据，取消下面这行的注释
+ //import '../mock/index.js'  // 取消注释开启静态Mock
+
+// ==========【方法二：动态导入Mock】==========
+// 如果启用Mock数据，取消下面整个if语句的注释
+ //if (process.env.NODE_ENV === 'development') {
+ //    import('../mock/index.js').then(() => {
+ //        console.log('Mock服务已动态导入');
+ //    });
+ //}
