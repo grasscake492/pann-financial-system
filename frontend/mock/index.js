@@ -643,6 +643,130 @@ Mock.mock(/\/api\/v1\/admin\/royalty\/department/, 'get', (options) => {
     };
 });
 
+//10.1 ====== 公告模块 ======
+
+// 获取公告列表
+Mock.mock(/\/api\/v1\/announcements$/, 'get', (options) => {
+    const urlParams = options.url.split('?')[1] || '';
+    const params = {};
+    urlParams.split('&').forEach(item => {
+        const [key, val] = item.split('=');
+        if (key) params[key] = decodeURIComponent(val);
+    });
+
+    const { page = 1, size = 10, keyword = '' } = params;
+
+    let list = FIXED_DATA.announcements;
+
+    // 关键词过滤
+    if (keyword) {
+        list = list.filter(item =>
+            item.title.includes(keyword) ||
+            item.content.includes(keyword)
+        );
+    }
+
+    const start = (page - 1) * size;
+    const end = start + Number(size);
+
+    return {
+        res_code: '0000',
+        res_msg: '查询成功',
+        data: encryptData({
+            total: list.length,
+            list: list.slice(start, end),
+            page: Number(page),
+            size: Number(size)
+        })
+    };
+});
+
+// 新增公告
+Mock.mock(/\/api\/v1\/admin\/announcements$/, 'post', (options) => {
+    const params = decryptData(options.body || '');
+
+    if (!params.title || !params.content || !params.publisher_id) {
+        return {
+            res_code: '0002',
+            res_msg: '参数缺失',
+            data: null
+        };
+    }
+
+    const newAnnouncement = {
+        announcement_id: `a${Date.now()}`,
+        title: params.title,
+        content: params.content,
+        publisher_id: params.publisher_id,
+        published_at: getFixedDatetime(FIXED_DATA.announcements.length + 1),
+        created_at: getFixedDatetime(FIXED_DATA.announcements.length + 1),
+        updated_at: getFixedDatetime(FIXED_DATA.announcements.length + 1)
+    };
+
+    FIXED_DATA.announcements.unshift(newAnnouncement); // 最新的放前面
+
+    return {
+        res_code: '0000',
+        res_msg: '新增成功',
+        data: encryptData(newAnnouncement)
+    };
+});
+
+// 修改公告
+Mock.mock(/\/api\/v1\/admin\/announcements\/a\d+/, 'put', (options) => {
+    const params = decryptData(options.body || '');
+    const announcementId = options.url.split('/').pop();
+
+    const target = FIXED_DATA.announcements.find(
+        item => item.announcement_id === announcementId
+    );
+
+    if (!target) {
+        return {
+            res_code: '0004',
+            res_msg: '公告不存在',
+            data: null
+        };
+    }
+
+    target.title = params.title ?? target.title;
+    target.content = params.content ?? target.content;
+    target.updated_at = getFixedDatetime(FIXED_DATA.announcements.length + 2);
+
+    return {
+        res_code: '0000',
+        res_msg: '修改成功',
+        data: encryptData(target)
+    };
+});
+
+// 删除公告
+Mock.mock(/\/api\/v1\/admin\/announcements\/a\d+/, 'delete', (options) => {
+    const announcementId = options.url.split('/').pop();
+
+    const index = FIXED_DATA.announcements.findIndex(
+        item => item.announcement_id === announcementId
+    );
+
+    if (index === -1) {
+        return {
+            res_code: '0004',
+            res_msg: '公告不存在',
+            data: null
+        };
+    }
+
+    FIXED_DATA.announcements.splice(index, 1);
+
+    return {
+        res_code: '0000',
+        res_msg: '删除成功',
+        data: null
+    };
+});
+
+
+
 // 11. 查询全部稿费接口（2.5.11）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/royalty\/all/, 'get', (options) => {
     const urlParams = options.url.split('?')[1] || '';
@@ -1146,6 +1270,7 @@ Mock.mock(/\/api\/v1\/home\/dashboard/, 'get', (options) => {
         res_msg: '查询成功',
         data: encryptData(successData)
     };
+
 });
 
 console.log('✅ PANN财务系统 - 固定数据Mock服务已启动（仅开发环境）');
