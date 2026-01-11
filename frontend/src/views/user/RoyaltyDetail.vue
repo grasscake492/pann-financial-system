@@ -268,7 +268,7 @@ const formatDate = (dateStr) => {
 
 // 获取稿费列表（核心方法）
 const fetchRoyaltyList = async () => {
-  // 日期校验 - 结束日期不能早于开始日期
+  // 日期校验
   if (queryParams.startDate && queryParams.endDate) {
     if (new Date(queryParams.endDate) < new Date(queryParams.startDate)) {
       ElMessage.error('结束日期不能早于开始日期，请重新选择');
@@ -286,40 +286,31 @@ const fetchRoyaltyList = async () => {
     if (res.res_code === '0000') {
       const { total, list } = res.data;
       totalCount.value = total;
-      // 日期过滤
-      let finalList = list.filter(item => {
-        const itemDate = item.created_at ? item.created_at.split(' ')[0] : '';
-        if (!queryParams.startDate && !queryParams.endDate) return true;
-        if (queryParams.startDate && !queryParams.endDate) {
-          return itemDate >= queryParams.startDate;
-        }
-        if (!queryParams.startDate && queryParams.endDate) {
-          return itemDate <= queryParams.endDate;
-        }
-        return itemDate >= queryParams.startDate && itemDate <= queryParams.endDate;
-      });
-      // 任务名称过滤
+
+      // 前端过滤任务名称
+      let finalList = list;
       if (queryParams.taskName) {
-        finalList = finalList.filter(item => {
-          return item.article_title?.toLowerCase().includes(queryParams.taskName.toLowerCase());
-        });
+        finalList = list.filter(item => item.article_title?.toLowerCase().includes(queryParams.taskName.toLowerCase()));
       }
+
       feeList.value = finalList;
+
+      // 只累加当前用户的稿费金额
       totalAmount.value = finalList.reduce((sum, item) => sum + (Number(item.fee_amount) || 0), 0);
     } else {
-      alert(`查询失败：${res.res_msg}`);
+      ElMessage.error(`查询失败：${res.res_msg}`);
       feeList.value = [];
       totalCount.value = 0;
       totalAmount.value = 0;
     }
   } catch (error) {
-    console.error('查询稿费明细失败：', error);
-    alert('网络异常，查询失败');
+    console.error(error);
     feeList.value = [];
     totalCount.value = 0;
     totalAmount.value = 0;
   }
 };
+
 // 重置查询条件
 const resetQuery = () => {
   queryParams.startDate = '2026-01-01'; // 重置为默认开始日期

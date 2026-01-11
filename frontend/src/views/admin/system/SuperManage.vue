@@ -2221,11 +2221,6 @@ loadUserList(); // 初始化加载成员列表
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  /* 移除左外边距，添加右对齐相关样式 */
-  /* margin-left: 0;*/
-  /*margin-right: 60px;
-  margin-top: -40px;*/
-  /* 核心：设置按钮靠右 */
   display: inline-block;
  /* float: right;*/
   /* 可选：hover效果，保持和其他按钮一致 */

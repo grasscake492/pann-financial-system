@@ -11,7 +11,7 @@ export default defineConfig(({ command, mode }) => {
 
   return {
     // 关键：添加基础路径配置
-    base: '/pann-financial-system/',
+    base: './',
 
     plugins: [
       vue(),
