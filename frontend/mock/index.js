@@ -1456,20 +1456,3 @@ Mock.mock(/\/api\/v1\/home\/dashboard/, 'get', (options) => {
     };
 });
 
-console.log('✅ PANN财务系统 - 固定数据Mock服务已启动（仅开发环境）');
-console.log('📅 数据时间范围：2026-01-01 至 2026-01-11');
-console.log('👥 固定用户：5个（1系统管理员+3部门管理员+1普通用户）');
-console.log('🔐 登录密码验证已启用');
-console.log('📋 用户对应密码：');
-console.log('   学号 100000000001 密码：zhangsan123 (系统管理员)');
-console.log('   学号 100000000002 密码：lisi123 (新闻部管理员)');
-console.log('   学号 100000000003 密码：wangwu123 (编辑部管理员)');
-console.log('   学号 100000000004 密码：zhaoliu123 (运营部管理员)');
-console.log('   学号 200000000001 密码：sunqi123 (普通用户)');
-console.log('🔗 个人信息页面和首页数据已关联到当前登录用户');
-console.log('🔄 个人信息修改功能已启用，修改后会同步到首页和账户页面');
-console.log('🎓 学号修改功能已启用，修改后相关数据中的用户信息也会同步更新');
-console.log('👥 人员管理功能已启用：');
-console.log('   1. 修改角色功能：可以修改用户的所属部门和用户角色');
-console.log('   2. 新增成员功能：可以添加新的用户，支持设置角色和部门');
-console.log('   新增用户默认密码为学号后6位');
