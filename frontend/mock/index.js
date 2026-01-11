@@ -10,7 +10,6 @@ Mock.Random.extend({
     seed: 'pann2026' // 设置随机种子
 });
 
-
 // 生成固定ID（基于索引）
 const getFixedId = (len = 8, seed = '') => {
     if (seed) {
@@ -58,7 +57,12 @@ const getFixedAmount = (index) => {
 };
 
 // 固定部门
-const fixedDepartments = ['新闻部', '编辑部', '运营部'];
+const fixedDepartments = [
+    { id: "1", name: "新闻部" },
+    { id: "2", name: "编辑部" },
+    { id: "3", name: "运营部" }
+];
+
 // 固定稿件类型
 const fixedArticleTypes = ['新闻', '校对', '编辑', '策划', '采访', '排版'];
 // 固定反馈状态
@@ -210,6 +214,11 @@ const getUserById = (userId) => {
     return Object.values(fixedUsers).find(user => user.user_id === userId) || null;
 };
 
+// ==================== 新增：根据学号获取用户 ====================
+const getUserByStudentNumber = (studentNumber) => {
+    return Object.values(fixedUsers).find(user => user.student_number === studentNumber) || null;
+};
+
 // ==================== 新增：更新相关数据中的用户信息 ====================
 const updateRelatedDataUserInfo = (oldStudentNumber, newStudentNumber, newRealName, newEmail) => {
     // 更新稿费记录中的用户信息
@@ -353,9 +362,32 @@ Mock.mock(/\/auth\/register\/xxx/, 'post', (options) => {
         return { res_code: '0006', res_msg: '白名单校验失败！', data: null };
     }
 
-    const newUserId = Object.keys(fixedUsers).length + 1;
+    // 检查学号是否已存在
+    if (getUserByStudentNumber(params.student_number)) {
+        return { res_code: '0004', res_msg: '该学号已存在', data: null };
+    }
+
+    const newUserId = (Object.keys(fixedUsers).length + 1).toString();
+    const newUser = {
+        user_id: newUserId,
+        student_number: params.student_number,
+        real_name: params.real_name,
+        email: params.email,
+        password: params.password,
+        token: `fixed_token_${newUserId}`,
+        permissions: ['read'],
+        is_super_admin: false,
+        department_id: null,
+        department_name: null,
+        admin_id: null,
+        role: "normal_user"
+    };
+
+    // 添加到固定用户
+    fixedUsers[params.student_number] = newUser;
+
     const successData = {
-        user_id: newUserId.toString(),
+        user_id: newUserId,
         student_number: params.student_number,
         real_name: params.real_name,
         email: params.email
@@ -555,27 +587,182 @@ Mock.mock(/\/admin\/users\/xxx/, 'get', (options) => {
     };
 });
 
-// 8. 修改用户角色接口（2.5.8）- 保持原有逻辑
+// 8. 修改用户角色接口（2.5.8）- 修改：实现完整的角色和部门修改功能
 Mock.mock(/\/admin\/users\/role\/xxx/, 'put', (options) => {
     const params = decryptData(options.body || '');
     if (!params.user_id) {
         return { res_code: '0002', res_msg: '参数错误！缺少用户ID', data: null };
     }
 
+    // 查找目标用户
     const userKey = Object.keys(fixedUsers).find(key =>
         fixedUsers[key].user_id === params.user_id
     );
-    const targetUser = userKey ? fixedUsers[userKey] : fixedUsers["100000000001"];
+
+    if (!userKey) {
+        return { res_code: '0004', res_msg: '用户不存在', data: null };
+    }
+
+    const targetUser = fixedUsers[userKey];
+
+    // 更新用户角色和部门信息
+    if (params.is_super_admin !== undefined) {
+        targetUser.is_super_admin = params.is_super_admin;
+
+        // 根据是否为超级管理员设置角色和权限
+        if (params.is_super_admin) {
+            targetUser.role = "super_admin";
+            targetUser.permissions = ['read', 'write', 'manage', 'super'];
+            targetUser.department_id = null;
+            targetUser.department_name = null;
+            targetUser.admin_id = targetUser.user_id;
+        } else {
+            // 如果不是超级管理员，需要设置部门
+            if (params.department_id) {
+                const department = fixedDepartments.find(dept => dept.id === params.department_id);
+                if (department) {
+                    targetUser.department_id = params.department_id;
+                    targetUser.department_name = department.name;
+                    targetUser.role = "dept_admin";
+                    targetUser.permissions = ['read', 'write', 'manage'];
+                    targetUser.admin_id = targetUser.user_id;
+                } else {
+                    targetUser.department_id = null;
+                    targetUser.department_name = null;
+                    targetUser.role = "normal_user";
+                    targetUser.permissions = ['read'];
+                    targetUser.admin_id = null;
+                }
+            } else {
+                targetUser.department_id = null;
+                targetUser.department_name = null;
+                targetUser.role = "normal_user";
+                targetUser.permissions = ['read'];
+                targetUser.admin_id = null;
+            }
+        }
+    } else if (params.department_id !== undefined) {
+        // 仅修改部门
+        if (params.department_id) {
+            const department = fixedDepartments.find(dept => dept.id === params.department_id);
+            if (department) {
+                targetUser.department_id = params.department_id;
+                targetUser.department_name = department.name;
+                // 如果是普通用户分配了部门，自动升级为部门管理员
+                if (targetUser.role === "normal_user") {
+                    targetUser.role = "dept_admin";
+                    targetUser.permissions = ['read', 'write', 'manage'];
+                    targetUser.admin_id = targetUser.user_id;
+                }
+            } else {
+                targetUser.department_id = null;
+                targetUser.department_name = null;
+            }
+        } else {
+            targetUser.department_id = null;
+            targetUser.department_name = null;
+            // 如果没有部门，降级为普通用户
+            if (!targetUser.is_super_admin) {
+                targetUser.role = "normal_user";
+                targetUser.permissions = ['read'];
+                targetUser.admin_id = null;
+            }
+        }
+    }
 
     const successData = {
         user_id: targetUser.user_id,
         real_name: targetUser.real_name,
-        is_super_admin: params.is_super_admin || false,
-        department_id: params.department_id || targetUser.department_id
+        is_super_admin: targetUser.is_super_admin,
+        department_id: targetUser.department_id,
+        department_name: targetUser.department_name,
+        role: targetUser.role,
+        permissions: targetUser.permissions
     };
+
     return {
         res_code: '0000',
         res_msg: '角色修改成功',
+        data: encryptData(successData)
+    };
+});
+
+// ==================== 新增：管理员添加用户接口 ====================
+Mock.mock(/\/admin\/users\/add/, 'post', (options) => {
+    const params = decryptData(options.body || '');
+
+    // 验证必填参数
+    if (!params.student_number || !params.real_name || !params.email) {
+        return { res_code: '0002', res_msg: '参数错误！缺少必填字段', data: null };
+    }
+
+    // 检查学号是否已存在
+    if (getUserByStudentNumber(params.student_number)) {
+        return { res_code: '0004', res_msg: '该学号已存在', data: null };
+    }
+
+    // 生成新的用户ID
+    const newUserId = (Math.max(...Object.values(fixedUsers).map(u => parseInt(u.user_id))) + 1).toString();
+
+    // 设置默认密码（学号后6位）
+    const defaultPassword = params.student_number.slice(-6);
+
+    // 确定用户角色和权限
+    let role = "normal_user";
+    let permissions = ['read'];
+    let department_id = null;
+    let department_name = null;
+    let admin_id = null;
+    let is_super_admin = false;
+
+    if (params.is_super_admin) {
+        role = "super_admin";
+        permissions = ['read', 'write', 'manage', 'super'];
+        is_super_admin = true;
+        admin_id = newUserId;
+    } else if (params.department_id) {
+        const department = fixedDepartments.find(dept => dept.id === params.department_id);
+        if (department) {
+            role = "dept_admin";
+            permissions = ['read', 'write', 'manage'];
+            department_id = params.department_id;
+            department_name = department.name;
+            admin_id = newUserId;
+        }
+    }
+
+    // 创建新用户
+    const newUser = {
+        user_id: newUserId,
+        student_number: params.student_number,
+        real_name: params.real_name,
+        email: params.email,
+        password: defaultPassword,
+        token: `fixed_token_${newUserId}`,
+        permissions: permissions,
+        is_super_admin: is_super_admin,
+        department_id: department_id,
+        department_name: department_name,
+        admin_id: admin_id,
+        role: role
+    };
+
+    // 添加到固定用户
+    fixedUsers[params.student_number] = newUser;
+
+    const successData = {
+        user_id: newUserId,
+        student_number: params.student_number,
+        real_name: params.real_name,
+        email: params.email,
+        role: role,
+        department_name: department_name,
+        default_password: defaultPassword
+    };
+
+    return {
+        res_code: '0000',
+        res_msg: '用户添加成功',
         data: encryptData(successData)
     };
 });
@@ -643,8 +830,7 @@ Mock.mock(/\/api\/v1\/admin\/royalty\/department/, 'get', (options) => {
     };
 });
 
-//10.1 ====== 公告模块 ======
-
+// 10.1 ====== 公告模块 ======
 // 获取公告列表
 Mock.mock(/\/api\/v1\/announcements$/, 'get', (options) => {
     const urlParams = options.url.split('?')[1] || '';
@@ -764,8 +950,6 @@ Mock.mock(/\/api\/v1\/admin\/announcements\/a\d+/, 'delete', (options) => {
         data: null
     };
 });
-
-
 
 // 11. 查询全部稿费接口（2.5.11）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/royalty\/all/, 'get', (options) => {
@@ -1270,7 +1454,6 @@ Mock.mock(/\/api\/v1\/home\/dashboard/, 'get', (options) => {
         res_msg: '查询成功',
         data: encryptData(successData)
     };
-
 });
 
 console.log('✅ PANN财务系统 - 固定数据Mock服务已启动（仅开发环境）');
@@ -1286,3 +1469,7 @@ console.log('   学号 200000000001 密码：sunqi123 (普通用户)');
 console.log('🔗 个人信息页面和首页数据已关联到当前登录用户');
 console.log('🔄 个人信息修改功能已启用，修改后会同步到首页和账户页面');
 console.log('🎓 学号修改功能已启用，修改后相关数据中的用户信息也会同步更新');
+console.log('👥 人员管理功能已启用：');
+console.log('   1. 修改角色功能：可以修改用户的所属部门和用户角色');
+console.log('   2. 新增成员功能：可以添加新的用户，支持设置角色和部门');
+console.log('   新增用户默认密码为学号后6位');
