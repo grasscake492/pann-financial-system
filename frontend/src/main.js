@@ -65,12 +65,12 @@ app.mount('#app')
 
 // ==========【方法一：静态全局导入Mock】==========
 // 如果启用Mock数据，取消下面这行的注释
- //import '../mock/index.js'  // 取消注释开启静态Mock
+ import '../mock/index.js'  // 取消注释开启静态Mock
 
-// ==========【方法二：动态导入Mock】==========
-// 如果启用Mock数据，取消下面整个if语句的注释
- //if (process.env.NODE_ENV === 'development') {
- //    import('../mock/index.js').then(() => {
- //        console.log('Mock服务已动态导入');
- //    });
- //}
+ //==========【方法二：动态导入Mock】==========
+ //如果启用Mock数据，取消下面整个if语句的注释
+ if (process.env.NODE_ENV === 'development') {
+     import('../mock/index.js').then(() => {
+         console.log('Mock服务已动态导入');
+     });
+ }

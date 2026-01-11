@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <properties resource="database.properties"/>
+
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <setting name="cacheEnabled" value="true"/>
+        <!-- 开启自动映射 -->
+        <setting name="autoMappingBehavior" value="FULL"/>
+        <!-- 日志实现11 -->
+        <setting name="logImpl" value="STDOUT_LOGGING"/>
+        <!-- 配置默认的执行器11 -->
+        <setting name="defaultExecutorType" value="SIMPLE"/>
+    </settings>
+
+    <typeAliases>
+        <package name="org.entity"/>
+    </typeAliases>
+
+    <!-- 配置PageHelper拦截器 -->
+    <plugins>
+        <plugin interceptor="com.github.pagehelper.PageInterceptor">
+            <property name="helperDialect" value="mysql"/>
+            <property name="reasonable" value="true"/>
+            <property name="supportMethodsArguments" value="true"/>
+            <property name="params" value="count=countSql"/>
+        </plugin>
+    </plugins>
+
+
+<!--    <mappers>-->
+<!--        &lt;!&ndash; 使用完整的类路径 &ndash;&gt;-->
+<!--        <mapper resource="org/dao/mapper/UserMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/AdminMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/DepartmentMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/NewsDepartmentMonthlyMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/EditorialDepartmentMonthlyMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/FeeMonthlySummaryMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/ProxyReceiptRecordsMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/FeedbackMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/AnnouncementMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/LoginLogMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/PermissionMapper.xml"/>-->
+<!--        <mapper resource="org/dao/mapper/UserPermissionMapper.xml"/>-->
+<!--    </mappers>-->
+
+</configuration>

@@ -20,7 +20,7 @@ public class AuthServiceImpl implements AuthService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     /**
-     * 用户登录
+     * 用户登录 - 临时兼容明文密码（仅用于测试）
      */
     @Override
     public result login(LoginRequest loginRequest) {
@@ -29,12 +29,43 @@ public class AuthServiceImpl implements AuthService {
             return result.error("用户不存在");
         }
 
-        // 验证密码
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+        // 添加调试日志
+        System.out.println("=== 登录调试信息 ===");
+        System.out.println("登录用户学号: " + loginRequest.getStudentNumber());
+        System.out.println("输入密码: " + loginRequest.getPassword());
+        System.out.println("数据库密码: " + user.getPassword());
+
+        boolean passwordCorrect;
+
+        // 判断数据库中的密码格式
+        boolean isBcryptEncoded = user.getPassword() != null &&
+                (user.getPassword().startsWith("$2a$") ||
+                        user.getPassword().startsWith("$2b$") ||
+                        user.getPassword().startsWith("$2y$"));
+
+        System.out.println("密码格式: " + (isBcryptEncoded ? "BCrypt加密" : "明文"));
+
+        if (isBcryptEncoded) {
+            // BCrypt格式验证
+            passwordCorrect = passwordEncoder.matches(loginRequest.getPassword(), user.getPassword());
+        } else {
+            // 明文格式验证
+            passwordCorrect = loginRequest.getPassword().equals(user.getPassword());
+
+            // 如果密码正确，只是打印信息，不实际更新数据库
+            if (passwordCorrect) {
+                System.out.println("注意：用户 " + loginRequest.getStudentNumber() + " 的密码是明文存储，建议手动更新为BCrypt加密格式");
+                System.out.println("可以执行以下SQL更新密码：");
+                System.out.println("UPDATE users SET password = '" + passwordEncoder.encode(loginRequest.getPassword()) + "' WHERE user_id = " + user.getUserId() + ";");
+            }
+        }
+
+        if (!passwordCorrect) {
             return result.error("密码错误");
         }
 
-        // 登录成功，返回用户信息或 token
+        // 登录成功，返回用户信息（不返回密码）
+        user.setPassword(null);
         return result.success(user);
     }
 

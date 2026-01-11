@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <!-- 1. 启用注解驱动 -->
+    <mvc:annotation-driven/>
+
+    <!-- 2. 扫描 Controller -->
+    <context:component-scan base-package="org.controller"/>
+
+    <!-- 静态资源配置（正确写法） -->
+    <!-- 删除所有 <mvc:resources> 配置 -->
+    <context:component-scan base-package="org.controller"/>
+    <mvc:annotation-driven/>
+
+    <!-- 4. 如果不用 Thymeleaf，删除相关配置 -->
+    <!--
+    <bean id="templateResolver" ...>
+    <bean id="templateEngine" ...>
+    <bean class="org.thymeleaf.spring6.view.ThymeleafViewResolver">
+    -->
+
+    <!-- 5. 视图解析器（如果需要返回 JSON，这个可以简化） -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/"/>
+        <property name="suffix" value=".html"/>
+    </bean>
+
+    <!-- 6. JSON 支持 -->
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+        <property name="messageConverters">
+            <list>
+                <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                    <property name="supportedMediaTypes">
+                        <list>
+                            <value>text/plain;charset=UTF-8</value>
+                            <value>text/html;charset=UTF-8</value>
+                        </list>
+                    </property>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+</beans>

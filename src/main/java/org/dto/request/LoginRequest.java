@@ -1,10 +1,12 @@
 package org.dto.request;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 
 public class LoginRequest {
     @NotBlank(message = "学号不能为空")
+    @JsonProperty("student_number")
     private String studentNumber;
 
     @NotBlank(message = "密码不能为空")

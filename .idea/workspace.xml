@@ -11,16 +11,41 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="406361d8-e4a8-4cd9-a1a8-7a01149f62fe" name="更改" comment="Merge branch 'main' of https://github.com/grasscake492/pann-financial-system&#10;Merge remote-tracking branch 'origin/main'">
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T154531.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T154613.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T155716.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T160003.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T161619.400.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T161934.400.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T162229.500.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T162313.500.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T170428.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T170454.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T170510.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T170551.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T175851.500.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T180058.500.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T181331.500.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T192817.500.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T193835.200.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T195315.200.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T203451.200.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T212053.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T212548.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T212645.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T213156.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T213340.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T214424.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T214920.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T215648.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T232221.404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/httpRequests/2026-01-08T232433.404.html" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/httpRequests/http-requests-log.http" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/httpRequests/http-requests-log.http" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/.env.development" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/.env.development" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/mock/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/mock/index.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/main.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/router/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/router/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/stores/user.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/stores/user.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/utils/auth.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/utils/auth.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/utils/request.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/utils/request.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pann_financial_system_init.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/dto/request/LoginRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/dto/request/LoginRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/service/impl/AuthServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/service/impl/AuthServiceImpl.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,13 +96,18 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;HTTP 请求.generated-requests | #1.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP 请求.generated-requests | #10.executor&quot;: &quot;Run&quot;,
     &quot;HTTP 请求.generated-requests | #3.executor&quot;: &quot;Run&quot;,
     &quot;HTTP 请求.generated-requests | #4.executor&quot;: &quot;Run&quot;,
     &quot;HTTP 请求.generated-requests | #5.executor&quot;: &quot;Run&quot;,
     &quot;HTTP 请求.generated-requests | #6.executor&quot;: &quot;Run&quot;,
     &quot;HTTP 请求.generated-requests | #7.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP 请求.generated-requests | #8.executor&quot;: &quot;Run&quot;,
     &quot;HTTP 请求.generated-requests | 3. 测试应用的静态资源（如果有）.executor&quot;: &quot;Run&quot;,
     &quot;HTTP 请求.generated-requests | 4. 测试 Tomcat 默认应用.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP 请求.generated-requests | 查询个人稿费.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP 请求.generated-requests | 用户登录#2.executor&quot;: &quot;Run&quot;,
+    &quot;HTTP 请求.generated-requests | 用户登录.executor&quot;: &quot;Run&quot;,
     &quot;JUnit.DatabaseConnectionTest.executor&quot;: &quot;Run&quot;,
     &quot;JUnit.DepartmentLogicTest.executor&quot;: &quot;Run&quot;,
     &quot;JUnit.MyBatisConfigTest.executor&quot;: &quot;Run&quot;,
@@ -135,16 +165,19 @@
     </key>
   </component>
   <component name="RunManager" selected="Tomcat 服务器.Tomcat 10.1.48">
-    <configuration name="generated-requests | #3" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/generated-requests.http" executionIdentifier="#3" index="3" runType="运行单个请求">
+    <configuration name="generated-requests | #10" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/generated-requests.http" executionIdentifier="#10" index="10" runType="运行单个请求">
       <method v="2" />
     </configuration>
-    <configuration name="generated-requests | #4" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/generated-requests.http" executionIdentifier="#4" index="4" runType="运行单个请求">
+    <configuration name="generated-requests | 用户登录#2" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/generated-requests.http" executionIdentifier="用户登录#2" index="9" runType="运行单个请求">
       <method v="2" />
     </configuration>
-    <configuration name="generated-requests | #5" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/generated-requests.http" executionIdentifier="#5" index="5" runType="运行单个请求">
+    <configuration name="generated-requests | #8" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/generated-requests.http" executionIdentifier="#8" index="8" runType="运行单个请求">
       <method v="2" />
     </configuration>
-    <configuration name="generated-requests | #6" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/generated-requests.http" executionIdentifier="#6" index="6" runType="运行单个请求">
+    <configuration name="generated-requests | 用户登录" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/generated-requests.http" executionIdentifier="用户登录" index="8" runType="运行单个请求">
+      <method v="2" />
+    </configuration>
+    <configuration name="generated-requests | 查询个人稿费" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" nameIsGenerated="true" path="$APPLICATION_CONFIG_DIR$/scratches/generated-requests.http" executionIdentifier="查询个人稿费" index="10" runType="运行单个请求">
       <method v="2" />
     </configuration>
     <configuration name="Tomcat 10.1.48" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 10.1.48" ALTERNATIVE_JRE_ENABLED="false" nameIsGenerated="true">
@@ -245,18 +278,17 @@
       </method>
     </configuration>
     <list>
-      <item itemvalue="HTTP 请求.generated-requests | #6" />
-      <item itemvalue="HTTP 请求.generated-requests | #5" />
-      <item itemvalue="HTTP 请求.generated-requests | #4" />
-      <item itemvalue="HTTP 请求.generated-requests | #3" />
+      <item itemvalue="HTTP 请求.generated-requests | 查询个人稿费" />
+      <item itemvalue="HTTP 请求.generated-requests | #10" />
+      <item itemvalue="HTTP 请求.generated-requests | 用户登录#2" />
+      <item itemvalue="HTTP 请求.generated-requests | #8" />
       <item itemvalue="Tomcat 服务器.Tomcat 10.1.48" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="HTTP 请求.generated-requests | #5" />
-        <item itemvalue="HTTP 请求.generated-requests | #6" />
-        <item itemvalue="HTTP 请求.generated-requests | #4" />
-        <item itemvalue="HTTP 请求.generated-requests | #3" />
+        <item itemvalue="HTTP 请求.generated-requests | 用户登录#2" />
+        <item itemvalue="HTTP 请求.generated-requests | #10" />
+        <item itemvalue="HTTP 请求.generated-requests | #8" />
       </list>
     </recent_temporary>
   </component>
@@ -328,7 +360,11 @@
       <workItem from="1767967897869" duration="2724000" />
       <workItem from="1767970657267" duration="5020000" />
       <workItem from="1768004321927" duration="2885000" />
-      <workItem from="1768015249114" duration="4883000" />
+      <workItem from="1768015249114" duration="21124000" />
+      <workItem from="1768037590391" duration="5204000" />
+      <workItem from="1768089630204" duration="2565000" />
+      <workItem from="1768092228525" duration="1081000" />
+      <workItem from="1768093522673" duration="7625000" />
     </task>
     <task id="LOCAL-00001" summary="Merge branch 'main' of https://github.com/grasscake492/pann-financial-system&#10;Merge remote-tracking branch 'origin/main'">
       <option name="closed" value="true" />

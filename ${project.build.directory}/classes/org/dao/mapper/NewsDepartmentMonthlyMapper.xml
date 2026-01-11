@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dao.NewsDepartmentMonthlyMapper">
+
+    <!-- 新闻部稿费月表结果映射 -->
+    <resultMap id="NewsDepartmentMonthlyResultMap" type="org.entity.NewsDepartmentMonthly">
+        <id property="recordId" column="record_id" />
+        <result property="userIds" column="user_ids" />
+        <result property="realNames" column="real_names" />
+        <result property="studentNumbers" column="student_numbers" />
+        <result property="articleTitle" column="article_title" />
+        <result property="articleType" column="article_type" />
+        <result property="feeAmount" column="fee_amount" />
+        <result property="statisticalMonth" column="statistical_month" />
+        <result property="departmentId" column="department_id" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <!-- 根据记录ID查询 -->
+    <select id="selectByRecordId" parameterType="java.lang.Long" resultMap="NewsDepartmentMonthlyResultMap">
+        SELECT record_id, user_ids, real_names, student_numbers, article_title, article_type,
+               fee_amount, statistical_month, department_id, created_at, updated_at
+        FROM news_department_monthly WHERE record_id = #{recordId}
+    </select>
+
+    <!-- 根据统计月份查询 -->
+    <select id="selectByMonth" parameterType="java.lang.String" resultMap="NewsDepartmentMonthlyResultMap">
+        SELECT record_id, user_ids, real_names, student_numbers, article_title, article_type,
+               fee_amount, statistical_month, department_id, created_at, updated_at
+        FROM news_department_monthly WHERE statistical_month = #{statisticalMonth} ORDER BY record_id
+    </select>
+
+    <!-- 查询用户在某个月的稿费记录 -->
+    <select id="selectByUserAndMonth" resultMap="NewsDepartmentMonthlyResultMap">
+        SELECT record_id, user_ids, real_names, student_numbers, article_title, article_type,
+               fee_amount, statistical_month, department_id, created_at, updated_at
+        FROM news_department_monthly
+        WHERE JSON_CONTAINS(user_ids, CAST(#{userId} AS JSON)) AND statistical_month = #{month}
+        ORDER BY record_id
+    </select>
+
+    <!-- 查询所有记录 -->
+    <select id="selectAll" resultMap="NewsDepartmentMonthlyResultMap">
+        SELECT record_id, user_ids, real_names, student_numbers, article_title, article_type,
+               fee_amount, statistical_month, department_id, created_at, updated_at
+        FROM news_department_monthly ORDER BY record_id
+    </select>
+
+    <!-- 分页查询稿费记录 -->
+    <select id="selectByPage" resultMap="NewsDepartmentMonthlyResultMap">
+        SELECT record_id, user_ids, real_names, student_numbers, article_title, article_type,
+               fee_amount, statistical_month, department_id, created_at, updated_at
+        FROM news_department_monthly ORDER BY record_id LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 统计稿费记录数量 -->
+    <select id="countRecords" resultType="int">
+        SELECT COUNT(*) FROM news_department_monthly
+    </select>
+
+    <!-- 插入稿费记录 -->
+    <insert id="insertRecord" parameterType="org.entity.NewsDepartmentMonthly" useGeneratedKeys="true" keyProperty="recordId">
+        INSERT INTO news_department_monthly
+        (user_ids, real_names, student_numbers, article_title, article_type, fee_amount, statistical_month, department_id, created_at, updated_at)
+        VALUES (#{userIds}, #{realNames}, #{studentNumbers}, #{articleTitle}, #{articleType}, #{feeAmount}, #{statisticalMonth}, #{departmentId}, NOW(), NOW())
+    </insert>
+
+    <!-- 更新稿费记录 -->
+    <update id="updateRecord" parameterType="org.entity.NewsDepartmentMonthly">
+        UPDATE news_department_monthly SET
+                                           user_ids = #{userIds},
+                                           real_names = #{realNames},
+                                           student_numbers = #{studentNumbers},
+                                           article_title = #{articleTitle},
+                                           article_type = #{articleType},
+                                           fee_amount = #{feeAmount},
+                                           statistical_month = #{statisticalMonth},
+                                           department_id = #{departmentId},
+                                           updated_at = NOW()
+        WHERE record_id = #{recordId}
+    </update>
+
+    <!-- 删除稿费记录 -->
+    <delete id="deleteByRecordId" parameterType="java.lang.Long">
+        DELETE FROM news_department_monthly WHERE record_id = #{recordId}
+    </delete>
+
+    <!-- 根据月份统计总稿费 -->
+    <select id="sumFeeByMonth" parameterType="java.lang.String" resultType="java.lang.Double">
+        SELECT SUM(fee_amount) FROM news_department_monthly WHERE statistical_month = #{month}
+    </select>
+
+    <!-- 根据用户ID统计总稿费 -->
+    <select id="sumFeeByUser" parameterType="java.lang.Long" resultType="java.lang.Double">
+        SELECT SUM(fee_amount) FROM news_department_monthly WHERE JSON_CONTAINS(user_ids, CAST(#{userId} AS JSON))
+    </select>
+
+</mapper>

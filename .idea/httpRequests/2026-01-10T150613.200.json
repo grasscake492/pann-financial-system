@@ -1,0 +1,11 @@
+{
+  "success": true,
+  "message": "success",
+  "data": {
+    "userId": 2,
+    "studentNumber": "202311110002",
+    "realName": "张三",
+    "password": null,
+    "email": "234567891@qq.com"
+  }
+}

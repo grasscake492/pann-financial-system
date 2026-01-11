@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <script type="module" src="/pann-financial-system/@vite/client"></script>
+
+    <meta charset="UTF-8"/>
+    <link rel="icon" type="image/svg+xml" href="/pann-financial-system/vite.svg"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <!-- 核心修改：把http://pannfmis加到connect-src里，允许请求这个地址 -->
+    <meta http-equiv="Content-Security-Policy"
+          content="connect-src 'self' localhost:3001 http://pannfmis; default-src 'self' 'unsafe-inline' 'unsafe-eval';"/>
+    <title>pann-financial-system</title>
+</head>
+<body>
+<div id="app"></div>
+<script type="module" src="/pann-financial-system/src/main.js"></script>
+</body>
+</html>

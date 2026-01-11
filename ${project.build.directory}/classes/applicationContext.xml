@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--开启Spring注解支持-->
+    <context:annotation-config/>
+
+    <!--将Service层注册为Spring Bean-->
+    <!--添加impl包扫描-->
+    <context:component-scan base-package="org.service, org.service.impl"/>
+
+    <!--引用数据库配置文件-->
+    <context:property-placeholder location="classpath:database.properties" ignore-unresolvable="true"/>
+
+    <!--配置数据源使用Spring的DriverManagerDataSource-->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <!--使用 properties文件中的配置，而不是硬编码-->
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <!--配置事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--开启注解驱动的事务管理-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <!--将MyBatis与Spring集成-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <!--指定Mapper XML文件的位置-->
+        <property name="mapperLocations" value="classpath*:org/dao/mapper/*.xml"/>
+        <!--配置类型别名包-->
+        <property name="typeAliasesPackage" value="org.entity"/>
+    </bean>
+
+    <!--配置MyBatis的Mapper扫描器,将Mapper接口注册为Spring Bean-->
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="org.dao"/>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    </bean>
+
+</beans>
