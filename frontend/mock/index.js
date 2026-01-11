@@ -118,13 +118,14 @@ const decryptData = (encryptStr) => {
     }
 };
 
-// ==================== 固定用户配置 ====================
-const fixedUsers = {
+// ==================== 固定用户配置（添加密码字段） ====================
+let fixedUsers = {
     "100000000001": {
         user_id: "1",
         student_number: "100000000001",
         real_name: "张三",
         email: "zhangsan@test.com",
+        password: "zhangsan123", // 添加密码字段
         token: "fixed_token_super_admin_001",
         permissions: ['read', 'write', 'manage', 'super'],
         is_super_admin: true,
@@ -138,6 +139,7 @@ const fixedUsers = {
         student_number: "100000000002",
         real_name: "李四",
         email: "lisi@test.com",
+        password: "lisi123", // 添加密码字段
         token: "fixed_token_news_admin_002",
         permissions: ['read', 'write', 'manage'],
         is_super_admin: false,
@@ -151,6 +153,7 @@ const fixedUsers = {
         student_number: "100000000003",
         real_name: "王五",
         email: "wangwu@test.com",
+        password: "wangwu123", // 添加密码字段
         token: "fixed_token_edit_admin_003",
         permissions: ['read', 'write', 'manage'],
         is_super_admin: false,
@@ -164,6 +167,7 @@ const fixedUsers = {
         student_number: "100000000004",
         real_name: "赵六",
         email: "zhaoliu@test.com",
+        password: "zhaoliu123", // 添加密码字段
         token: "fixed_token_operate_admin_004",
         permissions: ['read', 'write', 'manage'],
         is_super_admin: false,
@@ -177,6 +181,7 @@ const fixedUsers = {
         student_number: "200000000001",
         real_name: "孙七",
         email: "sunqi@test.com",
+        password: "sunqi123", // 添加密码字段
         token: "fixed_token_normal_user_010",
         permissions: ['read'],
         is_super_admin: false,
@@ -199,9 +204,33 @@ const getFixedUserByIndex = (index) => {
     return fixedUsers[key];
 };
 
-// ==================== 新增：根据token获取用户 ====================
-const getUserByToken = (token) => {
-    return Object.values(fixedUsers).find(user => user.token === token) || fixedUsers["200000000001"];
+// ==================== 新增：根据用户ID获取用户 ====================
+const getUserById = (userId) => {
+    return Object.values(fixedUsers).find(user => user.user_id === userId) || null;
+};
+
+// ==================== 新增：更新相关数据中的用户信息 ====================
+const updateRelatedDataUserInfo = (oldStudentNumber, newStudentNumber, newRealName, newEmail) => {
+    // 更新稿费记录中的用户信息
+    FIXED_DATA.royaltyRecords.forEach(record => {
+        const userIndex = record.student_numbers.indexOf(oldStudentNumber);
+        if (userIndex !== -1) {
+            record.student_numbers[userIndex] = newStudentNumber;
+            record.real_names[userIndex] = newRealName;
+        }
+    });
+
+    // 更新反馈记录中的用户信息
+    FIXED_DATA.feedbackRecords.forEach(record => {
+        if (record.student_number === oldStudentNumber) {
+            record.student_number = newStudentNumber;
+            record.real_name = newRealName;
+            // 如果邮箱也更新了，可以在这里添加
+        }
+    });
+
+    // 更新代理记录中的用户信息（如果需要）
+    // FIXED_DATA.proxyRecords 通常不包含学号信息，但如果有需要可以更新
 };
 
 // ==================== 固定数据生成器 ====================
@@ -333,13 +362,33 @@ Mock.mock(/\/auth\/register\/xxx/, 'post', (options) => {
     };
 });
 
-// 2. 用户登录接口（2.5.2）- 新增：设置当前登录用户
+// 2. 用户登录接口（2.5.2）- 新增：密码验证
 Mock.mock(/\auth\/login\/xxx/, 'post', (options) => {
     const loginParams = decryptData(options.body || '');
     const inputStudentNumber = loginParams.student_number;
-    const targetUser = fixedUsers[inputStudentNumber];
+    const inputPassword = loginParams.password;
+
+    if (!inputPassword) {
+        return {
+            res_code: "0002",
+            res_msg: "请输入密码",
+            data: null
+        };
+    }
+
+    // 通过学号查找用户
+    const targetUser = Object.values(fixedUsers).find(user => user.student_number === inputStudentNumber);
 
     if (!targetUser) {
+        return {
+            res_code: "0004",
+            res_msg: "学号或密码错误",
+            data: null
+        };
+    }
+
+    // 验证密码
+    if (targetUser.password !== inputPassword) {
         return {
             res_code: "0004",
             res_msg: "学号或密码错误",
@@ -358,8 +407,31 @@ Mock.mock(/\auth\/login\/xxx/, 'post', (options) => {
     };
 });
 
-// 3. 修改密码接口（2.5.3）
+// 3. 修改密码接口（2.5.3）- 修改：验证旧密码并更新密码
 Mock.mock(/\/auth\/change-password\/\d+/, 'put', (options) => {
+    const params = decryptData(options.body || '');
+    const { old_password, new_password } = params;
+
+    // 获取当前登录用户
+    if (!currentLoginUser) {
+        return { res_code: '0004', res_msg: '用户未登录', data: null };
+    }
+
+    // 验证旧密码
+    if (currentLoginUser.password !== old_password) {
+        return { res_code: '0004', res_msg: '旧密码错误', data: null };
+    }
+
+    // 更新密码
+    currentLoginUser.password = new_password;
+
+    // 更新 fixedUsers 中的密码
+    Object.keys(fixedUsers).forEach(key => {
+        if (fixedUsers[key].student_number === currentLoginUser.student_number) {
+            fixedUsers[key].password = new_password;
+        }
+    });
+
     return { res_code: '0000', res_msg: '密码修改成功', data: null };
 });
 
@@ -369,7 +441,7 @@ Mock.mock(/\/auth\/logout\/xxx/, 'post', () => {
     return { res_code: '0000', res_msg: '退出登录成功', data: null };
 });
 
-// 5. 获取个人信息接口（2.5.5）- 修改：返回当前登录用户信息
+// 5. 获取个人信息接口（2.5.5）- 修改：返回当前登录用户信息（已更新）
 Mock.mock(/\/user\/profile\/xxx/, 'get', (options) => {
     // 获取当前登录用户，如果没有则使用默认用户
     const user = currentLoginUser || fixedUsers["200000000001"];
@@ -390,15 +462,61 @@ Mock.mock(/\/user\/profile\/xxx/, 'get', (options) => {
     };
 });
 
-// 6. 更新用户信息接口（2.5.6）- 保持原有逻辑
+// 6. 更新用户信息接口（2.5.6）- 修改：更新当前登录用户信息和fixedUsers
 Mock.mock(/\/user\/profile\/\d+/, 'put', (options) => {
     const params = decryptData(options.body || '');
+
+    // 获取当前登录用户
+    if (!currentLoginUser) {
+        currentLoginUser = fixedUsers["200000000001"];
+    }
+
+    const oldStudentNumber = currentLoginUser.student_number;
+    const oldRealName = currentLoginUser.real_name;
+    const oldEmail = currentLoginUser.email;
+
+    // 更新当前登录用户的信息
+    if (params.student_number) {
+        currentLoginUser.student_number = params.student_number;
+    }
+    if (params.real_name) {
+        currentLoginUser.real_name = params.real_name;
+    }
+    if (params.email) {
+        currentLoginUser.email = params.email;
+    }
+
+    // 更新 fixedUsers 中的对应信息
+    // 首先找到旧的键（学号）
+    const oldKey = Object.keys(fixedUsers).find(key =>
+        fixedUsers[key].user_id === currentLoginUser.user_id
+    );
+
+    if (oldKey) {
+        // 删除旧的条目
+        delete fixedUsers[oldKey];
+
+        // 使用新的学号作为键，添加更新后的用户信息
+        fixedUsers[currentLoginUser.student_number] = {
+            ...currentLoginUser
+        };
+
+        // 更新相关数据中的用户信息
+        updateRelatedDataUserInfo(
+            oldStudentNumber,
+            currentLoginUser.student_number,
+            currentLoginUser.real_name,
+            currentLoginUser.email
+        );
+    }
+
     const successData = {
-        user_id: params.user_id || "1",
-        student_number: params.student_number || "100000000001",
-        real_name: params.real_name || "张三",
-        email: params.email || "zhangsan@test.com"
+        user_id: currentLoginUser.user_id,
+        student_number: currentLoginUser.student_number,
+        real_name: currentLoginUser.real_name,
+        email: currentLoginUser.email
     };
+
     return {
         res_code: '0000',
         res_msg: '更新成功',
@@ -466,7 +584,7 @@ Mock.mock(/\/admin\/users\/role\/xxx/, 'put', (options) => {
     };
 });
 
-// 9. 查询个人稿费接口（2.5.9）- 保持原有逻辑
+// 9. 查询个人稿费接口（2.5.9）- 修改：根据当前登录用户筛选
 Mock.mock(/\/api\/v1\/royalty\/personal/, 'get', (options) => {
     const urlParams = options.url.split('?')[1] || '';
     const params = {};
@@ -478,10 +596,16 @@ Mock.mock(/\/api\/v1\/royalty\/personal/, 'get', (options) => {
     const start = (page - 1) * size;
     const end = start + parseInt(size);
 
-    // 获取用户稿费记录
-    const userRecords = FIXED_DATA.royaltyRecords.slice(start, end);
+    // 获取当前登录用户
+    const user = currentLoginUser || fixedUsers["200000000001"];
+
+    // 获取用户稿费记录（根据当前登录用户的学号筛选）
+    const userRecords = FIXED_DATA.royaltyRecords.filter(record =>
+        record.student_numbers.includes(user.student_number)
+    ).slice(start, end);
+
     const successData = {
-        total: FIXED_DATA.royaltyRecords.length,
+        total: userRecords.length,
         list: userRecords,
         page: Number(page),
         size: Number(size)
@@ -681,15 +805,36 @@ Mock.mock(/\/api\/v1\/admin\/proxy\/\d+/, 'delete', () => {
     };
 });
 
-// 20. 提交问题反馈接口（2.5.20）- 保持原有逻辑
+// 20. 提交问题反馈接口（2.5.20）- 修改：使用当前登录用户信息
 Mock.mock(/\/api\/v1\/feedback/, 'post', (options) => {
     const params = decryptData(options.body || '');
-    if (!params.user_id || !params.content) {
+
+    // 获取当前登录用户
+    const user = currentLoginUser || fixedUsers["200000000001"];
+
+    if (!params.content) {
         return { res_code: '0002', res_msg: '参数错误！缺少必填字段或格式不正确', data: null };
     }
-    const successData = {
+
+    const newFeedback = {
         feedback_id: `f${100 + FIXED_DATA.feedbackRecords.length}`,
-        created_at: getFixedDatetime(FIXED_DATA.feedbackRecords.length)
+        user_id: user.user_id,
+        student_number: user.student_number,
+        real_name: user.real_name,
+        content: params.content,
+        reply_content: null,
+        status: 'pending',
+        replied_at: null,
+        created_at: getFixedDatetime(FIXED_DATA.feedbackRecords.length),
+        updated_at: getFixedDatetime(FIXED_DATA.feedbackRecords.length + 1),
+        department_name: user.department_name || '无部门'
+    };
+
+    FIXED_DATA.feedbackRecords.push(newFeedback);
+
+    const successData = {
+        feedback_id: newFeedback.feedback_id,
+        created_at: newFeedback.created_at
     };
     return {
         res_code: '0000',
@@ -698,7 +843,7 @@ Mock.mock(/\/api\/v1\/feedback/, 'post', (options) => {
     };
 });
 
-// 21. 用户查询反馈接口（2.5.21）- 保持原有逻辑
+// 21. 用户查询反馈接口（2.5.21）- 修改：根据当前登录用户筛选
 Mock.mock(/\/api\/v1\/feedback\/my/, 'get', (options) => {
     const urlParams = options.url.split('?')[1] || '';
     const params = {};
@@ -710,9 +855,12 @@ Mock.mock(/\/api\/v1\/feedback\/my/, 'get', (options) => {
     const start = (page - 1) * size;
     const end = start + parseInt(size);
 
-    // 假设查询用户ID为1的反馈
+    // 获取当前登录用户
+    const user = currentLoginUser || fixedUsers["200000000001"];
+
+    // 查询当前用户的反馈
     const userFeedbacks = FIXED_DATA.feedbackRecords.filter(fb =>
-        fb.user_id === "1"
+        fb.student_number === user.student_number
     ).slice(start, end);
 
     const successData = {
@@ -891,7 +1039,7 @@ Mock.mock(/\/api\/v1\/admin\/announcements\/\d+/, 'delete', () => {
     };
 });
 
-// 31. 获取所有公告接口（2.5.31）- 修改：首页添加当前用户信息
+// 31. 获取所有公告接口（2.5.31）- 修改：首页添加当前用户信息（已更新）
 Mock.mock(/\/api\/v1\/announcements/, 'get', (options) => {
     const urlParams = new URLSearchParams(options.url.split('?')[1] || '');
     const params = {
@@ -945,7 +1093,7 @@ Mock.mock(/\/api\/v1\/announcements/, 'get', (options) => {
     const end = start + params.size;
     const paginatedAnnouncements = filteredAnnouncements.slice(start, end);
 
-    // 获取当前登录用户信息，用于首页显示
+    // 获取当前登录用户信息，用于首页显示（已更新）
     const user = currentLoginUser || fixedUsers["200000000001"];
 
     const successData = {
@@ -969,15 +1117,15 @@ Mock.mock(/\/api\/v1\/announcements/, 'get', (options) => {
 
 // ==================== 新增：首页接口（可选） ====================
 Mock.mock(/\/api\/v1\/home\/dashboard/, 'get', (options) => {
-    // 获取当前登录用户
+    // 获取当前登录用户（已更新）
     const user = currentLoginUser || fixedUsers["200000000001"];
 
     // 计算简单的统计数据
     const totalRoyalty = FIXED_DATA.royaltyRecords
-        .filter(record => record.user_ids.includes(user.user_id))
+        .filter(record => record.student_numbers.includes(user.student_number))
         .reduce((sum, item) => sum + item.fee_amount, 0);
 
-    const userFeedbacks = FIXED_DATA.feedbackRecords.filter(fb => fb.user_id === user.user_id);
+    const userFeedbacks = FIXED_DATA.feedbackRecords.filter(fb => fb.student_number === user.student_number);
     const pendingFeedback = userFeedbacks.filter(fb => fb.status === 'pending').length;
 
     const successData = {
@@ -990,7 +1138,7 @@ Mock.mock(/\/api\/v1\/home\/dashboard/, 'get', (options) => {
         },
         statistics: {
             total_royalty: totalRoyalty,
-            total_records: FIXED_DATA.royaltyRecords.filter(r => r.user_ids.includes(user.user_id)).length,
+            total_records: FIXED_DATA.royaltyRecords.filter(r => r.student_numbers.includes(user.student_number)).length,
             pending_feedback: pendingFeedback,
             recent_month: getFixedMonth()
         },
@@ -1007,4 +1155,13 @@ Mock.mock(/\/api\/v1\/home\/dashboard/, 'get', (options) => {
 console.log('✅ PANN财务系统 - 固定数据Mock服务已启动（仅开发环境）');
 console.log('📅 数据时间范围：2026-01-01 至 2026-01-11');
 console.log('👥 固定用户：5个（1系统管理员+3部门管理员+1普通用户）');
+console.log('🔐 登录密码验证已启用');
+console.log('📋 用户对应密码：');
+console.log('   学号 100000000001 密码：zhangsan123 (系统管理员)');
+console.log('   学号 100000000002 密码：lisi123 (新闻部管理员)');
+console.log('   学号 100000000003 密码：wangwu123 (编辑部管理员)');
+console.log('   学号 100000000004 密码：zhaoliu123 (运营部管理员)');
+console.log('   学号 200000000001 密码：sunqi123 (普通用户)');
 console.log('🔗 个人信息页面和首页数据已关联到当前登录用户');
+console.log('🔄 个人信息修改功能已启用，修改后会同步到首页和账户页面');
+console.log('🎓 学号修改功能已启用，修改后相关数据中的用户信息也会同步更新');
