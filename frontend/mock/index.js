@@ -1,7 +1,7 @@
 import Mock from 'mockjs';
 import CryptoJS from 'crypto-js';
 
-// ==================== 全局状态管理（新增） ====================
+// ==================== 新增：全局状态管理 ====================
 let currentLoginUser = null; // 存储当前登录用户
 
 // ==================== 通用工具函数 ====================
@@ -187,15 +187,21 @@ const fixedUsers = {
     }
 };
 
-// ==================== 辅助函数（新增） ====================
-// 根据token获取用户信息
-const getUserByToken = (token) => {
-    return Object.values(fixedUsers).find(user => user.token === token) || fixedUsers["200000000001"];
+// 获取固定用户列表
+const getFixedUserList = () => {
+    return Object.values(fixedUsers);
 };
 
-// 获取当前登录用户（如果没有则返回默认用户）
-const getCurrentUser = () => {
-    return currentLoginUser || fixedUsers["200000000001"];
+// 获取固定用户（基于索引）
+const getFixedUserByIndex = (index) => {
+    const userKeys = Object.keys(fixedUsers);
+    const key = userKeys[index % userKeys.length];
+    return fixedUsers[key];
+};
+
+// ==================== 新增：根据token获取用户 ====================
+const getUserByToken = (token) => {
+    return Object.values(fixedUsers).find(user => user.token === token) || fixedUsers["200000000001"];
 };
 
 // ==================== 固定数据生成器 ====================
@@ -203,7 +209,7 @@ const getCurrentUser = () => {
 const generateFixedRoyaltyRecords = (count = 10, offset = 0) => {
     const records = [];
     for (let i = 0; i < count; i++) {
-        const user = getCurrentUser(); // 修改：使用当前登录用户
+        const user = getFixedUserByIndex(i);
         const deptIndex = user.department_id ? parseInt(user.department_id) - 1 : i % 3;
 
         records.push({
@@ -227,7 +233,7 @@ const generateFixedRoyaltyRecords = (count = 10, offset = 0) => {
 const generateFixedFeedbackRecords = (count = 5, offset = 0) => {
     const records = [];
     for (let i = 0; i < count; i++) {
-        const user = getCurrentUser(); // 修改：使用当前登录用户
+        const user = getFixedUserByIndex(i);
         const status = i < 3 ? 'pending' : 'replied';
 
         records.push({
@@ -235,7 +241,7 @@ const generateFixedFeedbackRecords = (count = 5, offset = 0) => {
             user_id: user.user_id,
             student_number: user.student_number,
             real_name: user.real_name,
-            content: `这是第${i + 1}条固定反馈内容，由${user.real_name}提交`,
+            content: `这是第${i + 1}条反馈内容，由${user.real_name}提交`,
             reply_content: status === 'replied' ? `已收到您的反馈，我们会尽快处理。` : null,
             status: status,
             replied_at: status === 'replied' ? getFixedDatetime(i + 2) : null,
@@ -251,14 +257,14 @@ const generateFixedFeedbackRecords = (count = 5, offset = 0) => {
 const generateFixedAnnouncements = (count = 15, offset = 0) => {
     const announcements = [];
     for (let i = 0; i < count; i++) {
-        const user = getCurrentUser(); // 修改：使用当前登录用户
+        const user = getFixedUserByIndex(i % 5);
         const publishTime = getFixedDatetime(i);
         const updateTime = getFixedDatetime(i + 1);
 
         announcements.push({
             announcement_id: `a${100 + offset + i}`,
-            title: `固定公告标题${i + 1}`,
-            content: `这是第${i + 1}条固定公告内容，发布时间为${publishTime}。`,
+            title: `公告标题${i + 1}`,
+            content: `这是第${i + 1}条公告内容，发布时间为${publishTime}。`,
             publisher_id: user.user_id,
             published_at: publishTime,
             created_at: publishTime,
@@ -272,8 +278,8 @@ const generateFixedAnnouncements = (count = 15, offset = 0) => {
 const generateFixedProxyRecords = (count = 8, offset = 0) => {
     const records = [];
     for (let i = 0; i < count; i++) {
-        const originalUser = getCurrentUser(); // 修改：使用当前登录用户
-        const proxyUser = getCurrentUser(); // 修改：使用当前登录用户
+        const originalUser = getFixedUserByIndex(i % 5);
+        const proxyUser = getFixedUserByIndex((i + 1) % 5);
 
         records.push({
             proxy_id: `proxy_${200 + offset + i}`,
@@ -289,15 +295,12 @@ const generateFixedProxyRecords = (count = 8, offset = 0) => {
     return records;
 };
 
-// 预先生成固定数据（修改：使用当前用户生成）
-const generateFixedData = () => {
-    const user = getCurrentUser();
-    return {
-        royaltyRecords: generateFixedRoyaltyRecords(30, 0),
-        feedbackRecords: generateFixedFeedbackRecords(10, 0),
-        announcements: generateFixedAnnouncements(15, 0),
-        proxyRecords: generateFixedProxyRecords(8, 0)
-    };
+// 预先生成固定数据
+const FIXED_DATA = {
+    royaltyRecords: generateFixedRoyaltyRecords(30, 0),
+    feedbackRecords: generateFixedFeedbackRecords(10, 0),
+    announcements: generateFixedAnnouncements(15, 0),
+    proxyRecords: generateFixedProxyRecords(8, 0)
 };
 
 Mock.setup({
@@ -330,7 +333,7 @@ Mock.mock(/\/auth\/register\/xxx/, 'post', (options) => {
     };
 });
 
-// 2. 用户登录接口（2.5.2） - 新增：设置当前登录用户
+// 2. 用户登录接口（2.5.2）- 新增：设置当前登录用户
 Mock.mock(/\auth\/login\/xxx/, 'post', (options) => {
     const loginParams = decryptData(options.body || '');
     const inputStudentNumber = loginParams.student_number;
@@ -360,43 +363,24 @@ Mock.mock(/\/auth\/change-password\/\d+/, 'put', (options) => {
     return { res_code: '0000', res_msg: '密码修改成功', data: null };
 });
 
-// 4. 退出登录接口（2.5.4） - 新增：清除当前登录用户
+// 4. 退出登录接口（2.5.4）- 新增：清除当前登录用户
 Mock.mock(/\/auth\/logout\/xxx/, 'post', () => {
-    currentLoginUser = null; // 清除当前登录用户
+    currentLoginUser = null;
     return { res_code: '0000', res_msg: '退出登录成功', data: null };
 });
 
-// 5. 获取个人信息接口（2.5.5） - 修改：返回当前登录用户信息
+// 5. 获取个人信息接口（2.5.5）- 修改：返回当前登录用户信息
 Mock.mock(/\/user\/profile\/xxx/, 'get', (options) => {
-    // 从请求头获取token
-    const token = options.headers?.Authorization?.replace('Bearer ', '') ||
-        options.headers?.authorization?.replace('Bearer ', '') ||
-        options.headers?.token;
-
-    // 如果有token，根据token获取用户
-    let targetUser = getCurrentUser(); // 默认使用当前登录用户
-    if (token) {
-        const tokenUser = getUserByToken(token);
-        if (tokenUser) {
-            targetUser = tokenUser;
-        }
-    }
-
-    // 如果当前没有登录用户，使用默认用户
-    if (!targetUser) {
-        targetUser = fixedUsers["200000000001"];
-    }
+    // 获取当前登录用户，如果没有则使用默认用户
+    const user = currentLoginUser || fixedUsers["200000000001"];
 
     const successData = {
-        user_id: targetUser.user_id,
-        student_number: targetUser.student_number,
-        real_name: targetUser.real_name,
-        email: targetUser.email,
-        role: targetUser.role,
-        permissions: targetUser.permissions,
-        department_id: targetUser.department_id,
-        department_name: targetUser.department_name,
-        is_super_admin: targetUser.is_super_admin
+        user_id: user.user_id,
+        student_number: user.student_number,
+        real_name: user.real_name,
+        email: user.email,
+        role: user.role,
+        permissions: user.permissions
     };
 
     return {
@@ -406,26 +390,15 @@ Mock.mock(/\/user\/profile\/xxx/, 'get', (options) => {
     };
 });
 
-// 6. 更新用户信息接口（2.5.6）
+// 6. 更新用户信息接口（2.5.6）- 保持原有逻辑
 Mock.mock(/\/user\/profile\/\d+/, 'put', (options) => {
     const params = decryptData(options.body || '');
-    const user = getCurrentUser(); // 使用当前登录用户
-
     const successData = {
-        user_id: user.user_id,
-        student_number: user.student_number,
-        real_name: params.real_name || user.real_name,
-        email: params.email || user.email,
-        department_id: user.department_id,
-        department_name: user.department_name
+        user_id: params.user_id || "1",
+        student_number: params.student_number || "100000000001",
+        real_name: params.real_name || "张三",
+        email: params.email || "zhangsan@test.com"
     };
-
-    // 更新当前用户信息
-    if (currentLoginUser && currentLoginUser.user_id === user.user_id) {
-        currentLoginUser.real_name = successData.real_name;
-        currentLoginUser.email = successData.email;
-    }
-
     return {
         res_code: '0000',
         res_msg: '更新成功',
@@ -433,7 +406,7 @@ Mock.mock(/\/user\/profile\/\d+/, 'put', (options) => {
     };
 });
 
-// 7. 获取用户列表接口（2.5.7）
+// 7. 获取用户列表接口（2.5.7）- 保持原有逻辑
 Mock.mock(/\/admin\/users\/xxx/, 'get', (options) => {
     const urlParams = options.url.split('?')[1] || '';
     const params = {};
@@ -446,7 +419,7 @@ Mock.mock(/\/admin\/users\/xxx/, 'get', (options) => {
     const end = start + parseInt(size);
 
     // 从固定用户中筛选
-    let userList = Object.values(fixedUsers);
+    let userList = getFixedUserList();
     if (keyword) {
         userList = userList.filter(user =>
             user.real_name.includes(keyword) ||
@@ -455,20 +428,9 @@ Mock.mock(/\/admin\/users\/xxx/, 'get', (options) => {
         );
     }
 
-    // 移除敏感信息
-    const filteredList = userList.map(u => ({
-        user_id: u.user_id,
-        student_number: u.student_number,
-        real_name: u.real_name,
-        email: u.email,
-        role: u.role,
-        department_name: u.department_name,
-        is_super_admin: u.is_super_admin
-    }));
-
     const successData = {
-        list: filteredList.slice(start, end),
-        total: filteredList.length,
+        list: userList.slice(start, end),
+        total: userList.length,
         page: Number(page),
         size: Number(size)
     };
@@ -479,7 +441,7 @@ Mock.mock(/\/admin\/users\/xxx/, 'get', (options) => {
     };
 });
 
-// 8. 修改用户角色接口（2.5.8）
+// 8. 修改用户角色接口（2.5.8）- 保持原有逻辑
 Mock.mock(/\/admin\/users\/role\/xxx/, 'put', (options) => {
     const params = decryptData(options.body || '');
     if (!params.user_id) {
@@ -504,7 +466,7 @@ Mock.mock(/\/admin\/users\/role\/xxx/, 'put', (options) => {
     };
 });
 
-// 9. 查询个人稿费接口（2.5.9） - 修改：返回当前用户的稿费记录
+// 9. 查询个人稿费接口（2.5.9）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/royalty\/personal/, 'get', (options) => {
     const urlParams = options.url.split('?')[1] || '';
     const params = {};
@@ -516,11 +478,8 @@ Mock.mock(/\/api\/v1\/royalty\/personal/, 'get', (options) => {
     const start = (page - 1) * size;
     const end = start + parseInt(size);
 
-    // 获取当前用户的稿费记录
-    const user = getCurrentUser();
-    const FIXED_DATA = generateFixedData(); // 动态生成当前用户的数据
+    // 获取用户稿费记录
     const userRecords = FIXED_DATA.royaltyRecords.slice(start, end);
-
     const successData = {
         total: FIXED_DATA.royaltyRecords.length,
         list: userRecords,
@@ -534,7 +493,7 @@ Mock.mock(/\/api\/v1\/royalty\/personal/, 'get', (options) => {
     };
 });
 
-// 10. 查询部门稿费接口（2.5.10）
+// 10. 查询部门稿费接口（2.5.10）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/royalty\/department/, 'get', (options) => {
     const urlParams = options.url.split('?')[1] || '';
     const params = {};
@@ -547,10 +506,8 @@ Mock.mock(/\/api\/v1\/admin\/royalty\/department/, 'get', (options) => {
     const end = start + parseInt(size);
 
     // 筛选部门稿费记录
-    const FIXED_DATA = generateFixedData();
-    const user = getCurrentUser();
     const deptRecords = FIXED_DATA.royaltyRecords.filter(record =>
-        record.department_id === (user.department_id || "1")
+        record.department_id === "1"
     ).slice(start, end);
 
     const successData = {
@@ -566,7 +523,7 @@ Mock.mock(/\/api\/v1\/admin\/royalty\/department/, 'get', (options) => {
     };
 });
 
-// 11. 查询全部稿费接口（2.5.11）
+// 11. 查询全部稿费接口（2.5.11）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/royalty\/all/, 'get', (options) => {
     const urlParams = options.url.split('?')[1] || '';
     const params = {};
@@ -578,7 +535,6 @@ Mock.mock(/\/api\/v1\/admin\/royalty\/all/, 'get', (options) => {
     const start = (page - 1) * size;
     const end = start + parseInt(size);
 
-    const FIXED_DATA = generateFixedData();
     const successData = {
         total: FIXED_DATA.royaltyRecords.length,
         list: FIXED_DATA.royaltyRecords.slice(start, end),
@@ -592,13 +548,12 @@ Mock.mock(/\/api\/v1\/admin\/royalty\/all/, 'get', (options) => {
     };
 });
 
-// 12. 添加稿费记录接口（2.5.12）
+// 12. 添加稿费记录接口（2.5.12）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/royalty/, 'post', (options) => {
     const params = decryptData(options.body || '');
     if (!params.user_id || !params.article_title || !params.fee_amount) {
         return { res_code: '0002', res_msg: '参数错误！缺少必填字段', data: null };
     }
-    const FIXED_DATA = generateFixedData();
     const successData = {
         record_id: `royalty_${1000 + FIXED_DATA.royaltyRecords.length}`,
         created_at: getFixedDatetime(FIXED_DATA.royaltyRecords.length)
@@ -610,13 +565,12 @@ Mock.mock(/\/api\/v1\/admin\/royalty/, 'post', (options) => {
     };
 });
 
-// 13. 修改稿费记录接口（2.5.13）
+// 13. 修改稿费记录接口（2.5.13）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/royalty\/\d+/, 'put', (options) => {
     const params = decryptData(options.body || '');
     if (!params.article_title || !params.fee_amount) {
         return { res_code: '0002', res_msg: '参数错误！缺少必填字段', data: null };
     }
-    const FIXED_DATA = generateFixedData();
     const successData = {
         updated_at: getFixedDatetime(FIXED_DATA.royaltyRecords.length + 1)
     };
@@ -627,9 +581,8 @@ Mock.mock(/\/api\/v1\/admin\/royalty\/\d+/, 'put', (options) => {
     };
 });
 
-// 14. 删除稿费记录接口（2.5.14）
+// 14. 删除稿费记录接口（2.5.14）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/royalty\/\d+/, 'delete', () => {
-    const FIXED_DATA = generateFixedData();
     const successData = {
         deleted_at: getFixedDatetime(FIXED_DATA.royaltyRecords.length + 2)
     };
@@ -640,12 +593,11 @@ Mock.mock(/\/api\/v1\/admin\/royalty\/\d+/, 'delete', () => {
     };
 });
 
-// 15. 导出稿费记录接口（2.5.15）
+// 15. 导出稿费记录接口（2.5.15）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/royalty\/export/, 'get', (options) => {
     const params = options.params || {};
     const { statistical_month, format = 'Excel' } = params;
 
-    const FIXED_DATA = generateFixedData();
     const successData = {
         fileUrl: `https://example.com/fee_${statistical_month || '2026-01'}.${format.toLowerCase()}`,
         exportTime: getFixedDatetime(5),
@@ -658,13 +610,12 @@ Mock.mock(/\/api\/v1\/admin\/royalty\/export/, 'get', (options) => {
     };
 });
 
-// 16. 添加代领记录接口（2.5.16）
+// 16. 添加代领记录接口（2.5.16）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/proxy/, 'post', (options) => {
     const params = decryptData(options.body || '');
     if (!params.fee_record_id || !params.proxy_user_id) {
         return { res_code: '0002', res_msg: '参数错误！缺少必填字段', data: null };
     }
-    const FIXED_DATA = generateFixedData();
     const successData = {
         proxy_id: `proxy_${200 + FIXED_DATA.proxyRecords.length}`
     };
@@ -675,7 +626,7 @@ Mock.mock(/\/api\/v1\/admin\/proxy/, 'post', (options) => {
     };
 });
 
-// 17. 查询代领记录接口（2.5.17）
+// 17. 查询代领记录接口（2.5.17）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/proxy\/list/, 'get', (options) => {
     const urlParams = options.url.split('?')[1] || '';
     const params = {};
@@ -687,7 +638,6 @@ Mock.mock(/\/api\/v1\/admin\/proxy\/list/, 'get', (options) => {
     const start = (page - 1) * size;
     const end = start + parseInt(size);
 
-    const FIXED_DATA = generateFixedData();
     const successData = {
         total: FIXED_DATA.proxyRecords.length,
         list: FIXED_DATA.proxyRecords.slice(start, end),
@@ -701,13 +651,12 @@ Mock.mock(/\/api\/v1\/admin\/proxy\/list/, 'get', (options) => {
     };
 });
 
-// 18. 修改代领记录接口（2.5.18）
+// 18. 修改代领记录接口（2.5.18）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/proxy\/\d+/, 'put', (options) => {
     const params = decryptData(options.body || '');
     if (params.fee_amount && isNaN(Number(params.fee_amount))) {
         return { res_code: '0002', res_msg: '参数错误：fee_amount 格式不正确', data: null };
     }
-    const FIXED_DATA = generateFixedData();
     const successData = {
         proxy_id: params.proxy_id || `proxy_${200 + FIXED_DATA.proxyRecords.length}`,
         updated_at: getFixedDatetime(FIXED_DATA.proxyRecords.length + 1)
@@ -719,9 +668,8 @@ Mock.mock(/\/api\/v1\/admin\/proxy\/\d+/, 'put', (options) => {
     };
 });
 
-// 19. 撤销代领记录接口（2.5.19）
+// 19. 撤销代领记录接口（2.5.19）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/proxy\/\d+/, 'delete', () => {
-    const FIXED_DATA = generateFixedData();
     const successData = {
         proxy_id: `proxy_${200 + FIXED_DATA.proxyRecords.length}`,
         deleted_at: getFixedDatetime(FIXED_DATA.proxyRecords.length + 2)
@@ -733,13 +681,12 @@ Mock.mock(/\/api\/v1\/admin\/proxy\/\d+/, 'delete', () => {
     };
 });
 
-// 20. 提交问题反馈接口（2.5.20）
+// 20. 提交问题反馈接口（2.5.20）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/feedback/, 'post', (options) => {
     const params = decryptData(options.body || '');
     if (!params.user_id || !params.content) {
         return { res_code: '0002', res_msg: '参数错误！缺少必填字段或格式不正确', data: null };
     }
-    const FIXED_DATA = generateFixedData();
     const successData = {
         feedback_id: `f${100 + FIXED_DATA.feedbackRecords.length}`,
         created_at: getFixedDatetime(FIXED_DATA.feedbackRecords.length)
@@ -751,7 +698,7 @@ Mock.mock(/\/api\/v1\/feedback/, 'post', (options) => {
     };
 });
 
-// 21. 用户查询反馈接口（2.5.21） - 修改：返回当前用户的反馈
+// 21. 用户查询反馈接口（2.5.21）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/feedback\/my/, 'get', (options) => {
     const urlParams = options.url.split('?')[1] || '';
     const params = {};
@@ -763,11 +710,9 @@ Mock.mock(/\/api\/v1\/feedback\/my/, 'get', (options) => {
     const start = (page - 1) * size;
     const end = start + parseInt(size);
 
-    // 获取当前用户的反馈记录
-    const user = getCurrentUser();
-    const FIXED_DATA = generateFixedData();
+    // 假设查询用户ID为1的反馈
     const userFeedbacks = FIXED_DATA.feedbackRecords.filter(fb =>
-        fb.user_id === user.user_id
+        fb.user_id === "1"
     ).slice(start, end);
 
     const successData = {
@@ -783,15 +728,9 @@ Mock.mock(/\/api\/v1\/feedback\/my/, 'get', (options) => {
     };
 });
 
-// 22. 查询反馈详情接口（2.5.22）
+// 22. 查询反馈详情接口（2.5.22）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/feedback\/f\d+/, 'get', () => {
-    const FIXED_DATA = generateFixedData();
-    const user = getCurrentUser();
-
-    // 获取当前用户的第一个反馈
-    const userFeedbacks = FIXED_DATA.feedbackRecords.filter(fb => fb.user_id === user.user_id);
-    const feedback = userFeedbacks[0] || FIXED_DATA.feedbackRecords[0];
-
+    const feedback = FIXED_DATA.feedbackRecords[0];
     const successData = {
         feedbackInfo: feedback
     };
@@ -802,7 +741,7 @@ Mock.mock(/\/api\/v1\/feedback\/f\d+/, 'get', () => {
     };
 });
 
-// 23. 查询待处理反馈接口（2.5.23）
+// 23. 查询待处理反馈接口（2.5.23）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/feedback\/pending/, 'get', (options) => {
     const urlParams = options.url.split('?')[1] || '';
     const params = {};
@@ -814,7 +753,6 @@ Mock.mock(/\/api\/v1\/admin\/feedback\/pending/, 'get', (options) => {
     const start = (page - 1) * size;
     const end = start + parseInt(size);
 
-    const FIXED_DATA = generateFixedData();
     const pendingFeedbacks = FIXED_DATA.feedbackRecords.filter(fb =>
         fb.status === 'pending'
     ).slice(start, end);
@@ -832,7 +770,7 @@ Mock.mock(/\/api\/v1\/admin\/feedback\/pending/, 'get', (options) => {
     };
 });
 
-// 24. 查询所有反馈接口（2.5.24）
+// 24. 查询所有反馈接口（2.5.24）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/feedback\/all/, 'get', (options) => {
     const urlParams = options.url.split('?')[1] || '';
     const params = {};
@@ -844,7 +782,6 @@ Mock.mock(/\/api\/v1\/admin\/feedback\/all/, 'get', (options) => {
     const start = (page - 1) * size;
     const end = start + parseInt(size);
 
-    const FIXED_DATA = generateFixedData();
     const successData = {
         total: FIXED_DATA.feedbackRecords.length,
         page: Number(page),
@@ -858,13 +795,12 @@ Mock.mock(/\/api\/v1\/admin\/feedback\/all/, 'get', (options) => {
     };
 });
 
-// 25. 回复用户反馈接口（2.5.25）
+// 25. 回复用户反馈接口（2.5.25）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/feedback\/f\d+\/reply/, 'post', (options) => {
     const params = decryptData(options.body || '');
     if (!params.reply_content) {
         return { res_code: '0002', res_msg: '参数错误！缺少必填字段或格式不正确', data: null };
     }
-    const FIXED_DATA = generateFixedData();
     const successData = {
         message: '回复成功',
         replied_at: getFixedDatetime(FIXED_DATA.feedbackRecords.length + 1)
@@ -876,13 +812,12 @@ Mock.mock(/\/api\/v1\/admin\/feedback\/f\d+\/reply/, 'post', (options) => {
     };
 });
 
-// 26. 更新反馈状态接口（2.5.26）
+// 26. 更新反馈状态接口（2.5.26）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/feedback\/f\d+\/status/, 'put', (options) => {
     const params = decryptData(options.body || '');
     if (!params.status) {
         return { res_code: '0002', res_msg: '参数错误！缺少必填字段或格式不正确', data: null };
     }
-    const FIXED_DATA = generateFixedData();
     const successData = {
         message: '状态更新成功',
         updated_at: getFixedDatetime(FIXED_DATA.feedbackRecords.length + 2)
@@ -894,9 +829,8 @@ Mock.mock(/\/api\/v1\/admin\/feedback\/f\d+\/status/, 'put', (options) => {
     };
 });
 
-// 27. 获取公告详情接口（2.5.27）
+// 27. 获取公告详情接口（2.5.27）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/announcements\/a\d+/, 'get', () => {
-    const FIXED_DATA = generateFixedData();
     const announcement = FIXED_DATA.announcements[0];
     const successData = {
         announcementInfo: announcement
@@ -908,14 +842,13 @@ Mock.mock(/\/api\/v1\/announcements\/a\d+/, 'get', () => {
     };
 });
 
-// 28. 管理员发布公告接口（2.5.28）
+// 28. 管理员发布公告接口（2.5.28）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/announcements/, 'post', (options) => {
     const params = decryptData(options.body || '');
     if (!params.title || !params.content || !params.publisher_id) {
         return { res_code: '0002', res_msg: '参数错误！缺少必填字段', data: null };
     }
 
-    const FIXED_DATA = generateFixedData();
     const successData = {
         announcement_id: `a${100 + FIXED_DATA.announcements.length}`,
         message: '发布成功',
@@ -928,13 +861,12 @@ Mock.mock(/\/api\/v1\/admin\/announcements/, 'post', (options) => {
     };
 });
 
-// 29. 管理员修改公告接口（2.5.29）
+// 29. 管理员修改公告接口（2.5.29）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/announcements\/\d+/, 'put', (options) => {
     const params = decryptData(options.body || '');
     if (!params.title || !params.content) {
         return { res_code: '0002', res_msg: '参数错误！缺少必填字段或格式不正确', data: null };
     }
-    const FIXED_DATA = generateFixedData();
     const successData = {
         message: '修改成功',
         updated_at: getFixedDatetime(FIXED_DATA.announcements.length + 1)
@@ -946,9 +878,8 @@ Mock.mock(/\/api\/v1\/admin\/announcements\/\d+/, 'put', (options) => {
     };
 });
 
-// 30. 管理员删除公告接口（2.5.30）
+// 30. 管理员删除公告接口（2.5.30）- 保持原有逻辑
 Mock.mock(/\/api\/v1\/admin\/announcements\/\d+/, 'delete', () => {
-    const FIXED_DATA = generateFixedData();
     const successData = {
         message: '删除成功',
         deleted_at: getFixedDatetime(FIXED_DATA.announcements.length + 2)
@@ -960,7 +891,7 @@ Mock.mock(/\/api\/v1\/admin\/announcements\/\d+/, 'delete', () => {
     };
 });
 
-// 31. 获取所有公告接口（2.5.31） - 修改：首页公告显示
+// 31. 获取所有公告接口（2.5.31）- 修改：首页添加当前用户信息
 Mock.mock(/\/api\/v1\/announcements/, 'get', (options) => {
     const urlParams = new URLSearchParams(options.url.split('?')[1] || '');
     const params = {
@@ -987,24 +918,7 @@ Mock.mock(/\/api\/v1\/announcements/, 'get', (options) => {
         };
     }
 
-    const FIXED_DATA = generateFixedData();
     let filteredAnnouncements = FIXED_DATA.announcements;
-
-    // 为当前用户定制首页公告标题
-    const user = getCurrentUser();
-    if (params.page === 1 && !params.keyword && !params.publisher_id) {
-        filteredAnnouncements = filteredAnnouncements.map((item, index) => {
-            if (index < 3) { // 前3条公告显示用户个性化信息
-                return {
-                    ...item,
-                    title: `欢迎${user.real_name}使用稿费管理系统 - ${item.title}`,
-                    content: `尊敬的${user.real_name}，${item.content}`
-                };
-            }
-            return item;
-        });
-    }
-
     if (params.keyword) {
         filteredAnnouncements = filteredAnnouncements.filter(item =>
             item.title.includes(params.keyword)
@@ -1031,14 +945,19 @@ Mock.mock(/\/api\/v1\/announcements/, 'get', (options) => {
     const end = start + params.size;
     const paginatedAnnouncements = filteredAnnouncements.slice(start, end);
 
+    // 获取当前登录用户信息，用于首页显示
+    const user = currentLoginUser || fixedUsers["200000000001"];
+
     const successData = {
         total: total,
         page: params.page,
         size: params.size,
         list: paginatedAnnouncements,
-        current_user: { // 新增：返回当前用户信息用于首页显示
+        // 新增：首页需要的当前用户信息
+        current_user: {
             name: user.real_name,
-            role: user.role
+            role: user.role,
+            department_name: user.department_name
         }
     };
     return {
@@ -1048,14 +967,14 @@ Mock.mock(/\/api\/v1\/announcements/, 'get', (options) => {
     };
 });
 
-// ==================== 新增：首页接口（可选，用于首页展示用户数据） ====================
+// ==================== 新增：首页接口（可选） ====================
 Mock.mock(/\/api\/v1\/home\/dashboard/, 'get', (options) => {
-    const user = getCurrentUser();
-    const FIXED_DATA = generateFixedData();
+    // 获取当前登录用户
+    const user = currentLoginUser || fixedUsers["200000000001"];
 
-    // 计算统计数据
+    // 计算简单的统计数据
     const totalRoyalty = FIXED_DATA.royaltyRecords
-        .filter(record => record.user_ids[0] === user.user_id)
+        .filter(record => record.user_ids.includes(user.user_id))
         .reduce((sum, item) => sum + item.fee_amount, 0);
 
     const userFeedbacks = FIXED_DATA.feedbackRecords.filter(fb => fb.user_id === user.user_id);
@@ -1071,14 +990,10 @@ Mock.mock(/\/api\/v1\/home\/dashboard/, 'get', (options) => {
         },
         statistics: {
             total_royalty: totalRoyalty,
-            total_records: FIXED_DATA.royaltyRecords.filter(r => r.user_ids[0] === user.user_id).length,
+            total_records: FIXED_DATA.royaltyRecords.filter(r => r.user_ids.includes(user.user_id)).length,
             pending_feedback: pendingFeedback,
             recent_month: getFixedMonth()
         },
-        recent_royalties: FIXED_DATA.royaltyRecords
-            .filter(record => record.user_ids[0] === user.user_id)
-            .slice(0, 5),
-        recent_feedbacks: userFeedbacks.slice(0, 3),
         system_time: getFixedDatetime(0)
     };
 
