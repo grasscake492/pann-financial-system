@@ -10,6 +10,7 @@ Mock.Random.extend({
     seed: 'pann2026' // 设置随机种子
 });
 
+
 // 生成固定ID（基于索引）
 const getFixedId = (len = 8, seed = '') => {
     if (seed) {
@@ -332,6 +333,10 @@ const FIXED_DATA = {
     proxyRecords: generateFixedProxyRecords(8, 0)
 };
 
+// 临时调试用，把 FIXED_DATA 挂到全局
+window.FIXED_DATA = FIXED_DATA;
+console.log("FIXED_DATA 已挂到全局，可以在控制台访问了");
+
 Mock.setup({
     timeout: '200-600',
     responseType: 'json'
@@ -363,7 +368,7 @@ Mock.mock(/\/auth\/register\/xxx/, 'post', (options) => {
 });
 
 // 2. 用户登录接口（2.5.2）- 新增：密码验证
-Mock.mock(/\auth\/login\/xxx/, 'post', (options) => {
+Mock.mock(/\/auth\/login\/xxx/, 'post', (options) => {
     const loginParams = decryptData(options.body || '');
     const inputStudentNumber = loginParams.student_number;
     const inputPassword = loginParams.password;
@@ -379,16 +384,7 @@ Mock.mock(/\auth\/login\/xxx/, 'post', (options) => {
     // 通过学号查找用户
     const targetUser = Object.values(fixedUsers).find(user => user.student_number === inputStudentNumber);
 
-    if (!targetUser) {
-        return {
-            res_code: "0004",
-            res_msg: "学号或密码错误",
-            data: null
-        };
-    }
-
-    // 验证密码
-    if (targetUser.password !== inputPassword) {
+    if (!targetUser || targetUser.password !== inputPassword) {
         return {
             res_code: "0004",
             res_msg: "学号或密码错误",

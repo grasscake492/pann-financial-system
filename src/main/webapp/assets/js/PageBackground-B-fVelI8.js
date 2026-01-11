@@ -1,0 +1,1 @@
+import{h5 as o}from"./index-BWnjimtD.js";import{F as r,o as t,H as s}from"./vue-Bt10MVH5.js";const n={},a={class:"gradient-bg"};function c(e,d){return t(),r("div",a,[s(e.$slots,"default",{},void 0,!0)])}const i=o(n,[["render",c],["__scopeId","data-v-814594d2"]]);export{i as P};

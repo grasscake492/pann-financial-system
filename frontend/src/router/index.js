@@ -193,14 +193,8 @@ router.beforeEach(async (to, from, next) => {
     }
 
     // 3. 已登录：初始化用户Store + 校验角色+部门权限
-    const userRole = userStore.userRole || localStorage.getItem('pann_user_role') || ''
-    const userInfoStr = localStorage.getItem('pann_user_info') || '{}'
-    let userInfo = {}
-    try {
-        userInfo = JSON.parse(userInfoStr)
-    } catch (e) {
-        userInfo = {}
-    }
+    const userRole = userStore.userRole || ''
+    const userInfo = userStore.userInfo || {}
     const userDept = userInfo.department_name || ''
 
     // 辅助函数：安全调用checkHomeLoginStatus（如果这个函数存在）

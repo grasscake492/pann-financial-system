@@ -150,16 +150,20 @@ const handleLogin = async () => {
     switch (res.res_code) {
       case "0000":
         const userStore = useUserStore();
-        // 完整赋值userStore的userInfo（包含所有权限字段）
-        userStore.userInfo = {
-          // 保留Store原有默认值，避免覆盖必要字段
-          ...userStore.userInfo,
-          // 用解密后的完整用户信息覆盖（包含department_name/is_super_admin等）
+
+//  使用 Store 标准方法写入用户信息
+        userStore.setUserInfo({
           ...userInfo,
-          // 确保登录状态正确
-          department_name: userInfo.department_name || '',
-          isLogin: !!userInfo.token
-        };
+          token: userInfo.token,
+          isLogin: true
+        });
+
+//  标记登录验证完成（非常关键）
+        userStore.confirmLogin();
+
+//  同步角色到本地缓存（此时 role 已经稳定）
+        userStore.updateLocalStorageRole();
+
 
         // 校验token
         if (!userInfo.token) {
@@ -171,11 +175,6 @@ const handleLogin = async () => {
           storage.setToken(userInfo.token);
           console.log('存完后本地的token：', getToken());
         }
-
-        // 存储完整信息，且角色用Store计算好的
-        storage.setToken(userInfo.token);
-        storage.setRole(userStore.userRole);
-        storage.setUserInfo(userStore.userInfo); // 存完整的userInfo
 
         ElMessage.success('登录成功！');
         const redirect = route.query.redirect || '/home';

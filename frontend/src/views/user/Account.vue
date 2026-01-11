@@ -162,7 +162,7 @@ const infoForm = reactive({
 
 //================计算属性================
 const getUserRoleText = computed(() => {
-  const deptName = userStore.userInfo.department_name || '';
+  const deptName = userStore.userInfo?.department_name || '';
   switch (userStore.userRole) {
     case 'super_admin':
       return `${deptName || '无'}`;
@@ -178,6 +178,7 @@ const getUserRoleText = computed(() => {
       return '未知用户';
   }
 });
+
 
 //================表单验证规则================
 const pwdRules = {
@@ -276,8 +277,14 @@ onMounted(async () => {
 
 //================用户操作================
 const goLogin = () => {
+  //  清空 Pinia 用户状态
+  userStore.clearUserInfo();
+
+  //  清空 token / localStorage
   clearLoginState();
-  router.push({ path: '/login' });
+
+  //  强制回登录页（避免历史路由残留）
+  router.replace({ path: '/login' });
 };
 
 //================修改密码功能================

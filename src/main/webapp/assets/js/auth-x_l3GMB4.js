@@ -1,0 +1,1 @@
+import{hh as r}from"./index-BWnjimtD.js";const s=a=>r({method:"POST",url:"/api/auth/register",data:a}),o=a=>r({method:"POST",url:"/api/auth/login",data:a}),u=(a,t)=>r({method:"PUT",url:`/auth/change-password/${a}`,data:t});export{s as a,u as c,o as u};

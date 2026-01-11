@@ -110,12 +110,12 @@ export const useUserStore = defineStore('user', {
                 const res = await this.loadUserProfile();
 
                 if (res && res.res_code === "0000") {
-                    // token有效，设置登录状态
                     this.userInfo.isLogin = true;
                     this.authChecked = true;
-                    console.log('Token验证成功，用户已登录');
+                    this.updateLocalStorageRole();   //  同步角色
                     return true;
-                } else {
+                }
+                else {
                     // token无效，清理
                     console.warn('Token验证失败，清理用户数据');
                     this.clearUserInfo();
